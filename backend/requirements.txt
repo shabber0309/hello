@@ -1,0 +1,10 @@
+Flask==3.1.1
+Flask-Cors==6.0.5
+Flask-SQLAlchemy==3.1.1
+PyJWT==2.15.0
+google-api-python-client==2.200.0
+google-auth==2.58.0
+google-auth-oauthlib==1.4.1
+PyMySQL==1.2.3
+cryptography==50.0.1
+Werkzeug==3.1.8
