@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: fixconnect-live-hardware
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: chmod +x ./build.sh && ./build.sh
+    startCommand: gunicorn --chdir backend app:app --workers 2 --threads 4 --timeout 120
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: USE_MYSQL
+        value: false
+      - key: FLASK_ENV
+        value: production

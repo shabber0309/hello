@@ -39,14 +39,31 @@ def create_app(config_class=Config):
             'database': 'Connected'
         }), 200
 
+    # Serve React Frontend Build in Production if present
+    frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))
+    if os.path.exists(frontend_dist):
+        from flask import send_from_directory
+
+        @app.route('/', defaults={'path': ''})
+        @app.route('/<path:path>')
+        def serve_frontend(path):
+            if path and not path.startswith('api') and os.path.exists(os.path.join(frontend_dist, path)):
+                return send_from_directory(frontend_dist, path)
+            if not path.startswith('api'):
+                return send_from_directory(frontend_dist, 'index.html')
+            return jsonify({'error': 'API endpoint not found'}), 404
+
     # Initialize database tables and Admin Shabber outside of app.py
     init_database(app)
 
     return app
 
 
+# WSGI application instance for production (Gunicorn / Render)
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     port = int(os.environ.get('PORT', 5000))
     print(f"FixConnect Live Hardware Backend running on http://127.0.0.1:{port}")
     app.run(host='0.0.0.0', port=port, debug=True)
+
