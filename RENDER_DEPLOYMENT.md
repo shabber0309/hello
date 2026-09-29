@@ -48,7 +48,7 @@ If you prefer to configure it manually on Render:
    | Key | Value | Notes |
    | :--- | :--- | :--- |
    | `PYTHON_VERSION` | `3.11.9` | Ensures Python 3.11 compatibility |
-   | `NODE_VERSION` | `20.11.0` | Node runtime to build React bundle |
+   | `NODE_VERSION` | `22.14.0` | Node runtime to build React bundle |
    | `SECRET_KEY` | *(generate a random string)* | Flask session secret |
    | `JWT_SECRET_KEY` | *(generate a random string)* | JWT authentication secret |
    | `USE_MYSQL` | `false` | Uses SQLite out-of-the-box (or `true` if attaching MySQL) |
