@@ -61,16 +61,27 @@ export default function Navbar({
       top: 0,
       zIndex: 1000,
       width: '100%',
-      background: 'var(--bg-header)',
+      background: theme === 'light' ? 'rgba(255, 255, 255, 0.94)' : 'rgba(5, 25, 55, 0.94)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      borderBottom: '1px solid var(--border-light)',
-      height: '68px',
+      borderBottom: '1px solid rgba(56, 189, 248, 0.25)',
+      height: '70px',
       display: 'flex',
       alignItems: 'center',
-      boxShadow: '0 2px 14px rgba(15, 23, 42, 0.04)',
+      boxShadow: '0 4px 20px rgba(0, 50, 100, 0.12)',
+      position: 'sticky',
       transition: 'all 0.25s ease'
     }}>
+      {/* Vibrant Rainbow Spectrum Hairline along top of Navbar */}
+      <div className="rainbow-strip" style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '3.5px',
+        zIndex: 10
+      }} />
+
       {/* ========================================================
           CASE 1: PUBLIC NAVBAR (When Not Logged In)
          ======================================================== */}
@@ -85,7 +96,7 @@ export default function Navbar({
           padding: '0 24px',
           gap: '16px'
         }}>
-          {/* Left: Brand Logo with Active Verified Glow */}
+          {/* Left: Brand Logo with Vibrant Colorful Shield & Glow */}
           <div 
             onClick={() => navigate('/')}
             style={{ 
@@ -98,33 +109,34 @@ export default function Navbar({
             }}
           >
             <div style={{
-              width: '38px',
-              height: '38px',
+              width: '40px',
+              height: '40px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+              background: 'linear-gradient(135deg, #00f5a0 0%, #00dfd8 35%, #0070f3 70%, #7928ca 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#ffffff',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(0,0,0,0.15)',
-              border: '1px solid rgba(16, 185, 129, 0.35)',
+              boxShadow: '0 4px 14px rgba(0, 112, 243, 0.4), 0 0 10px rgba(0, 223, 216, 0.3)',
+              border: '1.5px solid rgba(255, 255, 255, 0.7)',
               position: 'relative'
             }}>
-              <ShieldCheck size={21} strokeWidth={2.4} color="#10b981" />
+              <ShieldCheck size={22} strokeWidth={2.5} color="#ffffff" />
               <span style={{
                 position: 'absolute',
                 top: '-2px',
                 right: '-2px',
-                width: '8px',
-                height: '8px',
+                width: '9px',
+                height: '9px',
                 borderRadius: '50%',
                 background: '#10b981',
-                boxShadow: '0 0 8px #10b981'
+                boxShadow: '0 0 8px #10b981',
+                border: '1.5px solid #ffffff'
               }} />
             </div>
 
             <span style={{ 
-              fontSize: '1.28rem', 
+              fontSize: '1.3rem', 
               fontWeight: 800, 
               letterSpacing: '-0.02em',
               color: 'var(--text-main)',
@@ -132,25 +144,33 @@ export default function Navbar({
               whiteSpace: 'nowrap',
               display: 'flex',
               alignItems: 'center',
-              gap: '7px'
+              gap: '8px'
             }}>
-              <span>Fix<span style={{ color: 'var(--primary)' }}>Connect</span></span>
+              <span>
+                Fix<span style={{
+                  background: 'linear-gradient(135deg, #0284c7 0%, #7c3aed 50%, #ec4899 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  display: 'inline-block'
+                }}>Connect</span>
+              </span>
               <span style={{
                 fontSize: '0.64rem',
                 fontWeight: 800,
                 color: '#059669',
-                background: 'rgba(16, 185, 129, 0.12)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                padding: '2px 8px',
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(6, 182, 212, 0.16))',
+                border: '1px solid rgba(16, 185, 129, 0.4)',
+                padding: '3px 9px',
                 borderRadius: '9999px',
-                letterSpacing: '0.04em'
+                letterSpacing: '0.05em',
+                boxShadow: '0 0 10px rgba(16, 185, 129, 0.2)'
               }}>
                 LIVE VERIFIED
               </span>
             </span>
           </div>
 
-          {/* Center: Navigation Buttons */}
+          {/* Center: Navigation Buttons with Colorful Accents */}
           <nav style={{
             display: 'flex',
             alignItems: 'center',
@@ -160,57 +180,87 @@ export default function Navbar({
           }}>
             <button
               onClick={() => navigate('/')}
-              className={`nav-pill-btn ${location.pathname === '/' || location.pathname === '/home' ? 'active' : ''}`}
+              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/' || location.pathname === '/home' ? 'active' : ''}`}
+              style={{
+                background: (location.pathname === '/' || location.pathname === '/home') 
+                  ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' 
+                  : 'transparent',
+                color: (location.pathname === '/' || location.pathname === '/home') ? '#ffffff' : 'var(--text-muted)'
+              }}
             >
               Home
             </button>
 
             <button
               onClick={() => navigate('/how-it-works')}
-              className={`nav-pill-btn ${location.pathname === '/how-it-works' ? 'active' : ''}`}
+              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/how-it-works' ? 'active' : ''}`}
+              style={{
+                background: location.pathname === '/how-it-works' 
+                  ? 'linear-gradient(135deg, #0284c7, #0369a1)' 
+                  : 'transparent',
+                color: location.pathname === '/how-it-works' ? '#ffffff' : 'var(--text-muted)'
+              }}
             >
               How It Works
             </button>
 
             <button
               onClick={() => navigate('/services')}
-              className={`nav-pill-btn ${location.pathname === '/services' ? 'active' : ''}`}
+              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/services' ? 'active' : ''}`}
+              style={{
+                background: location.pathname === '/services' 
+                  ? 'linear-gradient(135deg, #7c3aed, #6d28d9)' 
+                  : 'transparent',
+                color: location.pathname === '/services' ? '#ffffff' : 'var(--text-muted)'
+              }}
             >
               Services
             </button>
 
             <button
               onClick={() => navigate('/for-technicians')}
-              className={`nav-pill-btn ${location.pathname === '/for-technicians' ? 'active' : ''}`}
+              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/for-technicians' ? 'active' : ''}`}
+              style={{
+                background: location.pathname === '/for-technicians' 
+                  ? 'linear-gradient(135deg, #ea580c, #c2410c)' 
+                  : 'transparent',
+                color: location.pathname === '/for-technicians' ? '#ffffff' : 'var(--text-muted)'
+              }}
             >
               For Technicians
             </button>
 
             <button
               onClick={() => navigate('/pricing')}
-              className={`nav-pill-btn ${location.pathname === '/pricing' ? 'active' : ''}`}
+              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/pricing' ? 'active' : ''}`}
+              style={{
+                background: location.pathname === '/pricing' 
+                  ? 'linear-gradient(135deg, #059669, #047857)' 
+                  : 'transparent',
+                color: location.pathname === '/pricing' ? '#ffffff' : 'var(--text-muted)'
+              }}
             >
               Pricing
             </button>
           </nav>
 
-          {/* Right: Actions (Theme Toggle, Login) */}
+          {/* Right: Actions (Theme Toggle, Glowing Colorful Login Button) */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
-            gap: '10px',
+            gap: '12px',
             flexShrink: 0
           }}>
             <button
               onClick={toggleTheme}
               title="Toggle Theme"
               style={{
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 borderRadius: '50%',
-                background: 'var(--bg-card-subtle)',
-                border: '1px solid var(--border-light)',
+                background: 'rgba(2, 132, 199, 0.1)',
+                border: '1.5px solid rgba(56, 189, 248, 0.35)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -219,21 +269,12 @@ export default function Navbar({
                 transition: 'all 0.2s ease'
               }}
             >
-              {theme === 'light' ? <Moon size={15} /> : <Sun size={15} color="#f59e0b" />}
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} color="#f59e0b" />}
             </button>
 
             <button
               onClick={() => navigate('/login')}
-              className={`nav-pill-btn ${location.pathname === '/login' ? 'active' : ''}`}
-              style={{
-                padding: '8px 22px',
-                fontSize: '0.88rem',
-                fontWeight: 700,
-                borderRadius: '9999px',
-                cursor: 'pointer',
-                border: location.pathname === '/login' ? '1px solid var(--primary)' : '1px solid var(--border-light)',
-                background: location.pathname === '/login' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.65)'
-              }}
+              className="colorful-login-btn"
             >
               Login
             </button>

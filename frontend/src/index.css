@@ -100,8 +100,13 @@
 }
 
 body {
-  /* Rich, vivid gradient of Trust Blue, Azure, and Soft Emerald */
-  background: linear-gradient(135deg, #c7d9fc 0%, #d4e4fc 25%, #bfd8fc 50%, #bae6fd 75%, #bbf7d0 100%) fixed;
+  /* Authentic Electronics Repair Silicone Mat Blue (Reference Image 2) */
+  background: 
+    radial-gradient(circle at 50% 12%, rgba(56, 189, 248, 0.28) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(155deg, #0288d1 0%, #0077b6 38%, #026ca8 72%, #014f7c 100%) fixed;
+  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
   color: var(--text-main);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -113,24 +118,20 @@ body {
 /* Specific theme overrides */
 [data-theme="light"] body {
   background: 
-    radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.2) 0%, transparent 45%),
-    radial-gradient(circle at 90% 20%, rgba(16, 185, 129, 0.18) 0%, transparent 40%),
-    radial-gradient(circle at 50% 85%, rgba(99, 102, 241, 0.18) 0%, transparent 50%),
-    linear-gradient(to right, rgba(37, 99, 235, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(37, 99, 235, 0.08) 1px, transparent 1px),
-    linear-gradient(135deg, #c7d9fc 0%, #d4e4fc 25%, #bfd8fc 50%, #bae6fd 75%, #bbf7d0 100%) fixed;
-  background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px, 100% 100%;
+    radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.25) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(155deg, #0088cc 0%, #0077b6 38%, #026ca8 72%, #01579b 100%) fixed;
+  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
 }
 
 [data-theme="dark"] body {
   background: 
-    radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.25) 0%, transparent 45%),
-    radial-gradient(circle at 85% 25%, rgba(16, 185, 129, 0.18) 0%, transparent 40%),
-    radial-gradient(circle at 50% 80%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
-    linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-    linear-gradient(160deg, #070f22 0%, #0b1a3e 35%, #0d2757 70%, #0a1f44 100%) fixed;
-  background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px, 100% 100%;
+    radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.18) 0%, transparent 60%),
+    linear-gradient(to right, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(160deg, #051e3c 0%, #004b7a 38%, #02385c 72%, #012238 100%) fixed;
+  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -402,4 +403,78 @@ input:focus, textarea:focus, select:focus {
   background: linear-gradient(135deg, var(--primary) 0%, var(--cta-orange) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ==========================================================================
+   Vibrant Colorful Navbar & Silicone Repair Mat Utilities (Image 2)
+   ========================================================================== */
+
+@keyframes rainbowSlide {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.rainbow-strip {
+  background: linear-gradient(90deg, #ff007a, #7928ca, #0070f3, #00dfd8, #00f5a0, #f5a623, #ff007a);
+  background-size: 300% 100%;
+  animation: rainbowSlide 6s ease infinite;
+}
+
+.colorful-login-btn {
+  background: linear-gradient(135deg, #06b6d4 0%, #2563eb 50%, #7c3aed 100%);
+  background-size: 200% 200%;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  padding: 8px 24px !important;
+  border-radius: 9999px !important;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45), 0 0 12px rgba(6, 182, 212, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+  letter-spacing: 0.02em;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.colorful-login-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6), 0 0 18px rgba(6, 182, 212, 0.55);
+  filter: brightness(1.1);
+}
+
+/* Nav Link Colorful Hover Accents */
+.nav-link-colorful {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link-colorful:hover {
+  transform: translateY(-1.5px);
+}
+
+/* Silicone Mat Cards: Molded Inset / Raised Look */
+.silicone-card {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 30, 70, 0.15), 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
+}
+
+[data-theme="dark"] .silicone-card {
+  background: rgba(10, 30, 60, 0.88);
+  border: 2px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 1px 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+.silicone-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0, 30, 70, 0.25);
+  border-color: rgba(56, 189, 248, 0.7);
 }

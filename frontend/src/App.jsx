@@ -27,6 +27,7 @@ import HelpSupportModal from './components/HelpSupportModal';
 import EditProfileModal from './components/EditProfileModal';
 import QualityCheckDeliveryModal from './components/QualityCheckDeliveryModal';
 import AuthPage from './pages/AuthPage';
+import SiliconeWorkbenchFrame from './components/SiliconeWorkbenchFrame';
 import { ShieldCheck, Video, Lock, Heart } from 'lucide-react';
 
 function MainApp() {
@@ -91,89 +92,91 @@ function MainApp() {
       />
 
       <main style={{ flex: 1 }}>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={
-            <LandingPage
-              onStartBooking={() => navigate('/book')}
-              onBecomeTechnician={() => navigate('/for-technicians')}
-              onSeeHowItWorks={() => navigate('/how-it-works')}
-              onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
-              onOpenChainOfCustody={() => setIsChainOfCustodyOpen(true)}
-              onOpenTrackRepair={(id) => {
-                if (id) handleOpenTrackWithId(id);
-                else navigate('/track-repair');
-              }}
-            />
-          } />
-          <Route path="/home" element={<Navigate to="/" replace />} />
+        <SiliconeWorkbenchFrame>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={
+              <LandingPage
+                onStartBooking={() => navigate('/book')}
+                onBecomeTechnician={() => navigate('/for-technicians')}
+                onSeeHowItWorks={() => navigate('/how-it-works')}
+                onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
+                onOpenChainOfCustody={() => setIsChainOfCustodyOpen(true)}
+                onOpenTrackRepair={(id) => {
+                  if (id) handleOpenTrackWithId(id);
+                  else navigate('/track-repair');
+                }}
+              />
+            } />
+            <Route path="/home" element={<Navigate to="/" replace />} />
 
-          <Route path="/how-it-works" element={
-            <HowItWorksPage 
-              onStartBooking={() => navigate('/book')}
-              onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
-              onOpenTamperSeal={() => setIsTamperSealOpen(true)}
-            />
-          } />
+            <Route path="/how-it-works" element={
+              <HowItWorksPage 
+                onStartBooking={() => navigate('/book')}
+                onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
+                onOpenTamperSeal={() => setIsTamperSealOpen(true)}
+              />
+            } />
 
-          <Route path="/services" element={
-            <ServicesPage 
-              onStartBooking={() => navigate('/book')}
-            />
-          } />
+            <Route path="/services" element={
+              <ServicesPage 
+                onStartBooking={() => navigate('/book')}
+              />
+            } />
 
-          <Route path="/for-technicians" element={
-            <ForTechniciansPage 
-              onRegisterClick={() => setIsTechOnboardingOpen(true)}
-              onLoginClick={() => openAuth('technician')}
-            />
-          } />
+            <Route path="/for-technicians" element={
+              <ForTechniciansPage 
+                onRegisterClick={() => setIsTechOnboardingOpen(true)}
+                onLoginClick={() => openAuth('technician')}
+              />
+            } />
 
-          <Route path="/pricing" element={
-            <PricingPage 
-              onStartBooking={(problem) => navigate('/book', { state: { prefillProblem: problem } })}
-            />
-          } />
+            <Route path="/pricing" element={
+              <PricingPage 
+                onStartBooking={(problem) => navigate('/book', { state: { prefillProblem: problem } })}
+              />
+            } />
 
-          <Route path="/track-repair" element={
-            <TrackRepairPage 
-              onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)}
-            />
-          } />
-          <Route path="/track" element={<Navigate to="/track-repair" replace />} />
+            <Route path="/track-repair" element={
+              <TrackRepairPage 
+                onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)}
+              />
+            } />
+            <Route path="/track" element={<Navigate to="/track-repair" replace />} />
 
-          {/* Authentication Dedicated Pages */}
-          <Route path="/login" element={<AuthPage initialMode="login" />} />
-          <Route path="/register" element={<AuthPage initialMode="register" />} />
-          <Route path="/signin" element={<Navigate to="/login" replace />} />
-          <Route path="/signup" element={<Navigate to="/register" replace />} />
+            {/* Authentication Dedicated Pages */}
+            <Route path="/login" element={<AuthPage initialMode="login" />} />
+            <Route path="/register" element={<AuthPage initialMode="register" />} />
+            <Route path="/signin" element={<Navigate to="/login" replace />} />
+            <Route path="/signup" element={<Navigate to="/register" replace />} />
 
-          <Route path="/book" element={
-            <BookRepair
-              onBookingSuccess={(newOrder) => {
-                navigate('/dashboard');
-              }}
-              onCancel={() => navigate('/')}
-            />
-          } />
+            <Route path="/book" element={
+              <BookRepair
+                onBookingSuccess={(newOrder) => {
+                  navigate('/dashboard');
+                }}
+                onCancel={() => navigate('/')}
+              />
+            } />
 
-          {/* Role Protected / Dedicated Portals */}
-          <Route path="/dashboard" element={
-            <UserDashboard onNewBooking={() => navigate('/book')} />
-          } />
+            {/* Role Protected / Dedicated Portals */}
+            <Route path="/dashboard" element={
+              <UserDashboard onNewBooking={() => navigate('/book')} />
+            } />
 
-          <Route path="/technician" element={
-            <TechDashboard />
-          } />
-          <Route path="/tech" element={<Navigate to="/technician" replace />} />
+            <Route path="/technician" element={
+              <TechDashboard />
+            } />
+            <Route path="/tech" element={<Navigate to="/technician" replace />} />
 
-          <Route path="/admin" element={
-            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
-          } />
+            <Route path="/admin" element={
+              <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
+            } />
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Catch-all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </SiliconeWorkbenchFrame>
       </main>
 
       {/* 4K Live Stream Modal */}
