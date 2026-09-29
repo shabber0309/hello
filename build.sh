@@ -14,7 +14,11 @@ npm --prefix frontend run build
 # 2. Install backend Python dependencies
 echo "==> Installing Python dependencies..."
 python -m pip install --upgrade pip
-python -m pip install -r backend/requirements.txt
+if [ -f requirements.txt ]; then
+    python -m pip install -r requirements.txt
+else
+    python -m pip install -r backend/requirements.txt
+fi
 
 echo "=========================================="
 echo "  Build completed successfully!"
