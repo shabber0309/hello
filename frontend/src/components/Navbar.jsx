@@ -194,7 +194,7 @@ export default function Navbar({
             </button>
           </nav>
 
-          {/* Right: Actions (Theme Toggle, Login, Register, Book Repair) */}
+          {/* Right: Actions (Theme Toggle, Login) */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -226,8 +226,8 @@ export default function Navbar({
               onClick={() => navigate('/login')}
               className={`nav-pill-btn ${location.pathname === '/login' ? 'active' : ''}`}
               style={{
-                padding: '8px 18px',
-                fontSize: '0.86rem',
+                padding: '8px 22px',
+                fontSize: '0.88rem',
                 fontWeight: 700,
                 borderRadius: '9999px',
                 cursor: 'pointer',
@@ -236,37 +236,6 @@ export default function Navbar({
               }}
             >
               Login
-            </button>
-
-            <button
-              onClick={() => navigate('/register')}
-              className={`nav-pill-btn ${location.pathname === '/register' ? 'active' : ''}`}
-              style={{
-                padding: '8px 18px',
-                fontSize: '0.86rem',
-                fontWeight: 700,
-                borderRadius: '9999px',
-                cursor: 'pointer',
-                border: location.pathname === '/register' ? '1px solid var(--primary)' : '1px solid var(--border-light)',
-                background: location.pathname === '/register' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.65)'
-              }}
-            >
-              Register
-            </button>
-
-            <button
-              className="btn-primary"
-              onClick={() => navigate('/book')}
-              style={{ 
-                padding: '8px 20px', 
-                fontSize: '0.86rem',
-                fontWeight: 700,
-                borderRadius: '9999px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px var(--primary-glow)'
-              }}
-            >
-              Book Repair
             </button>
           </div>
         </div>
