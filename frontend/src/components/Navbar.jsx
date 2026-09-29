@@ -55,226 +55,359 @@ export default function Navbar({
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
+  // 6 Colorful precision screwdrivers matching the silicone tool bay
+  const screwdrivers = [
+    { capColor: '#a855f7', bodyColor: '#7e22ce', tip: 'PH000', label: 'Cross #000' },
+    { capColor: '#3b82f6', bodyColor: '#1d4ed8', tip: 'T5', label: 'Torx T5' },
+    { capColor: '#f97316', bodyColor: '#c2410c', tip: 'P2', label: 'Pentalobe' },
+    { capColor: '#ef4444', bodyColor: '#b91c1c', tip: 'Y000', label: 'Tri-Point' },
+    { capColor: '#0ea5e9', bodyColor: '#0369a1', tip: 'PH00', label: 'Cross #00' },
+    { capColor: '#dc2626', bodyColor: '#991b1b', tip: 'SL1.5', label: 'Flathead' }
+  ];
+
+  const publicNavLinks = [
+    { name: 'Home', path: '/', color: '#38bdf8' },
+    { name: 'How It Works', path: '/how-it-works', color: '#06b6d4' },
+    { name: 'Services', path: '/services', color: '#a855f7' },
+    { name: 'For Technicians', path: '/for-technicians', color: '#f59e0b' },
+    { name: 'Pricing', path: '/pricing', color: '#10b981' }
+  ];
+
   return (
     <header style={{
       position: 'sticky',
       top: 0,
       zIndex: 1000,
       width: '100%',
-      background: theme === 'light' ? 'rgba(255, 255, 255, 0.94)' : 'rgba(5, 25, 55, 0.94)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      borderBottom: '1px solid rgba(56, 189, 248, 0.25)',
-      height: '70px',
-      display: 'flex',
-      alignItems: 'center',
-      boxShadow: '0 4px 20px rgba(0, 50, 100, 0.12)',
-      position: 'sticky',
+      padding: '8px 16px',
+      background: 'rgba(255, 255, 255, 0.45)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      borderBottom: '1px solid rgba(2, 132, 199, 0.15)',
+      boxShadow: '0 4px 18px rgba(0, 30, 70, 0.08)',
       transition: 'all 0.25s ease'
     }}>
-      {/* Vibrant Rainbow Spectrum Hairline along top of Navbar */}
-      <div className="rainbow-strip" style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '3.5px',
-        zIndex: 10
-      }} />
-
       {/* ========================================================
-          CASE 1: PUBLIC NAVBAR (When Not Logged In)
+          CASE 1: PUBLIC NAVBAR (Molded Silicone Tool Bay Bar)
          ======================================================== */}
       {!user && (
         <div style={{
+          maxWidth: '1540px',
+          margin: '0 auto',
+          background: 'linear-gradient(160deg, #0288d1 0%, #0077b6 40%, #026ca8 75%, #01579b 100%)',
+          borderRadius: '18px',
+          border: '2.5px solid rgba(255, 255, 255, 0.45)',
+          boxShadow: '0 8px 30px rgba(0, 25, 60, 0.35), inset 2px 2px 5px rgba(255, 255, 255, 0.5), inset -2px -2px 6px rgba(0, 20, 50, 0.4)',
+          padding: '8px 18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          width: '100%',
-          maxWidth: '1500px',
-          margin: '0 auto',
-          padding: '0 24px',
-          gap: '16px'
+          gap: '12px',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          {/* Left: Brand Logo with Vibrant Colorful Shield & Glow */}
-          <div 
-            onClick={() => navigate('/')}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '10px', 
-              cursor: 'pointer',
-              userSelect: 'none',
-              flexShrink: 0
-            }}
-          >
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #00f5a0 0%, #00dfd8 35%, #0070f3 70%, #7928ca 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 4px 14px rgba(0, 112, 243, 0.4), 0 0 10px rgba(0, 223, 216, 0.3)',
-              border: '1.5px solid rgba(255, 255, 255, 0.7)',
-              position: 'relative'
-            }}>
-              <ShieldCheck size={22} strokeWidth={2.5} color="#ffffff" />
-              <span style={{
-                position: 'absolute',
-                top: '-2px',
-                right: '-2px',
-                width: '9px',
-                height: '9px',
-                borderRadius: '50%',
-                background: '#10b981',
-                boxShadow: '0 0 8px #10b981',
-                border: '1.5px solid #ffffff'
-              }} />
+          {/* Left: Brand Logo + Standing Precision Screwdriver Tool Bay */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
+            {/* FixConnect Brand */}
+            <div 
+              onClick={() => navigate('/')}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
+            >
+              <div style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #00f5a0 0%, #00dfd8 35%, #0070f3 70%, #7928ca 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                boxShadow: '0 2px 8px rgba(0, 112, 243, 0.4)',
+                border: '1.5px solid rgba(255, 255, 255, 0.65)'
+              }}>
+                <ShieldCheck size={19} strokeWidth={2.5} color="#ffffff" />
+              </div>
+
+              <span style={{ 
+                fontSize: '1.18rem', 
+                fontWeight: 800, 
+                letterSpacing: '-0.02em',
+                color: '#ffffff',
+                fontFamily: 'var(--font-heading)',
+                whiteSpace: 'nowrap',
+                textShadow: '0 1px 3px rgba(0, 20, 50, 0.6)'
+              }}>
+                Fix<span style={{ color: '#7dd3fc' }}>Connect</span>
+              </span>
             </div>
 
-            <span style={{ 
-              fontSize: '1.3rem', 
-              fontWeight: 800, 
-              letterSpacing: '-0.02em',
-              color: 'var(--text-main)',
-              fontFamily: 'var(--font-heading)',
-              whiteSpace: 'nowrap',
+            {/* Vertical Separator */}
+            <div style={{
+              width: '1.5px',
+              height: '32px',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.3) 100%)'
+            }} />
+
+            {/* TOOL BAY Label */}
+            <div style={{
+              fontSize: '0.68rem',
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              color: 'rgba(255, 255, 255, 0.95)',
+              textTransform: 'uppercase',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '6px',
+              userSelect: 'none'
             }}>
-              <span>
-                Fix<span style={{
-                  background: 'linear-gradient(135deg, #0284c7 0%, #7c3aed 50%, #ec4899 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  display: 'inline-block'
-                }}>Connect</span>
-              </span>
               <span style={{
-                fontSize: '0.64rem',
-                fontWeight: 800,
-                color: '#059669',
-                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(6, 182, 212, 0.16))',
-                border: '1px solid rgba(16, 185, 129, 0.4)',
-                padding: '3px 9px',
-                borderRadius: '9999px',
-                letterSpacing: '0.05em',
-                boxShadow: '0 0 10px rgba(16, 185, 129, 0.2)'
-              }}>
-                LIVE VERIFIED
-              </span>
-            </span>
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: '#38bdf8',
+                boxShadow: '0 0 8px #38bdf8'
+              }} />
+              <span>TOOL BAY</span>
+            </div>
+
+            {/* The 6 Precision Screwdrivers (Matching Image 2 & screenshot) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {screwdrivers.map((driver, idx) => (
+                <div 
+                  key={idx}
+                  title={`${driver.label} (${driver.tip})`}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(1.1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
+                >
+                  {/* Swivel Rotating Cap */}
+                  <div style={{
+                    width: '16px',
+                    height: '9px',
+                    borderRadius: '4px 4px 2px 2px',
+                    background: driver.capColor,
+                    boxShadow: `0 2px 5px ${driver.capColor}aa, inset 0 1px 2px rgba(255,255,255,0.6)`,
+                    border: '1px solid rgba(255,255,255,0.45)',
+                    position: 'relative'
+                  }}>
+                    <span style={{
+                      position: 'absolute',
+                      top: '1px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '5px',
+                      height: '2px',
+                      borderRadius: '1px',
+                      background: 'rgba(255,255,255,0.7)'
+                    }} />
+                  </div>
+                  
+                  {/* Knurled Handle */}
+                  <div style={{
+                    width: '11px',
+                    height: '20px',
+                    borderRadius: '2px',
+                    background: `repeating-linear-gradient(180deg, ${driver.bodyColor} 0px, ${driver.bodyColor} 3px, #0f172a 3px, #0f172a 5px)`,
+                    border: '1px solid rgba(0,0,0,0.3)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                  }} />
+
+                  {/* Steel Shaft */}
+                  <div style={{
+                    width: '3px',
+                    height: '10px',
+                    background: 'linear-gradient(90deg, #94a3b8 0%, #ffffff 50%, #64748b 100%)',
+                    borderRadius: '0 0 1px 1px'
+                  }} />
+
+                  {/* Molded Silicone Hole */}
+                  <div style={{
+                    width: '12px',
+                    height: '4px',
+                    borderRadius: '50%',
+                    background: '#013a5e',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 1px rgba(255,255,255,0.4)',
+                    marginTop: '-2px'
+                  }} />
+
+                  <span style={{
+                    fontSize: '0.58rem',
+                    fontWeight: 800,
+                    color: '#ffffff',
+                    marginTop: '2px',
+                    letterSpacing: '-0.02em',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.7)'
+                  }}>
+                    {driver.tip}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Center: Navigation Buttons with Colorful Accents */}
+          {/* Center: Molded Tool Bay Nav Items (Home, How It Works, Services, For Technicians, Pricing) */}
           <nav style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            flex: 1
+            flex: 1,
+            flexWrap: 'wrap'
           }}>
-            <button
-              onClick={() => navigate('/')}
-              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/' || location.pathname === '/home' ? 'active' : ''}`}
-              style={{
-                background: (location.pathname === '/' || location.pathname === '/home') 
-                  ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' 
-                  : 'transparent',
-                color: (location.pathname === '/' || location.pathname === '/home') ? '#ffffff' : 'var(--text-muted)'
-              }}
-            >
-              Home
-            </button>
+            {publicNavLinks.map((item) => {
+              const isActive = (item.path === '/' && (location.pathname === '/' || location.pathname === '/home')) ||
+                (item.path !== '/' && location.pathname === item.path);
 
-            <button
-              onClick={() => navigate('/how-it-works')}
-              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/how-it-works' ? 'active' : ''}`}
-              style={{
-                background: location.pathname === '/how-it-works' 
-                  ? 'linear-gradient(135deg, #0284c7, #0369a1)' 
-                  : 'transparent',
-                color: location.pathname === '/how-it-works' ? '#ffffff' : 'var(--text-muted)'
-              }}
-            >
-              How It Works
-            </button>
-
-            <button
-              onClick={() => navigate('/services')}
-              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/services' ? 'active' : ''}`}
-              style={{
-                background: location.pathname === '/services' 
-                  ? 'linear-gradient(135deg, #7c3aed, #6d28d9)' 
-                  : 'transparent',
-                color: location.pathname === '/services' ? '#ffffff' : 'var(--text-muted)'
-              }}
-            >
-              Services
-            </button>
-
-            <button
-              onClick={() => navigate('/for-technicians')}
-              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/for-technicians' ? 'active' : ''}`}
-              style={{
-                background: location.pathname === '/for-technicians' 
-                  ? 'linear-gradient(135deg, #ea580c, #c2410c)' 
-                  : 'transparent',
-                color: location.pathname === '/for-technicians' ? '#ffffff' : 'var(--text-muted)'
-              }}
-            >
-              For Technicians
-            </button>
-
-            <button
-              onClick={() => navigate('/pricing')}
-              className={`nav-pill-btn nav-link-colorful ${location.pathname === '/pricing' ? 'active' : ''}`}
-              style={{
-                background: location.pathname === '/pricing' 
-                  ? 'linear-gradient(135deg, #059669, #047857)' 
-                  : 'transparent',
-                color: location.pathname === '/pricing' ? '#ffffff' : 'var(--text-muted)'
-              }}
-            >
-              Pricing
-            </button>
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    background: isActive 
+                      ? 'linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.12))' 
+                      : 'rgba(0, 30, 65, 0.45)',
+                    border: isActive 
+                      ? '1.5px solid #ffffff' 
+                      : '1.5px solid rgba(255, 255, 255, 0.22)',
+                    boxShadow: isActive 
+                      ? `0 0 14px ${item.color}88, inset 1px 1px 2px rgba(255,255,255,0.6)` 
+                      : 'inset 1.5px 1.5px 4px rgba(0, 15, 35, 0.6), inset -1px -1px 2px rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    textShadow: '0 1px 2px rgba(0, 20, 50, 0.6)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'rgba(0, 45, 95, 0.6)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.45)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'rgba(0, 30, 65, 0.45)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.22)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }
+                  }}
+                >
+                  <span style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: item.color,
+                    boxShadow: `0 0 6px ${item.color}`
+                  }} />
+                  <span>{item.name}</span>
+                </button>
+              );
+            })}
           </nav>
 
-          {/* Right: Actions (Theme Toggle, Glowing Colorful Login Button) */}
+          {/* Right: Heat Proof Badge + Theme Toggle + Glowing Login Button */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
-            gap: '12px',
+            gap: '10px',
             flexShrink: 0
           }}>
+            {/* 500°C Heat Proof Badge (as in the screenshot) */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(16, 185, 129, 0.16)',
+              border: '1px solid #10b981',
+              borderRadius: '9999px',
+              padding: '4px 12px',
+              boxShadow: '0 0 10px rgba(16, 185, 129, 0.25)',
+              userSelect: 'none'
+            }}>
+              <span style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#10b981',
+                boxShadow: '0 0 8px #10b981'
+              }} />
+              <span style={{
+                fontSize: '0.68rem',
+                fontWeight: 800,
+                color: '#a7f3d0',
+                letterSpacing: '0.03em'
+              }}>
+                500°C HEAT PROOF • S-160 SILICONE
+              </span>
+            </div>
+
+            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               title="Toggle Theme"
               style={{
-                width: '38px',
-                height: '38px',
+                width: '34px',
+                height: '34px',
                 borderRadius: '50%',
-                background: 'rgba(2, 132, 199, 0.1)',
-                border: '1.5px solid rgba(56, 189, 248, 0.35)',
+                background: 'rgba(0, 30, 65, 0.5)',
+                border: '1.5px solid rgba(255, 255, 255, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--text-muted)',
+                color: '#ffffff',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                boxShadow: 'inset 1px 1px 3px rgba(0,0,0,0.4)'
               }}
             >
-              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} color="#f59e0b" />}
+              {theme === 'light' ? <Moon size={14} /> : <Sun size={14} color="#f59e0b" />}
             </button>
 
+            {/* Login Button */}
             <button
               onClick={() => navigate('/login')}
-              className="colorful-login-btn"
+              style={{
+                background: 'linear-gradient(135deg, #06b6d4 0%, #2563eb 50%, #7c3aed 100%)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.86rem',
+                padding: '7px 22px',
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                border: '1.5px solid rgba(255, 255, 255, 0.5)',
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.45), 0 0 10px rgba(6, 182, 212, 0.35)',
+                letterSpacing: '0.02em',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px) scale(1.04)';
+                e.currentTarget.style.boxShadow = '0 6px 18px rgba(37, 99, 235, 0.6), 0 0 14px rgba(6, 182, 212, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 14px rgba(37, 99, 235, 0.45), 0 0 10px rgba(6, 182, 212, 0.35)';
+              }}
             >
               Login
             </button>
