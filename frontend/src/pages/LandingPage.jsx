@@ -77,12 +77,11 @@ export default function LandingPage({
                 lineHeight: 1.15,
                 marginBottom: '16px',
                 letterSpacing: '-0.03em',
-                color: '#ffffff',
-                textShadow: '0 2px 10px rgba(0, 30, 60, 0.5)'
+                color: 'var(--text-main)'
               }}>
                 Laptop Repair, <br />
                 <span style={{
-                  background: 'linear-gradient(135deg, #7dd3fc 0%, #a7f3d0 50%, #fef08a 100%)',
+                  background: 'linear-gradient(135deg, #1d4ed8 0%, #0284c7 45%, #059669 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   display: 'inline-block'
@@ -93,11 +92,10 @@ export default function LandingPage({
 
               <p style={{
                 fontSize: '1.05rem',
-                color: 'rgba(255, 255, 255, 0.92)',
+                color: 'var(--text-muted)',
                 lineHeight: 1.6,
                 marginBottom: '24px',
-                maxWidth: '520px',
-                textShadow: '0 1px 4px rgba(0, 20, 50, 0.4)'
+                maxWidth: '520px'
               }}>
                 Connect with verified technicians, get transparent repair estimates, track your device at every step, and watch your repair happen live on camera.
               </p>
@@ -229,8 +227,8 @@ export default function LandingPage({
       <section style={{ padding: '48px 0' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: '#ffffff', textShadow: '0 2px 8px rgba(0,25,50,0.4)' }}>How FixConnect Works</h2>
-            <p style={{ color: 'rgba(255, 255, 255, 0.88)', fontSize: '0.92rem', margin: 0, textShadow: '0 1px 4px rgba(0,20,40,0.3)' }}>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>How FixConnect Works</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', margin: 0 }}>
               6 transparent steps from request to delivery.
             </p>
           </div>

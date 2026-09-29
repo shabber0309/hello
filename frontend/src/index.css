@@ -100,13 +100,11 @@
 }
 
 body {
-  /* Authentic Electronics Repair Silicone Mat Blue (Reference Image 2) */
+  /* Electronics Workbench Mat Image blended with the original Trust Blue & Azure Palette */
   background: 
-    radial-gradient(circle at 50% 12%, rgba(56, 189, 248, 0.28) 0%, transparent 60%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
-    linear-gradient(155deg, #0288d1 0%, #0077b6 38%, #026ca8 72%, #014f7c 100%) fixed;
-  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
+    linear-gradient(135deg, rgba(199, 217, 252, 0.86) 0%, rgba(212, 228, 252, 0.84) 25%, rgba(191, 216, 252, 0.86) 50%, rgba(186, 230, 253, 0.83) 75%, rgba(187, 247, 208, 0.82) 100%),
+    url('/workbench_mat_bg.jpg') no-repeat center top fixed;
+  background-size: cover;
   color: var(--text-main);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -118,20 +116,19 @@ body {
 /* Specific theme overrides */
 [data-theme="light"] body {
   background: 
-    radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.25) 0%, transparent 60%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(155deg, #0088cc 0%, #0077b6 38%, #026ca8 72%, #01579b 100%) fixed;
-  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
+    radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 90% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(205, 222, 252, 0.88) 0%, rgba(218, 232, 252, 0.85) 30%, rgba(195, 220, 252, 0.88) 60%, rgba(188, 232, 253, 0.84) 85%, rgba(192, 248, 214, 0.82) 100%),
+    url('/workbench_mat_bg.jpg') no-repeat center top fixed;
+  background-size: cover;
 }
 
 [data-theme="dark"] body {
   background: 
-    radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.18) 0%, transparent 60%),
-    linear-gradient(to right, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
-    linear-gradient(160deg, #051e3c 0%, #004b7a 38%, #02385c 72%, #012238 100%) fixed;
-  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
+    radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.18) 0%, transparent 45%),
+    linear-gradient(160deg, rgba(7, 15, 34, 0.91) 0%, rgba(11, 26, 62, 0.9) 35%, rgba(13, 39, 87, 0.91) 70%, rgba(10, 31, 68, 0.93) 100%),
+    url('/workbench_mat_bg.jpg') no-repeat center top fixed;
+  background-size: cover;
 }
 
 h1, h2, h3, h4, h5, h6 {
