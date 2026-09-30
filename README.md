@@ -1,4 +1,4 @@
-# EyeOnFix: Live Camera Monitored Hardware Service
+# Live Fix: Live Camera Monitored Hardware Service
 > **"Watch Your Laptop Fixed Live On Camera. Never Fear Part-Swapping Again."**
 
 An end-to-end transparent laptop repair ecosystem solving the real-world problems of **counterfeit component swapping**, **data privacy leaks**, and **fraudulent repair billing**.
@@ -80,8 +80,8 @@ npm run dev
 ## 🔑 Demo Logins (Built-In 1-Click Role Switcher)
 
 You can toggle between roles directly from the top navigation bar:
-- **Customer**: `customer@eyeonfix.com` (Arjun Sharma) — View active repairs, watch live stream, approve quotes, pay.
-- **Technician**: `tech@eyeonfix.com` (Vikram Verma) — Manage repair queue, start Google Meet live streams, log replaced part serials.
+- **Customer**: `customer@livefix.com` (Arjun Sharma) — View active repairs, watch live stream, approve quotes, pay.
+- **Technician**: `tech@livefix.com` (Vikram Verma) — Manage repair queue, start Google Meet live streams, log replaced part serials.
 
 ---
 
@@ -98,5 +98,5 @@ To use a full MySQL 8.0 instance instead of the built-in SQLite:
    set MYSQL_USER=root
    set MYSQL_PASSWORD=your_password
    set MYSQL_HOST=localhost
-   set MYSQL_DB=eyeonfix_db
+   set MYSQL_DB=livefix_db
    ```

@@ -1,4 +1,5 @@
 import os
+import re
 import random
 import datetime
 import smtplib
@@ -49,7 +50,7 @@ def token_required(f):
     return decorated
 
 
-def send_otp_via_smtp(recipient_email, otp_code, role='customer'):
+def send_otp_via_smtp(recipient_email, otp_code, role='customer', purpose='login'):
     """
     Sends a high-trust verification OTP using Gmail SMTP credentials.
     """
@@ -57,11 +58,20 @@ def send_otp_via_smtp(recipient_email, otp_code, role='customer'):
     mail_port = int(current_app.config.get('MAIL_PORT', 587))
     mail_username = current_app.config.get('MAIL_USERNAME', 'shabber12396@gmail.com')
     mail_password = current_app.config.get('MAIL_PASSWORD', 'wkwzifnnfzfjxrdp')
-    sender_email = current_app.config.get('MAIL_DEFAULT_SENDER', mail_username)
+    sender_email = current_app.config.get('MAIL_DEFAULT_SENDER', 'shabber12396@gmail.com')
 
-    role_title = "Hardware Technician Console" if role == 'technician' else "Customer Hardware Portal"
+    role_title = "Hardware Technician Console" if role == 'technician' else ("Super Admin Console" if role == 'admin' else "Customer Hardware Portal")
 
-    subject = f"EyeOnFix Security Code: {otp_code} (Valid for 10 mins)"
+    if purpose == 'password_reset':
+        subject = f"Live Fix Security Code: {otp_code} for Password Reset"
+        badge_text = "Password Reset Request"
+        headline = f"Reset Password for {role_title}"
+        description = "You requested a one-time verification code to reset your account password. Enter this code to set a new password:"
+    else:
+        subject = f"Live Fix Security Code: {otp_code} (Valid for 10 mins)"
+        badge_text = "One-Time Verification Code"
+        headline = f"Sign in to your {role_title}"
+        description = "Use the one-time verification code below to securely authenticate:"
 
     html_content = f"""
     <!DOCTYPE html>
@@ -72,6 +82,7 @@ def send_otp_via_smtp(recipient_email, otp_code, role='customer'):
         body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0b0f19; color: #f8fafc; margin: 0; padding: 20px; }}
         .card {{ max-width: 520px; margin: 0 auto; background: #131c2e; border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }}
         .header {{ background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%); padding: 24px; text-align: center; color: white; }}
+        .badge {{ display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }}
         .body {{ padding: 32px 28px; text-align: center; }}
         .otp-box {{ background: #070a12; border: 2px dashed #06b6d4; padding: 18px 24px; border-radius: 12px; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #38bdf8; display: inline-block; margin: 24px 0; font-family: monospace; }}
         .footer {{ background: #0a0e17; padding: 16px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid rgba(255,255,255,0.05); }}
@@ -80,12 +91,13 @@ def send_otp_via_smtp(recipient_email, otp_code, role='customer'):
     <body>
       <div class="card">
         <div class="header">
-          <h2 style="margin: 0; font-size: 22px;">EyeOnFix</h2>
+          <div class="badge">{badge_text}</div>
+          <h2 style="margin: 0; font-size: 22px;">Live Fix</h2>
           <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.9;">Live Camera Monitored Hardware Service</p>
         </div>
         <div class="body">
-          <p style="font-size: 15px; color: #94a3b8; margin: 0;">Sign in to your <strong>{role_title}</strong></p>
-          <p style="font-size: 14px; color: #cbd5e1; margin-top: 8px;">Use the one-time verification code below to securely authenticate:</p>
+          <p style="font-size: 15px; color: #94a3b8; margin: 0;"><strong>{headline}</strong></p>
+          <p style="font-size: 14px; color: #cbd5e1; margin-top: 8px;">{description}</p>
           
           <div class="otp-box">{otp_code}</div>
 
@@ -102,9 +114,9 @@ def send_otp_via_smtp(recipient_email, otp_code, role='customer'):
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"EyeOnFix Security <{sender_email}>"
+        msg["From"] = f"Live Fix Security <{sender_email}>"
         msg["To"] = recipient_email
-        msg.attach(MIMEText(f"Your EyeOnFix OTP code is {otp_code}. Valid for 10 minutes.", "plain"))
+        msg.attach(MIMEText(f"Your Live Fix OTP code is {otp_code}. Valid for 10 minutes.", "plain"))
         msg.attach(MIMEText(html_content, "html"))
 
         server = smtplib.SMTP(mail_server, mail_port, timeout=10)
@@ -112,10 +124,10 @@ def send_otp_via_smtp(recipient_email, otp_code, role='customer'):
         server.login(mail_username, mail_password)
         server.sendmail(sender_email, [recipient_email], msg.as_string())
         server.quit()
-        print(f"[EyeOnFix SMTP] OTP email sent successfully to {recipient_email}")
+        print(f"[Live Fix SMTP] OTP email sent successfully to {recipient_email}")
         return True, "Email sent successfully"
     except Exception as e:
-        print(f"[EyeOnFix SMTP Warning] Could not send email: {e}")
+        print(f"[Live Fix SMTP Warning] Could not send email: {e}")
         return False, str(e)
 
 
@@ -195,7 +207,7 @@ def verify_otp():
         user = User(
             name=default_name,
             email=email,
-            phone="+91 98765 00000",
+            phone="+91 90000 00000",
             role=role
         )
         user.set_password("otp-authenticated-account-2026")
@@ -233,22 +245,30 @@ def register():
     role = data.get('role', 'customer')
 
     if not name or not email or not password:
-        return jsonify({'error': 'Name, email, and password are required'}), 400
+        return jsonify({'error': 'Full name, email address, and password are required'}), 400
 
     if role not in ['customer', 'technician', 'admin']:
         role = 'customer'
 
-    username = data.get('username', '').strip().lower()
-    if not username:
-        username = email.split('@')[0].lower()
-
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
-        return jsonify({'error': 'An account with this email already exists'}), 409
+        return jsonify({'error': 'An account with this email address already exists'}), 409
 
-    existing_username = User.query.filter_by(username=username).first()
-    if existing_username:
-        username = f"{username}_{random.randint(100, 999)}"
+    if phone:
+        existing_phone = User.query.filter_by(phone=phone).first()
+        if existing_phone:
+            return jsonify({'error': 'An account with this phone number already exists'}), 409
+
+    # Automatically derive clean internal username from email or name without requiring user input
+    username = data.get('username', '').strip().lower()
+    if not username:
+        base_user = email.split('@')[0].lower()
+        base_user = re.sub(r'[^a-z0-9_]', '', base_user) or 'user'
+        existing_username = User.query.filter_by(username=base_user).first()
+        if existing_username:
+            username = f"{base_user}_{random.randint(100, 9999)}"
+        else:
+            username = base_user
 
     user = User(
         name=name,
@@ -281,20 +301,25 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json() or {}
-    identifier = data.get('email', '') or data.get('username', '')
-    identifier = identifier.strip().lower()
+    raw_identifier = str(data.get('identifier', '') or data.get('email', '') or data.get('phone', '') or data.get('username', '')).strip()
     password = data.get('password', '')
 
-    if not identifier or not password:
-        return jsonify({'error': 'Username/Email and password are required'}), 400
+    if not raw_identifier or not password:
+        return jsonify({'error': 'Email or phone number and password are required'}), 400
 
+    identifier_lower = raw_identifier.lower()
+    clean_phone = re.sub(r'[^0-9+]', '', raw_identifier)
+
+    # Search user by email, phone, or legacy username
     user = User.query.filter(
-        (db.func.lower(User.email) == identifier) | 
-        (db.func.lower(User.username) == identifier)
+        (db.func.lower(User.email) == identifier_lower) | 
+        (User.phone == raw_identifier) | 
+        (User.phone == clean_phone) | 
+        (db.func.lower(User.username) == identifier_lower)
     ).first()
 
     if not user or not user.check_password(password):
-        return jsonify({'error': 'Invalid username/email or password credentials'}), 401
+        return jsonify({'error': 'Invalid email/phone number or password credentials'}), 401
 
     # Generate JWT Token
     exp_hours = current_app.config.get('JWT_EXPIRATION_HOURS', 24)
@@ -352,41 +377,49 @@ def update_profile(current_user):
 @auth_bp.route('/forgot-password', methods=['POST'])
 def forgot_password():
     data = request.get_json() or {}
-    identifier = (data.get('email', '') or data.get('username', '') or data.get('identifier', '')).strip().lower()
+    raw_identifier = str(data.get('identifier', '') or data.get('email', '') or data.get('phone', '') or data.get('username', '')).strip()
 
-    if not identifier:
-        return jsonify({'error': 'Email or username is required'}), 400
+    if not raw_identifier:
+        return jsonify({'error': 'Email address or phone number is required'}), 400
+
+    identifier_lower = raw_identifier.lower()
+    clean_phone = re.sub(r'[^0-9+]', '', raw_identifier)
 
     user = User.query.filter(
-        (db.func.lower(User.email) == identifier) | 
-        (db.func.lower(User.username) == identifier)
+        (db.func.lower(User.email) == identifier_lower) | 
+        (User.phone == raw_identifier) | 
+        (User.phone == clean_phone) | 
+        (db.func.lower(User.username) == identifier_lower)
     ).first()
 
-    if not user:
-        return jsonify({'error': 'No account found with this email or username'}), 404
+    target_email = user.email if user else (raw_identifier if '@' in raw_identifier else None)
+    target_role = user.role if user else 'customer'
+
+    if not target_email:
+        return jsonify({'error': 'No account found with this email or phone number. Please enter your registered email address or create an account.'}), 404
 
     # Generate 6-digit OTP
     otp_code = str(random.randint(100000, 999999))
     expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
 
-    # Invalidate previous OTPs
-    EmailOTP.query.filter_by(email=user.email).delete()
+    # Invalidate previous OTPs for this email
+    EmailOTP.query.filter_by(email=target_email).delete()
 
     otp_record = EmailOTP(
-        email=user.email,
+        email=target_email,
         otp_code=otp_code,
-        role=user.role,
+        role=target_role,
         expires_at=expires_at,
         is_verified=False
     )
     db.session.add(otp_record)
     db.session.commit()
 
-    sent, err_msg = send_otp_via_smtp(user.email, otp_code, user.role)
+    sent, err_msg = send_otp_via_smtp(target_email, otp_code, target_role, purpose='password_reset')
 
     return jsonify({
-        'message': f'Password reset OTP sent to {user.email}',
-        'email': user.email,
+        'message': f'Password reset verification code sent to {target_email}',
+        'email': target_email,
         'dev_otp': otp_code,
         'smtp_sent': sent
     }), 200
@@ -395,14 +428,29 @@ def forgot_password():
 @auth_bp.route('/reset-password', methods=['POST'])
 def reset_password():
     data = request.get_json() or {}
-    email = data.get('email', '').strip().lower()
+    raw_identifier = str(data.get('identifier', '') or data.get('email', '') or data.get('phone', '') or data.get('username', '')).strip()
     otp_code = str(data.get('otp', '')).strip()
     new_password = data.get('new_password', '')
 
-    if not email or not otp_code or not new_password:
-        return jsonify({'error': 'Email, OTP code, and new password are required'}), 400
+    if not raw_identifier or not otp_code or not new_password:
+        return jsonify({'error': 'Email/Phone number, OTP code, and new password are required'}), 400
 
-    otp_record = EmailOTP.query.filter_by(email=email, is_verified=False).order_by(EmailOTP.id.desc()).first()
+    if len(new_password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters long'}), 400
+
+    identifier_lower = raw_identifier.lower()
+    clean_phone = re.sub(r'[^0-9+]', '', raw_identifier)
+
+    user = User.query.filter(
+        (db.func.lower(User.email) == identifier_lower) | 
+        (User.phone == raw_identifier) | 
+        (User.phone == clean_phone) | 
+        (db.func.lower(User.username) == identifier_lower)
+    ).first()
+
+    lookup_email = user.email if user else raw_identifier
+
+    otp_record = EmailOTP.query.filter_by(email=lookup_email, is_verified=False).order_by(EmailOTP.id.desc()).first()
 
     valid = False
     if otp_record and otp_record.otp_code == otp_code:
@@ -413,16 +461,32 @@ def reset_password():
         valid = True
 
     if not valid:
-        return jsonify({'error': 'Invalid or expired OTP code'}), 400
+        return jsonify({'error': 'Invalid or expired OTP code. Please request a new code.'}), 400
 
-    user = User.query.filter_by(email=email).first()
     if not user:
-        return jsonify({'error': 'User not found'}), 404
+        if '@' in identifier:
+            username = identifier.split('@')[0].lower()
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user:
+                username = f"{username}_{random.randint(100, 999)}"
+            user = User(
+                name=f"User {username.capitalize()}",
+                username=username,
+                email=identifier,
+                phone="+91 90000 00000",
+                role='customer'
+            )
+            user.set_password(new_password)
+            db.session.add(user)
+        else:
+            return jsonify({'error': 'User account not found'}), 404
+    else:
+        user.set_password(new_password)
 
-    user.set_password(new_password)
     db.session.commit()
 
     return jsonify({
-        'message': 'Password has been reset successfully. You can now login with your new password.'
+        'message': 'Password has been reset successfully. You can now login with your new password.',
+        'user': user.to_dict()
     }), 200
 

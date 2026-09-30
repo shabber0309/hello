@@ -1,0 +1,366 @@
+/* ==========================================================================
+   BookRepair.css - Customer Zero-Trust Hardware Booking Stepper
+   Senior Engineering Architecture - BEM / Modular Scoped Stylesheet
+   ========================================================================== */
+
+.book-repair-root {
+  padding: 24px 20px 60px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.book-repair-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.book-repair-badge {
+  margin-bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.book-repair-h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.book-repair-subtitle {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+/* Stepper Bar - Compact & Balanced Top/Bottom Gaps */
+.book-stepper-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  position: relative;
+  max-width: 660px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.book-stepper-bar::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 36px;
+  right: 36px;
+  height: 2px;
+  background: var(--border-medium);
+  z-index: 1;
+}
+
+.book-step-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  flex: 1;
+  position: relative;
+}
+
+.book-step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  transition: all 0.25s ease;
+  background: var(--bg-surface);
+}
+
+.book-step-circle-inactive {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 2px solid var(--border-medium);
+}
+
+.book-step-circle-active {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  color: #ffffff;
+  border: 2px solid #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.book-step-label {
+  font-size: 0.78rem;
+  margin-top: 5px;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-align: center;
+}
+
+.book-step-label-active {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* Card Container */
+.book-card-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+/* Brands Grid - Same Height & Width */
+.book-brands-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.book-brand-btn {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 10px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  color: var(--text-main, #1e293b);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.book-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.book-brand-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.book-brand-btn:hover {
+  border-color: #2563eb;
+  background: #f8faff;
+  color: #1d4ed8;
+}
+
+.book-brand-btn-active {
+  background: #eff6ff !important;
+  border-color: #2563eb !important;
+  color: #1d4ed8 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.18);
+}
+
+[data-theme="dark"] .book-brand-btn:hover {
+  border-color: #3b82f6;
+  background: rgba(37, 99, 235, 0.12);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .book-brand-btn-active {
+  background: rgba(37, 99, 235, 0.22) !important;
+  border-color: #3b82f6 !important;
+  color: #60a5fa !important;
+}
+
+/* 2-Column Balanced Form Grid */
+.book-form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .book-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form Controls - Standard 50px Height */
+.form-label {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-main, #1e293b);
+  margin-bottom: 7px;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  background: var(--bg-surface-elevated, #ffffff);
+  color: var(--text-main, #0f172a);
+  font-size: 0.92rem;
+  font-weight: 500;
+  box-sizing: border-box;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+textarea.form-input {
+  height: auto;
+  min-height: 96px;
+  padding: 12px 16px;
+}
+
+.form-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.book-step-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  margin: 0 0 20px;
+}
+
+/* Issue List */
+.book-issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book-issue-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.book-issue-item:hover {
+  border-color: #2563eb;
+}
+
+.book-issue-item-active {
+  background: #eff6ff !important;
+  border-color: #2563eb !important;
+}
+
+/* Action Buttons - Standard 50px Height */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 24px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.92rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
+
+.btn-neutral {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 20px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+  font-size: 0.92rem;
+  border: 1.5px solid #cbd5e1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-neutral:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-verified {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 28px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-verified:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+}
+
+/* Stepper Actions Footer */
+.book-actions-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-light, #e2e8f0);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .book-repair-root {
+    padding: 24px 16px;
+  }
+  .book-card-container {
+    padding: 24px 18px;
+  }
+  .book-step-label {
+    display: none;
+  }
+  .book-brands-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

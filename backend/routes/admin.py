@@ -89,7 +89,7 @@ def create_user():
         name=name,
         username=username or email.split('@')[0],
         email=email,
-        phone=phone or '+91 98765 00000',
+        phone=phone or '+91 90000 00000',
         role=role
     )
     user.set_password(password)
@@ -153,8 +153,8 @@ def delete_user(user_id):
         return jsonify({'error': 'User not found'}), 404
 
     # Protect the primary admin
-    if user.username == 'shabber' or user.email == 'shabberhussain934@gmail.com':
-        return jsonify({'error': 'Protected Admin account cannot be deleted'}), 400
+    if user.role == 'admin' and User.query.filter_by(role='admin').count() <= 1:
+        return jsonify({'error': 'The primary Admin account cannot be deleted'}), 400
 
     db.session.delete(user)
     db.session.commit()
@@ -219,12 +219,12 @@ def delete_order(order_id):
 
 @admin_bp.route('/reset-database', methods=['POST'])
 def reset_database_endpoint():
-    from database import seed_demo_data
+    from database import seed_clean_admin
     db.drop_all()
     db.create_all()
-    seed_demo_data()
+    seed_clean_admin()
     return jsonify({
-        'message': 'Database completely wiped and freshly initialized clean with only Admin Shabber (zero dummy data).',
-        'admin_username': 'shabber',
-        'admin_email': 'shabberhussain934@gmail.com'
+        'message': 'Database completely wiped and freshly initialized clean with zero dummy data.',
+        'admin_username': 'admin',
+        'admin_email': 'admin@livefix.com'
     }), 200

@@ -1,0 +1,758 @@
+/* ==========================================================================
+   Live Fix Engineering Navbar Stylesheet
+   ========================================================================== */
+
+/* Main Sticky Header: Bright Luminous Cleanroom Navbar */
+.silicone-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fe 60%, #eaf2fc 100%);
+  border-bottom: 2px solid #bcd5f2;
+  box-shadow: 0 4px 20px rgba(29, 78, 216, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: 8px 16px 6px;
+  transition: all 0.25s ease;
+  overflow: visible;
+}
+
+.silicone-navbar-container {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+/* ROW 1: Molded Precision Silicone Bays */
+.silicone-row-bays {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  height: 66px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Base Inset Molded Silicone Bay: Cleanroom Precision Tray */
+.silicone-bay {
+  border-radius: 9px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 100%);
+  border: 1px solid #cce0f7;
+  border-top-color: #e2eefb;
+  border-bottom-color: #bad6f5;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(30, 64, 175, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* Bay 1: Far Left - Shield Icon + HOME Label */
+.silicone-bay-home {
+  width: 74px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.silicone-bay-home:hover {
+  background: linear-gradient(180deg, #e8f2fe 0%, #d8e8fc 100%);
+  border-color: #93c5fd;
+}
+
+.silicone-home-box {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  border-top-color: #ffffff;
+  border-bottom-color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 #93c5fd, 0 3px 6px rgba(37, 99, 235, 0.12), inset 0 1px 0 #ffffff;
+  transition: all 0.18s ease;
+}
+
+.silicone-bay-home:hover .silicone-home-box {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 #93c5fd, 0 6px 10px rgba(37, 99, 235, 0.18), inset 0 1px 0 #ffffff;
+}
+
+.silicone-bay-home:active .silicone-home-box {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #93c5fd, 0 2px 4px rgba(37, 99, 235, 0.12);
+}
+
+.silicone-home-status-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981, 0 0 2px #34d399;
+}
+
+.silicone-home-label {
+  font-size: 0.64rem;
+  font-weight: 900;
+  color: #1e3a8a;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: none;
+}
+
+/* Bay 2: Live Fix Brand + LIVE VERIFIED Badge */
+/* Bay 1: Brand - Live fix (Exact 3D text, free-floating without box/div) */
+.silicone-bay-brand {
+  width: auto;
+  min-width: 150px;
+  padding: 0 8px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.silicone-bay-brand:hover {
+  transform: translateY(-2px);
+}
+
+.livefix-navbar-logo {
+  height: 100px;
+  width: auto;
+  max-width: 175px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.3));
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.silicone-bay-brand:hover .livefix-navbar-logo {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 14px rgba(16, 185, 129, 0.55));
+}
+
+@media (max-width: 768px) {
+  .livefix-navbar-logo {
+    height: 40px;
+    max-width: 135px;
+  }
+}
+
+.silicone-brand-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  color: #34d399;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.28) 0%, rgba(5, 150, 105, 0.15) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  border-top-color: rgba(255, 255, 255, 0.55);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
+  padding: 2px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 0 #031c12, 0 3px 6px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 10px rgba(52, 211, 153, 0.3);
+  text-shadow: 0 1px 0 #022c1d, 0 2px 2px rgba(0, 0, 0, 0.8), 0 0 6px rgba(52, 211, 153, 0.6);
+}
+
+/* Center Navigation Bays Group - Transparent Container for Individual Bays */
+.silicone-nav-group {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.silicone-nav-group::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual Separate Box for Each Navbar Item (Matching Login Bay Box) */
+.silicone-bay-item {
+  width: auto;
+  padding: 0 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 100%);
+  border: 1px solid #cce0f7;
+  border-top-color: #e2eefb;
+  border-bottom-color: #bad6f5;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(30, 64, 175, 0.05);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.silicone-bay-item:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #ffffff 0%, #e8f2fe 100%);
+  border-color: #93c5fd;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.silicone-bay-item:active {
+  transform: translateY(1px);
+}
+
+.silicone-bay-item--active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.silicone-bay-item--active:hover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: translateY(-2px);
+}
+
+/* Inner Navigation Button inside the Individual Bay */
+.silicone-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  letter-spacing: 0.015em;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.silicone-nav-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.silicone-bay-item:hover .silicone-nav-link {
+  color: #1d4ed8;
+}
+
+/* Active Nav Pill Button (The Blue Color Div - Height Bigger 50px) */
+.silicone-nav-link--active {
+  height: 50px !important;
+  min-height: 50px !important;
+  padding: 0 22px !important;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1e40af !important;
+  border-top-color: #60a5fa !important;
+  border-bottom-color: #1e3a8a !important;
+  color: #ffffff !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3) !important;
+}
+
+.silicone-bay-item:hover .silicone-nav-link--active {
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Bay 4: Theme Toggle Bay */
+.silicone-bay-theme {
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.silicone-theme-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #ffffff 0%, #eef5fc 100%);
+  border: 1px solid #cce0f7;
+  border-top-color: #ffffff;
+  border-bottom-color: #bad6f5;
+  color: #1e3a8a;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
+  transition: all 0.18s ease;
+}
+
+.silicone-theme-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #ffffff 0%, #e0effe 100%);
+  box-shadow: 0 4px 0 #bad6f5, 0 6px 12px rgba(37, 99, 235, 0.15), inset 0 1px 0 #ffffff;
+  color: #1d4ed8;
+}
+
+.silicone-theme-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #bad6f5, 0 2px 4px rgba(37, 99, 235, 0.1);
+}
+
+/* Bay 5: Login Button / User Profile Dropdown */
+.silicone-bay-login {
+  position: relative;
+  width: auto;
+  min-width: 110px;
+  padding: 0 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.silicone-login-btn {
+  height: 50px;
+  padding: 0 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  border: 1px solid #1e40af;
+  border-top-color: #60a5fa;
+  border-bottom-color: #1e3a8a;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+
+.silicone-login-btn:hover {
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #1e3a8a, 0 9px 18px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.silicone-login-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.25);
+}
+
+.silicone-profile-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 50px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%);
+  border: 1px solid #cce0f7;
+  border-top-color: #ffffff;
+  border-bottom-color: #bad6f5;
+  border-radius: 9999px;
+  padding: 0 16px 0 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.88rem;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-shadow: none;
+  box-sizing: border-box;
+}
+
+.silicone-profile-trigger:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #eaf2fc 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 #bad6f5, 0 6px 12px rgba(37, 99, 235, 0.12), inset 0 1px 0 #ffffff;
+}
+
+.silicone-profile-trigger:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #bad6f5, 0 2px 4px rgba(37, 99, 235, 0.1);
+}
+
+.silicone-avatar-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.silicone-user-name {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* User Dropdown Menu */
+.silicone-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 250px;
+  background: var(--bg-surface);
+  border-radius: 14px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 16px 40px rgba(2, 10, 24, 0.45), 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+  z-index: 9999;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.silicone-dropdown-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 6px;
+}
+
+.silicone-dropdown-name {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.silicone-dropdown-email {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.silicone-dropdown-section {
+  padding: 4px 0;
+}
+
+.silicone-dropdown-item {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.silicone-dropdown-item:hover {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.silicone-dropdown-footer {
+  border-top: 1px solid var(--border-light);
+  padding-top: 6px;
+  margin-top: 4px;
+}
+
+.silicone-dropdown-logout {
+  color: #ef4444 !important;
+  font-weight: 700;
+}
+
+.silicone-dropdown-logout:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Mobile Toggle Bay */
+.silicone-mobile-toggle-bay {
+  width: 52px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.silicone-mobile-drawer {
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%);
+  border-radius: 10px;
+  border: 1px solid #bcd5f2;
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.12);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.silicone-mobile-user-card {
+  background: #eaf2fc;
+  border: 1px solid #cce0f7;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #0f172a;
+}
+
+.silicone-mobile-nav-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #f1f6fc;
+  border: 1px solid #cce0f7;
+  color: #0f172a;
+  font-size: 0.94rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.silicone-mobile-nav-btn:hover {
+  background: #e2effe;
+  color: #1d4ed8;
+}
+
+.silicone-mobile-nav-btn--active {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
+  border-color: rgba(147, 197, 253, 0.5) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+
+/* ROW 2: Precision Engineering Micro-Calibrated Screw Wells Ruler Track */
+.silicone-ruler-track {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13px, 1fr));
+  grid-template-rows: repeat(2, 9px);
+  gap: 2.5px;
+  background: linear-gradient(180deg, #e4effb 0%, #d4e5f7 100%);
+  padding: 3px 28px 3px 3px;
+  border-radius: 4px;
+  border: 1px solid #bcd5f2;
+  box-shadow: inset 1px 1px 2px rgba(37, 99, 235, 0.08);
+}
+
+.silicone-ruler-well {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 1.5px;
+  box-shadow: inset 0.5px 0.5px 1px rgba(37, 99, 235, 0.12), 0 0.5px 0.5px rgba(255, 255, 255, 0.9);
+}
+
+.silicone-ruler-star {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #0284c7;
+  font-size: 11px;
+  user-select: none;
+  text-shadow: 0 0 6px rgba(2, 132, 199, 0.3);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .silicone-nav-group {
+    gap: 6px !important;
+  }
+  .silicone-bay-item {
+    padding: 0 5px !important;
+  }
+  .silicone-nav-link {
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .silicone-header {
+    padding: 8px 10px 6px !important;
+  }
+  .silicone-nav-group {
+    display: none !important;
+  }
+  .silicone-bay-center {
+    display: none !important;
+  }
+  .silicone-mobile-toggle-bay {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 861px) {
+  .silicone-mobile-toggle-bay {
+    display: none !important;
+  }
+  .silicone-mobile-drawer {
+    display: none !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .silicone-header {
+    padding: 6px 6px 4px !important;
+  }
+  .silicone-row-bays {
+    gap: 4px !important;
+    height: 56px !important;
+  }
+  .silicone-bay-home {
+    width: 44px !important;
+    min-width: 44px !important;
+    padding: 2px !important;
+  }
+  .silicone-home-box {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .silicone-home-box svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+  .silicone-home-label {
+    font-size: 0.52rem !important;
+  }
+  .silicone-bay-brand {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    padding: 2px 6px !important;
+    gap: 2px !important;
+  }
+  .silicone-brand-text {
+    font-size: 1.05rem !important;
+    white-space: nowrap !important;
+  }
+  .silicone-brand-badge {
+    font-size: 0.5rem !important;
+    padding: 1px 5px !important;
+    letter-spacing: 0.02em !important;
+    white-space: nowrap !important;
+  }
+  .silicone-bay-theme {
+    width: 36px !important;
+    min-width: 36px !important;
+    padding: 0 !important;
+  }
+  .silicone-theme-btn {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  .silicone-theme-btn svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+  .silicone-bay-login {
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0 6px !important;
+  }
+  .silicone-login-btn {
+    padding: 5px 12px !important;
+    font-size: 0.78rem !important;
+  }
+  .silicone-profile-trigger {
+    padding: 4px 8px 4px 4px !important;
+    font-size: 0.78rem !important;
+  }
+  .silicone-mobile-toggle-bay {
+    width: 38px !important;
+    min-width: 38px !important;
+    padding: 0 !important;
+  }
+  .silicone-mobile-toggle-bay svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+/* Dark Theme Silicone Bays & Items */
+[data-theme="dark"] .silicone-bay-item {
+  background: linear-gradient(180deg, #15203b 0%, #0c1424 100%);
+  border-color: rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.18);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .silicone-bay-item:hover {
+  background: linear-gradient(180deg, #1a294d 0%, #0f1a30 100%);
+  border-color: #38bdf8;
+}
+
+[data-theme="dark"] .silicone-bay-item--active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+[data-theme="dark"] .silicone-bay-item--active:hover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme="dark"] .silicone-bay-item .silicone-nav-link {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .silicone-bay-item .silicone-nav-link--active {
+  color: #ffffff !important;
+}
+

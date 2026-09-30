@@ -3,47 +3,43 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  // Always start logged out of all accounts by default
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState('');
-
-  // Clear any old auto-logged in session from previous runs
-  useEffect(() => {
-    localStorage.removeItem('fixconnect_user');
-    localStorage.removeItem('fixconnect_token');
-  }, []);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('livefix_user') || localStorage.getItem('fixconnect_user');
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      return parsed && typeof parsed === 'object' && (parsed.id || parsed.email || parsed.username || parsed.name) ? parsed : null;
+    } catch {
+      return null;
+    }
+  });
+  const [token, setToken] = useState(() => {
+    try {
+      return localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || localStorage.getItem('token') || '';
+    } catch {
+      return '';
+    }
+  });
 
   const login = async (identifier, password) => {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: identifier, username: identifier, password })
+        body: JSON.stringify({ identifier, email: identifier, phone: identifier, username: identifier, password })
       });
       const data = await res.json();
       if (res.ok && data.user) {
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('fixconnect_user', JSON.stringify(data.user));
-        localStorage.setItem('fixconnect_token', data.token);
+        localStorage.setItem('livefix_user', JSON.stringify(data.user));
+        localStorage.setItem('livefix_token', data.token);
+        localStorage.setItem('token', data.token);
         return { success: true, user: data.user };
       }
       return { success: false, error: data.error || 'Invalid credentials' };
     } catch (err) {
-      // Local demo fallback if backend is unreachable
-      if (identifier.includes('shabber') || identifier.includes('admin')) {
-        const u = { id: 1, name: 'Shabber Hussain', username: 'shabber', email: 'shabberhussain934@gmail.com', phone: '+91 98765 43210', role: 'admin' };
-        setUser(u);
-        return { success: true, user: u };
-      } else if (identifier.includes('tech') || identifier.includes('ravi')) {
-        const u = { id: 2, name: 'Ravi Sharma', username: 'ravi_sharma', email: 'ravi.tech@fixconnect.in', phone: '+91 98111 22334', role: 'technician' };
-        setUser(u);
-        return { success: true, user: u };
-      } else {
-        const u = { id: 3, name: 'Ananya Patel', username: 'ananya', email: 'ananya.p@gmail.com', phone: '+91 98220 11223', role: 'customer' };
-        setUser(u);
-        return { success: true, user: u };
-      }
+      return { success: false, error: 'Could not connect to authentication server. Please check your network or server status.' };
     }
   };
 
@@ -58,8 +54,9 @@ export const AuthProvider = ({ children }) => {
       if (res.ok && data.user) {
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('fixconnect_user', JSON.stringify(data.user));
-        localStorage.setItem('fixconnect_token', data.token);
+        localStorage.setItem('livefix_user', JSON.stringify(data.user));
+        localStorage.setItem('livefix_token', data.token);
+        localStorage.setItem('token', data.token);
         return { success: true, user: data.user };
       }
       return { success: false, error: data.error || 'Registration failed' };
@@ -73,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: identifier, username: identifier })
+        body: JSON.stringify({ identifier, email: identifier, phone: identifier, username: identifier })
       });
       const data = await res.json();
       if (res.ok) {
@@ -85,16 +82,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const resetPassword = async (email, otp, newPassword) => {
+  const resetPassword = async (emailOrPhone, otp, newPassword) => {
     try {
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, new_password: newPassword })
+        body: JSON.stringify({ identifier: emailOrPhone, email: emailOrPhone, phone: emailOrPhone, otp, new_password: newPassword })
       });
       const data = await res.json();
       if (res.ok) {
-        return { success: true, message: data.message };
+        return { success: true, message: data.message, user: data.user };
       }
       return { success: false, error: data.error || 'Failed to reset password' };
     } catch (err) {
@@ -102,21 +99,58 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const sendOtp = async (email, role = 'customer') => {
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        return { success: true, data };
+      }
+      return { success: false, error: data.error || 'Failed to send OTP code' };
+    } catch (err) {
+      return { success: false, error: 'Network error. Could not send verification code.' };
+    }
+  };
+
+  const loginWithOtp = async (email, otp, role = 'customer') => {
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, role })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        setToken(data.token);
+        localStorage.setItem('livefix_user', JSON.stringify(data.user));
+        localStorage.setItem('livefix_token', data.token);
+        localStorage.setItem('token', data.token);
+        return { success: true, user: data.user };
+      }
+      return { success: false, error: data.error || 'Invalid or expired verification code' };
+    } catch (err) {
+      return { success: false, error: 'Network error during code verification' };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken('');
+    localStorage.removeItem('livefix_user');
+    localStorage.removeItem('livefix_token');
     localStorage.removeItem('fixconnect_user');
     localStorage.removeItem('fixconnect_token');
+    localStorage.removeItem('token');
   };
 
   const switchRole = async (newRole) => {
-    if (newRole === 'admin') {
-      await login('shabber', '123123123');
-    } else if (newRole === 'technician') {
-      await login('ravi_sharma', '123123123');
-    } else {
-      await login('ananya', '123123123');
-    }
+    // Clear credentials to allow switching accounts cleanly
+    return false;
   };
 
   const verifyOtp = (newUser, newToken) => {
@@ -125,7 +159,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateCurrentUser = (updatedUser) => {
-    setUser(prev => ({ ...prev, ...updatedUser }));
+    setUser(prev => {
+      const merged = { ...prev, ...updatedUser };
+      try {
+        localStorage.setItem('livefix_user', JSON.stringify(merged));
+      } catch (e) {
+        console.error('Error saving user to localStorage:', e);
+      }
+      return merged;
+    });
   };
 
   return (
@@ -136,6 +178,8 @@ export const AuthProvider = ({ children }) => {
       register,
       forgotPassword,
       resetPassword,
+      sendOtp,
+      loginWithOtp,
       logout, 
       switchRole, 
       verifyOtp, 

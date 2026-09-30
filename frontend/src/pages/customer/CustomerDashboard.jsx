@@ -1,0 +1,286 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Laptop, 
+  Video, 
+  ShieldCheck, 
+  CheckCircle2, 
+  Clock, 
+  CreditCard, 
+  ExternalLink, 
+  ChevronRight, 
+  AlertCircle, 
+  Sparkles, 
+  Check, 
+  RefreshCw,
+  Home,
+  User,
+  Settings,
+  PlusCircle,
+  Radio,
+  FileCheck,
+  Package,
+  Lock,
+  Layers,
+  HelpCircle,
+  Bell,
+  LogOut,
+  MessageSquare
+} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import {
+  StreamModal,
+  TrackRepairModal,
+  RepairReportModal,
+  FeedbackModal,
+  PaymentsModal,
+  NotificationsModal,
+  HelpSupportModal
+} from '../../components/modals';
+import './CustomerDashboard.css';
+
+export default function CustomerDashboard({ onNewBooking }) {
+  const { user, logout, token } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activeSidebarNav, setActiveSidebarNav] = useState('dashboard');
+  const [isStreamOpen, setIsStreamOpen] = useState(false);
+  const [isTrackOpen, setIsTrackOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [repairs, setRepairs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Sync tab state with URL search params
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'repairs') {
+      setActiveSidebarNav('my-repairs');
+      const el = document.getElementById('customer-active-repairs');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else if (tab === 'track') {
+      setIsTrackOpen(true);
+    } else if (tab === 'messages') {
+      setIsStreamOpen(true);
+    } else if (tab === 'payments') {
+      setIsPaymentsOpen(true);
+    } else if (tab === 'notifications') {
+      setIsNotificationsOpen(true);
+    } else if (tab === 'help') {
+      setIsHelpOpen(true);
+    } else if (!tab || tab === 'dashboard') {
+      setActiveSidebarNav('dashboard');
+    }
+  }, [location.search]);
+
+  useEffect(() => {
+    const fetchRepairs = async () => {
+      try {
+        const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
+        if (!activeToken) {
+          setLoading(false);
+          return;
+        }
+        const res = await fetch('/api/repairs', {
+          headers: { 'Authorization': `Bearer ${activeToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setRepairs(data.orders || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user repairs:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRepairs();
+  }, []);
+
+  const activeRepairs = repairs.filter(r => r.status !== 'Delivered');
+  const pastRepairs = repairs.filter(r => r.status === 'Delivered');
+
+  return (
+    <div className="customer-dashboard-root">
+      {/* Main Content Area */}
+      <main className="customer-main-content">
+        <div className="customer-content-container">
+          {/* Dashboard Heading (Section 9) */}
+          <div className="customer-greeting-header">
+            <h1 className="customer-greeting-h1">
+              Hello, {user?.name?.split(' ')[0] || 'User'} 👋
+            </h1>
+            <p className="customer-greeting-sub">
+              What would you like to do today?
+            </p>
+          </div>
+
+          {/* Large Card: Need a laptop repair? */}
+          <div className="customer-hero-banner">
+            <div>
+              <h2 className="customer-hero-title">Need a laptop repair?</h2>
+              <p className="customer-hero-desc">
+                Tell us what's wrong and we'll connect you with nearby verified technicians in minutes.
+              </p>
+            </div>
+
+            <button className="btn-cta" onClick={onNewBooking}>
+              <PlusCircle size={16} /> Create Repair Request
+            </button>
+          </div>
+
+          {/* Active Repairs Section */}
+          <div id="customer-active-repairs" style={{ marginBottom: '36px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>Active Repairs</h2>
+              {activeRepairs.some(r => r.stream_session?.is_live) && (
+                <span className="badge badge-live">
+                  <Radio size={12} className="pulse-dot" /> LIVE WORKBENCH SESSION
+                </span>
+              )}
+            </div>
+
+            {activeRepairs.length === 0 ? (
+              <div className="tech-card" style={{ padding: '36px 24px', textAlign: 'center' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'var(--primary-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                  color: 'var(--primary)'
+                }}>
+                  <Laptop size={26} />
+                </div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '6px' }}>No Active Repairs</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '420px', margin: '0 auto 18px' }}>
+                  You have not created any laptop repairs yet. When you request a repair, you will see its status and live camera bench right here.
+                </p>
+                <button className="btn-primary" onClick={onNewBooking} style={{ padding: '10px 20px', fontSize: '0.86rem' }}>
+                  <PlusCircle size={15} /> Create Repair Request
+                </button>
+              </div>
+            ) : (
+              activeRepairs.map((r) => (
+                <div key={r.id || r.order_number} className="tech-card" style={{ padding: '24px', border: '1px solid var(--border-glow)', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>{r.laptop_brand} {r.laptop_model}</h3>
+                        <span className="badge badge-primary">{r.order_number}</span>
+                      </div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                        Issue: <strong>{r.issue_category}</strong>
+                      </div>
+                    </div>
+
+                    <span className="badge badge-live" style={{ fontSize: '0.8rem', padding: '4px 10px' }}>
+                      {r.status}
+                    </span>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '12px',
+                    background: 'var(--bg-card-subtle)',
+                    padding: '14px',
+                    borderRadius: '12px',
+                    marginBottom: '20px',
+                    fontSize: '0.82rem'
+                  }}>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)' }}>Assigned Tech: </span>
+                      <strong>{r.technician?.name || r.technician_name || 'Verified Specialist'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)' }}>Tamper Seal: </span>
+                      <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>{r.tamper_seal_code || 'Pending'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)' }}>Estimate: </span>
+                      <strong>₹{r.quote_amount || 0}</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    {r.stream_session?.is_live && (
+                      <button className="btn-cta" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.85rem' }}>
+                        <Video size={16} /> Join Live Repair
+                      </button>
+                    )}
+                    <button className="btn-secondary" onClick={() => setIsTrackOpen(true)} style={{ fontSize: '0.85rem' }}>
+                      Track Repair
+                    </button>
+                    <button className="btn-secondary" onClick={() => setIsReportOpen(true)} style={{ fontSize: '0.85rem' }}>
+                      View Repair Report
+                    </button>
+                    <button className="btn-secondary" onClick={() => setIsFeedbackOpen(true)} style={{ fontSize: '0.85rem' }}>
+                      Rate Repair
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Past Repairs Section */}
+          <div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '14px' }}>Past Repairs</h3>
+            {pastRepairs.length === 0 ? (
+              <div className="tech-card" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.88rem' }}>
+                No completed repairs on record yet.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {pastRepairs.map((r, i) => (
+                  <div key={i} className="tech-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{r.laptop_brand} {r.laptop_model}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{r.issue_category} • {r.order_number}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--success)', fontSize: '0.9rem' }}>₹{r.quote_amount || 0}</span>
+                      <button className="btn-secondary" onClick={() => setIsReportOpen(true)} style={{ fontSize: '0.78rem', padding: '6px 12px' }}>
+                        Invoice & Report
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* Modals */}
+      {isStreamOpen && (
+        <StreamModal
+          isOpen={isStreamOpen}
+          order={activeRepairs[0] || repairs[0] || {
+            order_number: 'EOF-LIVE-BENCH',
+            laptop_brand: 'Workbench',
+            laptop_model: 'Cleanroom Station 4',
+            issue_category: 'Diagnostic Video Stream',
+            status: 'In Progress',
+            tamper_seal_code: 'SEAL-TX-VERIFIED'
+          }}
+          onClose={() => setIsStreamOpen(false)}
+        />
+      )}
+      <TrackRepairModal isOpen={isTrackOpen} onClose={() => setIsTrackOpen(false)} initialId="" onOpenLiveStream={() => setIsStreamOpen(true)} />
+      <RepairReportModal isOpen={isReportOpen} onClose={() => setIsReportOpen(false)} />
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+      <PaymentsModal isOpen={isPaymentsOpen} onClose={() => setIsPaymentsOpen(false)} />
+      <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} onActionClick={() => setIsStreamOpen(true)} />
+      <HelpSupportModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+    </div>
+  );
+}

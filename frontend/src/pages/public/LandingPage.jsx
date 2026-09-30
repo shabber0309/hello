@@ -1,0 +1,198 @@
+import React from 'react';
+import { 
+  ShieldCheck, 
+  Video, 
+  Lock, 
+  Wrench, 
+  ArrowRight, 
+  Radio, 
+  DollarSign
+} from 'lucide-react';
+import './LandingPage.css';
+
+export default function LandingPage({ 
+  onStartBooking, 
+  onBecomeTechnician,
+  onSeeHowItWorks
+}) {
+  const trustIndicators = [
+    {
+      icon: ShieldCheck,
+      title: 'Verified Technicians',
+      desc: 'Background and skill verification',
+      bgGrad: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+      topBorder: '#10b981',
+      glow: '0 4px 14px rgba(16, 185, 129, 0.4)'
+    },
+    {
+      icon: DollarSign,
+      title: 'Transparent Pricing',
+      desc: 'Compare offers before accepting',
+      bgGrad: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+      topBorder: '#2563eb',
+      glow: '0 4px 14px rgba(37, 99, 235, 0.4)'
+    },
+    {
+      icon: Video,
+      title: 'Live Repair Sessions',
+      desc: 'Watch the repair through video',
+      bgGrad: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+      topBorder: '#8b5cf6',
+      glow: '0 4px 14px rgba(139, 92, 246, 0.4)'
+    },
+    {
+      icon: Lock,
+      title: 'Tamper-Seal Protection',
+      desc: 'Know when your device is opened',
+      bgGrad: 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
+      topBorder: '#0284c7',
+      glow: '0 4px 14px rgba(6, 182, 212, 0.4)'
+    }
+  ];
+
+  const sixSteps = [
+    { num: '1', title: 'Describe Your Problem', desc: 'Tell us your laptop brand, model, issue, and expected repair budget.', grad: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' },
+    { num: '2', title: 'Get Matched With Technicians', desc: 'Your request is shared with verified technicians who can service your device.', grad: 'linear-gradient(135deg, #06b6d4, #0284c7)' },
+    { num: '3', title: 'Compare & Accept Offers', desc: 'Technicians can accept your budget or send their own repair quote.', grad: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
+    { num: '4', title: 'Secure Pickup', desc: 'Your laptop is collected, sealed, and tracked during transportation.', grad: 'linear-gradient(135deg, #f97316, #ea580c)' },
+    { num: '5', title: 'Watch the Repair Live', desc: 'Join a video session and watch the technician diagnose and repair your laptop.', grad: 'linear-gradient(135deg, #10b981, #059669)' },
+    { num: '6', title: 'Get It Back Safely', desc: 'Your repaired laptop is sealed again and delivered back to you.', grad: 'linear-gradient(135deg, #6366f1, #4338ca)' }
+  ];
+
+  return (
+    <div className="landing-root">
+      {/* 1. Hero Section */}
+      <section className="landing-hero-section">
+        <div className="container">
+          <div className="landing-hero-grid">
+            {/* Left Headline Column */}
+            <div className="landing-headline-col">
+              <h1 className="landing-h1">
+                Laptop Repair, <br />
+                <span className="landing-gradient-text">
+                  Without the Guesswork.
+                </span>
+              </h1>
+
+              <p className="landing-hero-desc">
+                Connect with verified technicians, get transparent repair estimates, track your device at every step, and watch your repair happen live on camera.
+              </p>
+
+              <div className="landing-hero-cta-group">
+                <button 
+                  className="btn-cta landing-cta-btn"
+                  onClick={onStartBooking}
+                >
+                  Get Your Laptop Repaired
+                  <ArrowRight size={16} />
+                </button>
+
+                <button 
+                  className="btn-secondary landing-secondary-btn"
+                  onClick={onBecomeTechnician}
+                >
+                  <Wrench size={15} color="var(--primary)" />
+                  Become a Technician
+                </button>
+              </div>
+            </div>
+
+            {/* Right Column: Exploded Laptop Graphic */}
+            <div>
+              <div className="landing-hero-preview-card">
+                <img 
+                  src="/hero_laptop.jpg" 
+                  alt="Laptop Diagnostics"
+                  className="landing-hero-img"
+                />
+
+                <div className="landing-stream-badge">
+                  <Radio size={12} color="#ef4444" />
+                  <span>Live Microscope Stream</span>
+                </div>
+
+                <div className="landing-serial-badge">
+                  <ShieldCheck size={14} /> Serial Numbers Matched Live on Camera
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. Trust Indicators with Rich Colors */}
+      <section className="landing-trust-section">
+        <div className="container">
+          <div className="landing-trust-grid">
+            {trustIndicators.map((t, idx) => {
+              const Icon = t.icon;
+              return (
+                <div 
+                  key={idx} 
+                  className="landing-trust-card" 
+                  style={{ borderTop: `4px solid ${t.topBorder}` }}
+                >
+                  <div 
+                    className="landing-trust-icon-box"
+                    style={{ background: t.bgGrad, boxShadow: t.glow }}
+                  >
+                    <Icon size={22} />
+                  </div>
+                  <h3 className="landing-trust-title">{t.title}</h3>
+                  <p className="landing-trust-desc">{t.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. How Live Fix Works (6 Steps with Colored Badges) */}
+      <section className="landing-steps-section">
+        <div className="container">
+          <div className="landing-section-header">
+            <h2 className="landing-section-h2">How Live Fix Works</h2>
+            <p className="landing-section-sub">
+              6 transparent steps from request to delivery.
+            </p>
+          </div>
+
+          <div className="landing-steps-grid">
+            {sixSteps.map((s, idx) => (
+              <div key={idx} className="landing-step-card">
+                <div 
+                  className="landing-step-num"
+                  style={{ background: s.grad }}
+                >
+                  {s.num}
+                </div>
+                <h3 className="landing-step-title">{s.title}</h3>
+                <p className="landing-step-desc">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Bottom Trust Callout */}
+      <section className="landing-callout-section">
+        <div className="container">
+          <div className="landing-callout-box">
+            <h2 className="landing-callout-h2">
+              Your Device. Your Control.
+            </h2>
+            <p className="landing-callout-p">
+              No hidden repairs, unexpected charges, or opening your laptop without your approval.
+            </p>
+            <button 
+              className="btn-primary landing-callout-btn" 
+              onClick={onSeeHowItWorks}
+            >
+              See How It Works <ArrowRight size={15} />
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

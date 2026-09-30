@@ -1,11 +1,11 @@
 -- =================================================================
--- EyeOnFix: Live Camera Monitored Hardware Service
+-- Live Fix: Live Camera Monitored Hardware Service
 -- Production Database Schema (MySQL 8.0+)
 -- =================================================================
 
-DROP DATABASE IF EXISTS eyeonfix_db;
-CREATE DATABASE eyeonfix_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE eyeonfix_db;
+DROP DATABASE IF EXISTS livefix_db;
+CREATE DATABASE livefix_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE livefix_db;
 
 -- 1. USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
