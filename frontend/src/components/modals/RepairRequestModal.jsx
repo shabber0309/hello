@@ -481,8 +481,8 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                   sublabel="Select diagnostic domain"
                   value={selectedCatId}
                   options={categoryOptions}
-                  placeholder="Choose category..."
-                  searchPlaceholder="Search 20 repair categories..."
+                  placeholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
+                  searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
                   icon={Layers}
                   onChange={handleCategorySelect}
                 />
@@ -490,12 +490,12 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                 {/* 2. Specific Problem Dropdown - Line 2 */}
                 <SearchableDropdown
                   label="2. Specific Problem / Service"
-                  sublabel={`Showing ${currentCategory.problems.length} services (or search all 200)`}
+                  sublabel={currentCategory ? `Showing ${currentCategory.problems.length} services (or search all 200)` : 'Search across all 200 laptop problems'}
                   value={selectedProbId}
                   options={problemOptions}
                   fallbackAllOptions={allProblemsOptions}
-                  placeholder="Select or search fault..."
-                  searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid, fan)..."
+                  placeholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
+                  searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
                   icon={Wrench}
                   onChange={handleProblemSelect}
                 />

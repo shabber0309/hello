@@ -9,49 +9,60 @@ export default function SearchableDropdown({
   onChange,
   options = [],
   fallbackAllOptions = [],
-  placeholder = 'Select an option...',
-  searchPlaceholder = 'Search...',
+  placeholder = 'Search...',
+  searchPlaceholder = '',
   icon: IconComponent = null,
   emptyMessage = 'No matching options found'
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const containerRef = useRef(null);
-  const searchInputRef = useRef(null);
+  const inputRef = useRef(null);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const effectivePlaceholder = searchPlaceholder || placeholder;
 
-  // Focus search input when dropdown opens
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 50);
-    } else {
-      setSearchQuery('');
-    }
-  }, [isOpen]);
-
-  // Find currently selected option object (either in options or fallbackAllOptions)
+  // Selected Option
   const selectedOption = useMemo(() => {
+    if (!value) return null;
     const inOptions = options.find(opt => opt.id === value || opt.value === value);
     if (inOptions) return inOptions;
     return fallbackAllOptions.find(opt => opt.id === value || opt.value === value) || null;
   }, [options, fallbackAllOptions, value]);
 
-  // Filter options by search query
+  // Sync input value with selected option when dropdown is closed
+  useEffect(() => {
+    if (!isOpen) {
+      if (selectedOption) {
+        setInputValue(selectedOption.label || selectedOption.name || '');
+      } else {
+        setInputValue('');
+      }
+    }
+  }, [selectedOption, isOpen]);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+        if (selectedOption) {
+          setInputValue(selectedOption.label || selectedOption.name || '');
+        } else {
+          setInputValue('');
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selectedOption]);
+
+  // Filter options based on typed input
   const filteredOptions = useMemo(() => {
-    if (!searchQuery.trim()) return options;
-    const q = searchQuery.toLowerCase();
+    const q = inputValue.trim().toLowerCase();
+    // If empty or exactly matches current selected option's label, show all options in the category
+    if (!q || (selectedOption && (selectedOption.label?.toLowerCase() === q || selectedOption.name?.toLowerCase() === q))) {
+      return options;
+    }
 
     const matchesQuery = (opt) => {
       const titleMatch = opt.label?.toLowerCase().includes(q) || opt.name?.toLowerCase().includes(q);
@@ -68,11 +79,43 @@ export default function SearchableDropdown({
     const inAll = fallbackAllOptions.filter(matchesQuery).filter(o => !existingIds.has(o.id));
 
     return [...inCurrent, ...inAll];
-  }, [options, fallbackAllOptions, searchQuery]);
+  }, [options, fallbackAllOptions, inputValue, selectedOption]);
 
-  const handleSelect = (opt) => {
+  const handleInputFocus = () => {
+    setIsOpen(true);
+    // If an option is already selected, select text for quick editing or replacement
+    setTimeout(() => {
+      inputRef.current?.select();
+    }, 10);
+  };
+
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+    if (!isOpen) setIsOpen(true);
+  };
+
+  const handleClear = (e) => {
+    e.stopPropagation();
+    setInputValue('');
+    onChange(null);
+    setIsOpen(true);
+    inputRef.current?.focus();
+  };
+
+  const handleOptionClick = (opt) => {
     onChange(opt);
+    setInputValue(opt.label || opt.name || '');
     setIsOpen(false);
+  };
+
+  const toggleDropdown = (e) => {
+    e.stopPropagation();
+    if (isOpen) {
+      setIsOpen(false);
+    } else {
+      setIsOpen(true);
+      inputRef.current?.focus();
+    }
   };
 
   return (
@@ -84,87 +127,76 @@ export default function SearchableDropdown({
         </div>
       )}
 
-      {/* Trigger Button */}
-      <button
-        type="button"
-        className={`searchable-dropdown-trigger ${isOpen ? 'trigger-open' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
+      {/* Main Search Input Bar (Visible At First, exactly like Image 2) */}
+      <div 
+        className={`search-bar-container ${isOpen ? 'search-bar-open' : ''} ${selectedOption ? 'search-bar-has-value' : ''}`}
+        onClick={() => inputRef.current?.focus()}
       >
-        <div className="trigger-left">
-          {IconComponent && (
-            <div className="trigger-icon-box">
-              <IconComponent size={18} />
-            </div>
-          )}
-
-          <div className="trigger-text-wrapper">
-            {selectedOption ? (
-              <div className="trigger-selected-title">
-                {selectedOption.num && (
-                  <span className="trigger-num-badge">#{selectedOption.num}</span>
-                )}
-                <span className="trigger-name">{selectedOption.label || selectedOption.name}</span>
-                {selectedOption.categoryName && (
-                  <span className="trigger-cat-tag">{selectedOption.categoryName}</span>
-                )}
-              </div>
-            ) : (
-              <span className="trigger-placeholder">{placeholder}</span>
-            )}
-          </div>
+        <div className="search-bar-left">
+          <Search size={18} className="search-bar-icon" />
+          <input
+            ref={inputRef}
+            type="text"
+            className="search-bar-input"
+            placeholder={effectivePlaceholder}
+            value={inputValue}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            autoComplete="off"
+            spellCheck="false"
+          />
         </div>
 
-        <div className="trigger-right">
-          {selectedOption?.priceRange && (
-            <span className="trigger-price-badge">{selectedOption.priceRange}</span>
+        <div className="search-bar-right">
+          {/* Price Range Chip (if option has pricing) */}
+          {selectedOption?.priceRange && !isOpen && (
+            <span className="search-bar-price-chip">
+              {selectedOption.priceRange}
+            </span>
           )}
-          {selectedOption?.badge && (
-            <span className="trigger-count-badge">{selectedOption.badge}</span>
+
+          {/* Badge count (e.g. 25 services) */}
+          {selectedOption?.badge && !isOpen && (
+            <span className="search-bar-count-chip">
+              {selectedOption.badge}
+            </span>
           )}
-          <div className={`trigger-chevron ${isOpen ? 'chevron-rotated' : ''}`}>
+
+          {/* Clear Button */}
+          {inputValue && (
+            <button
+              type="button"
+              className="search-bar-clear-btn"
+              onClick={handleClear}
+              title="Clear selection"
+            >
+              <X size={14} />
+            </button>
+          )}
+
+          {/* Chevron Dropdown Trigger */}
+          <button
+            type="button"
+            className={`search-bar-chevron-btn ${isOpen ? 'chevron-active' : ''}`}
+            onClick={toggleDropdown}
+            title={isOpen ? 'Close menu' : 'Open menu'}
+          >
             <ChevronDown size={18} />
-          </div>
+          </button>
         </div>
-      </button>
+      </div>
 
-      {/* Dropdown Menu Popover */}
+      {/* Dropdown Menu (Appears when clicked or typed into) */}
       {isOpen && (
         <div className="searchable-dropdown-menu">
-          {/* Embedded Search Input */}
-          <div className="dropdown-search-wrapper">
-            <Search size={16} className="dropdown-search-icon" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              className="dropdown-search-input"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                className="dropdown-search-clear"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSearchQuery('');
-                  searchInputRef.current?.focus();
-                }}
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-
           {/* Results Count Banner */}
           <div className="dropdown-meta-banner">
             <span>
-              {searchQuery ? `Matching: ${filteredOptions.length} results` : `Total: ${options.length} options in category`}
+              {inputValue.trim()
+                ? `Matching results: ${filteredOptions.length}`
+                : `Available options: ${options.length}`}
             </span>
-            <span className="dropdown-meta-hint">Type to search 200 problems</span>
+            <span className="dropdown-meta-hint">Click an option to select</span>
           </div>
 
           {/* Scrollable Options List */}
@@ -173,7 +205,7 @@ export default function SearchableDropdown({
               <div className="dropdown-empty-state">
                 <Search size={22} style={{ opacity: 0.4, margin: '0 auto 6px' }} />
                 <div>{emptyMessage}</div>
-                <span style={{ fontSize: '0.74rem', opacity: 0.7 }}>Try searching for another keyword</span>
+                <span style={{ fontSize: '0.74rem', opacity: 0.7 }}>Try searching with another keyword</span>
               </div>
             ) : (
               filteredOptions.map((opt) => {
@@ -182,7 +214,7 @@ export default function SearchableDropdown({
                   <div
                     key={opt.id || opt.value || opt.name}
                     className={`dropdown-option-row ${isSelected ? 'option-selected' : ''}`}
-                    onClick={() => handleSelect(opt)}
+                    onClick={() => handleOptionClick(opt)}
                     role="option"
                     aria-selected={isSelected}
                   >

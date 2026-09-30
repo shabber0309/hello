@@ -69,9 +69,9 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
   const [error, setError] = useState('');
   const [photoError, setPhotoError] = useState('');
 
-  // Selected Category and Problem State (Default: Software -> Windows not booting)
-  const [selectedCatId, setSelectedCatId] = useState('software');
-  const [selectedProbId, setSelectedProbId] = useState(1);
+  // Selected Category and Problem State (Null initially so search input placeholder appears as in Image 2)
+  const [selectedCatId, setSelectedCatId] = useState(null);
+  const [selectedProbId, setSelectedProbId] = useState(null);
 
   // Photos State: Min 1, Max 5 required
   const [photos, setPhotos] = useState([]);
@@ -81,17 +81,17 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     laptop_brand: 'Apple',
     laptop_model: 'MacBook Air M2 (2023)',
     serial_number: '',
-    issue_category: '1. Software & Windows Problems',
-    issue_name: 'Windows not booting',
+    issue_category: '',
+    issue_name: '',
     issue_description: prefill ? `Selected Issue: ${prefill}` : '',
     pickup_address: 'Flat 302, Cyber Towers View',
     pickup_area: 'Madhapur',
     pickup_city: 'Hyderabad',
     pickup_pincode: '500081',
     pickup_slot: 'Today, 2:00 PM - 4:00 PM',
-    base_price_min: 500,
-    base_price_max: 1500,
-    customer_selected_price: 1000
+    base_price_min: 1500,
+    base_price_max: 3500,
+    customer_selected_price: 2500
   });
 
   const popularBrands = [
@@ -112,8 +112,10 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
   ];
 
   // Active Category & Problem objects
-  const currentCategory = LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === selectedCatId) || LAPTOP_PROBLEM_CATEGORIES[0];
-  const currentProblem = currentCategory.problems.find(p => p.id === selectedProbId) || currentCategory.problems[0];
+  const currentCategory = selectedCatId ? LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === selectedCatId) : null;
+  const currentProblem = selectedProbId 
+    ? (currentCategory?.problems.find(p => p.id === selectedProbId) || ALL_PROBLEMS_FLAT.find(p => p.id === selectedProbId))
+    : null;
 
   // Handle Photo selection (converts files to base64 data URLs for immediate preview & zero-setup persistence)
   const handlePhotoUpload = (e) => {
@@ -168,6 +170,16 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     setStep(2);
   };
 
+  // Step 2 to Step 3 Validation
+  const handleProceedToStep3 = () => {
+    if (!selectedProbId && !formData.issue_name) {
+      setError('Please select or search your specific laptop problem before proceeding.');
+      return;
+    }
+    setError('');
+    setStep(3);
+  };
+
   // Memoized options for SearchableDropdowns
   const categoryOptions = LAPTOP_PROBLEM_CATEGORIES.map(cat => ({
     id: cat.id,
@@ -175,17 +187,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     label: cat.name,
     badge: `${cat.problems.length} services`,
     meta: cat.shortName
-  }));
-
-  const problemOptions = currentCategory.problems.map(prob => ({
-    id: prob.id,
-    value: prob.id,
-    num: prob.id,
-    label: prob.name,
-    priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
-    basePrice: prob.basePrice,
-    maxPrice: prob.maxPrice,
-    categoryName: currentCategory.shortName
   }));
 
   const allProblemsOptions = ALL_PROBLEMS_FLAT.map(prob => ({
@@ -199,6 +200,19 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     categoryId: prob.categoryId,
     categoryName: prob.shortCategory
   }));
+
+  const problemOptions = currentCategory
+    ? currentCategory.problems.map(prob => ({
+        id: prob.id,
+        value: prob.id,
+        num: prob.id,
+        label: prob.name,
+        priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
+        basePrice: prob.basePrice,
+        maxPrice: prob.maxPrice,
+        categoryName: currentCategory.shortName
+      }))
+    : allProblemsOptions;
 
   // Step 2 Category Dropdown Selection Handler
   const handleCategorySelect = (opt) => {
@@ -493,7 +507,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                 sublabel="Select primary diagnostic domain"
                 value={selectedCatId}
                 options={categoryOptions}
-                placeholder="Choose category..."
+                placeholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
                 searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
                 icon={Layers}
                 onChange={handleCategorySelect}
@@ -502,11 +516,11 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               {/* 2. Specific Problem / Service Dropdown - Full Width */}
               <SearchableDropdown
                 label="2. Specific Problem / Service"
-                sublabel={`Showing ${currentCategory.problems.length} services in ${currentCategory.shortName} (or type to search all 200)`}
+                sublabel={currentCategory ? `Showing ${currentCategory.problems.length} services in ${currentCategory.shortName} (or type to search all 200)` : 'Search across all 200 laptop problems'}
                 value={selectedProbId}
                 options={problemOptions}
                 fallbackAllOptions={allProblemsOptions}
-                placeholder="Search or select specific fault..."
+                placeholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
                 searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
                 icon={Wrench}
                 onChange={handleProblemSelect}
@@ -557,7 +571,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               </button>
               <button
                 type="button"
-                onClick={() => setStep(3)}
+                onClick={handleProceedToStep3}
                 className="btn-action"
               >
                 Next: Pickup Logistics <ArrowRight size={16} />

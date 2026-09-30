@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SearchableDropdown.css - Live Fix Cyber & Studio Aesthetic Dropdown
+   SearchableDropdown.css - Search Bar First Dropdown (Matches User Spec Image 2)
    ========================================================================== */
 
 .searchable-dropdown-root {
@@ -29,11 +29,11 @@
   font-weight: 500;
 }
 
-/* Trigger Button */
-.searchable-dropdown-trigger {
+/* Main Search Input Bar (Visible At First, exactly like Image 2) */
+.search-bar-container {
   width: 100%;
-  min-height: 52px;
-  padding: 8px 16px;
+  height: 52px;
+  padding: 0 16px;
   border-radius: 12px;
   background: var(--bg-surface-elevated, #ffffff);
   border: 1.5px solid var(--border-medium, #cbd5e1);
@@ -41,129 +41,96 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  cursor: pointer;
-  outline: none;
+  cursor: text;
+  box-sizing: border-box;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-  text-align: left;
 }
 
-.searchable-dropdown-trigger:hover {
+.search-bar-container:hover {
   border-color: var(--primary, #2563eb);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
 }
 
-.searchable-dropdown-trigger.trigger-open {
+.search-bar-container.search-bar-open {
   border-color: var(--primary, #2563eb);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18), 0 8px 20px rgba(37, 99, 235, 0.1);
-  background: var(--bg-card-hover, #f8fafc);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16), 0 8px 24px rgba(37, 99, 235, 0.08);
+  background: var(--bg-surface, #ffffff);
 }
 
-[data-theme="dark"] .searchable-dropdown-trigger {
-  background: rgba(15, 23, 42, 0.75);
-  border-color: rgba(148, 163, 184, 0.25);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+[data-theme="dark"] .search-bar-container {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .searchable-dropdown-trigger:hover {
+[data-theme="dark"] .search-bar-container:hover {
   border-color: #3b82f6;
-  background: rgba(30, 41, 59, 0.85);
+  background: rgba(30, 41, 59, 0.9);
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4), 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="dark"] .searchable-dropdown-trigger.trigger-open {
+[data-theme="dark"] .search-bar-container.search-bar-open {
   border-color: #3b82f6;
-  background: rgba(30, 41, 59, 0.95);
+  background: rgba(30, 41, 59, 0.98);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
-/* Trigger Inner Layout */
-.trigger-left {
+/* Inner Input Left */
+.search-bar-left {
   display: flex;
   align-items: center;
   gap: 12px;
   flex: 1;
   min-width: 0;
+  height: 100%;
 }
 
-.trigger-icon-box {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: rgba(37, 99, 235, 0.1);
+.search-bar-icon {
   color: var(--primary, #2563eb);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
-[data-theme="dark"] .trigger-icon-box {
-  background: rgba(59, 130, 246, 0.18);
+.search-bar-container.search-bar-open .search-bar-icon {
+  transform: scale(1.1);
+}
+
+[data-theme="dark"] .search-bar-icon {
   color: #60a5fa;
 }
 
-.trigger-text-wrapper {
-  flex: 1;
-  min-width: 0;
+.search-bar-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--text-main, #0f172a);
+  font-family: inherit;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.trigger-selected-title {
+.search-bar-input::placeholder {
+  color: var(--text-dim, #64748b);
+  opacity: 0.8;
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+/* Inner Input Right */
+.search-bar-right {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-}
-
-.trigger-num-badge {
-  font-size: 0.74rem;
-  font-weight: 800;
-  font-family: var(--font-mono, monospace);
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(37, 99, 235, 0.12);
-  color: var(--primary, #2563eb);
-}
-
-[data-theme="dark"] .trigger-num-badge {
-  background: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
-}
-
-.trigger-name {
-  font-weight: 700;
-  font-size: 0.94rem;
-  color: var(--text-main, #0f172a);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.trigger-cat-tag {
-  font-size: 0.72rem;
-  padding: 1px 7px;
-  border-radius: 4px;
-  background: rgba(148, 163, 184, 0.15);
-  color: var(--text-muted, #475569);
-  font-weight: 600;
-}
-
-.trigger-placeholder {
-  color: var(--text-dim, #94a3b8);
-  font-size: 0.92rem;
-  font-weight: 500;
-}
-
-.trigger-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   flex-shrink: 0;
 }
 
-.trigger-price-badge {
-  font-size: 0.8rem;
+.search-bar-price-chip {
+  font-size: 0.78rem;
   font-weight: 800;
   padding: 4px 10px;
   border-radius: 6px;
@@ -171,37 +138,68 @@
   color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.25);
   font-family: var(--font-mono, monospace);
+  white-space: nowrap;
 }
 
-[data-theme="dark"] .trigger-price-badge {
+[data-theme="dark"] .search-bar-price-chip {
   background: rgba(16, 185, 129, 0.18);
   color: #34d399;
   border-color: rgba(52, 211, 153, 0.3);
 }
 
-.trigger-count-badge {
+.search-bar-count-chip {
   font-size: 0.74rem;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 6px;
   background: #f1f5f9;
   color: #475569;
+  white-space: nowrap;
 }
 
-[data-theme="dark"] .trigger-count-badge {
+[data-theme="dark"] .search-bar-count-chip {
   background: rgba(255, 255, 255, 0.08);
   color: #94a3b8;
 }
 
-.trigger-chevron {
-  color: var(--text-dim, #64748b);
+.search-bar-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim, #94a3b8);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.25s ease;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.trigger-chevron.chevron-rotated {
+.search-bar-clear-btn:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.search-bar-chevron-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim, #64748b);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.25s ease, color 0.2s ease;
+}
+
+.search-bar-chevron-btn:hover {
+  color: var(--primary, #2563eb);
+}
+
+.search-bar-chevron-btn.chevron-active {
   transform: rotate(180deg);
   color: var(--primary, #2563eb);
 }
@@ -240,76 +238,22 @@
   }
 }
 
-/* Search Box Inside Dropdown */
-.dropdown-search-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border-light, #e2e8f0);
-  background: var(--bg-surface, #f8fafc);
-}
-
-[data-theme="dark"] .dropdown-search-wrapper {
-  background: rgba(11, 18, 33, 0.9);
-  border-bottom-color: rgba(148, 163, 184, 0.18);
-}
-
-.dropdown-search-icon {
-  color: var(--primary, #2563eb);
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-
-.dropdown-search-input {
-  flex: 1;
-  height: 36px;
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-main, #0f172a);
-}
-
-.dropdown-search-input::placeholder {
-  color: var(--text-dim, #94a3b8);
-}
-
-.dropdown-search-clear {
-  background: transparent;
-  border: none;
-  color: var(--text-dim, #94a3b8);
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.dropdown-search-clear:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--text-main);
-}
-
 /* Results Count Banner */
 .dropdown-meta-banner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 14px;
-  font-size: 0.72rem;
+  padding: 8px 14px;
+  font-size: 0.74rem;
   font-weight: 600;
-  background: rgba(37, 99, 235, 0.04);
+  background: rgba(37, 99, 235, 0.05);
   color: var(--text-dim, #64748b);
   border-bottom: 1px solid var(--border-light, #e2e8f0);
 }
 
 [data-theme="dark"] .dropdown-meta-banner {
-  background: rgba(59, 130, 246, 0.06);
-  border-bottom-color: rgba(148, 163, 184, 0.12);
+  background: rgba(59, 130, 246, 0.08);
+  border-bottom-color: rgba(148, 163, 184, 0.15);
   color: #94a3b8;
 }
 
