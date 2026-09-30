@@ -93,6 +93,9 @@ function MainApp() {
         onOpenTechOnboarding={() => (user ? setIsTechOnboardingOpen(true) : openAuth('technician'))}
         onOpenChainOfCustody={() => setIsChainOfCustodyOpen(true)}
         onOpenPayments={() => setIsPaymentsOpen(true)}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
+        onOpenHelp={() => setIsHelpOpen(true)}
+        onOpenMessages={() => setDemoStreamOrder(sampleDemoOrder)}
         onOpenEditProfile={() => setIsEditProfileOpen(true)}
       />
 

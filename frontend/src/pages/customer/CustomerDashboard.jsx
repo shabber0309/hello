@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Laptop, 
   Video, 
@@ -42,6 +42,7 @@ import './CustomerDashboard.css';
 export default function CustomerDashboard({ onNewBooking }) {
   const { user, logout, token } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeSidebarNav, setActiveSidebarNav] = useState('dashboard');
   const [isStreamOpen, setIsStreamOpen] = useState(false);
   const [isTrackOpen, setIsTrackOpen] = useState(false);
@@ -52,6 +53,29 @@ export default function CustomerDashboard({ onNewBooking }) {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Sync tab state with URL search params
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'repairs') {
+      setActiveSidebarNav('my-repairs');
+      const el = document.getElementById('customer-active-repairs');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else if (tab === 'track') {
+      setIsTrackOpen(true);
+    } else if (tab === 'messages') {
+      setIsStreamOpen(true);
+    } else if (tab === 'payments') {
+      setIsPaymentsOpen(true);
+    } else if (tab === 'notifications') {
+      setIsNotificationsOpen(true);
+    } else if (tab === 'help') {
+      setIsHelpOpen(true);
+    } else if (!tab || tab === 'dashboard') {
+      setActiveSidebarNav('dashboard');
+    }
+  }, [location.search]);
 
   useEffect(() => {
     const fetchRepairs = async () => {
@@ -89,10 +113,15 @@ export default function CustomerDashboard({ onNewBooking }) {
         </div>
 
         {[
-          { id: 'dashboard', label: 'Dashboard', icon: Home, action: () => setActiveSidebarNav('dashboard') },
+          { id: 'dashboard', label: 'Dashboard', icon: Home, action: () => { setActiveSidebarNav('dashboard'); navigate('/dashboard'); } },
           { id: 'new', label: 'New Repair', icon: PlusCircle, action: onNewBooking },
-          { id: 'my-repairs', label: 'My Repairs', icon: Laptop, action: () => setActiveSidebarNav('dashboard') },
-          { id: 'track-pickup', label: 'Track Pickup', icon: Package, action: () => setIsTrackOpen(true) },
+          { id: 'my-repairs', label: 'My Repairs', icon: Laptop, action: () => { 
+            setActiveSidebarNav('my-repairs');
+            navigate('/dashboard?tab=repairs');
+            const el = document.getElementById('customer-active-repairs');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          } },
+          { id: 'track-pickup', label: 'Track Pickup', icon: Package, action: () => navigate('/track-repair') },
           { id: 'messages', label: 'Messages', icon: MessageSquare, action: () => setIsStreamOpen(true) },
           { id: 'payments', label: 'Payments', icon: CreditCard, action: () => setIsPaymentsOpen(true) },
           { id: 'notifications', label: 'Notifications', icon: Bell, action: () => setIsNotificationsOpen(true) },
@@ -153,7 +182,7 @@ export default function CustomerDashboard({ onNewBooking }) {
           </div>
 
           {/* Active Repairs Section */}
-          <div style={{ marginBottom: '36px' }}>
+          <div id="customer-active-repairs" style={{ marginBottom: '36px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>Active Repairs</h2>
               {activeRepairs.some(r => r.stream_session?.is_live) && (

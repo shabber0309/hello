@@ -202,16 +202,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 0 16px;
-  overflow: hidden;
+  gap: 6px;
+  padding: 0 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.silicone-bay-center::-webkit-scrollbar {
+  display: none;
 }
 
 /* Free-Standing Navigation Links (No keycap/box containers around the text) */
 .silicone-nav-link {
-  padding: 7px 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 9999px;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: #1e293b;
   background: transparent;
@@ -222,6 +230,14 @@
   white-space: nowrap;
   letter-spacing: 0.015em;
   text-shadow: none;
+  flex-shrink: 0;
+}
+
+.silicone-nav-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .silicone-nav-link:hover {
@@ -237,7 +253,7 @@
 
 /* Active Nav Pill */
 .silicone-nav-link--active {
-  padding: 7px 20px !important;
+  padding: 6px 16px !important;
   background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #38bdf8 100%) !important;
   color: #ffffff !important;
   font-weight: 800 !important;

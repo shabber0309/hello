@@ -11,12 +11,28 @@ import {
   Shield, 
   Menu, 
   X, 
-  UserCheck 
+  UserCheck,
+  Home,
+  PlusCircle,
+  Laptop,
+  Package,
+  MessageSquare,
+  CreditCard,
+  Bell,
+  HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
-export default function Navbar({ onOpenEditProfile }) {
+export default function Navbar({ 
+  onOpenEditProfile,
+  onOpenPayments,
+  onOpenNotifications,
+  onOpenHelp,
+  onOpenMessages,
+  onOpenRequestModal,
+  onOpenTrackRepair
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, switchRole } = useAuth();
@@ -58,7 +74,7 @@ export default function Navbar({ onOpenEditProfile }) {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  // Nav links: Customer navbar persists across Book Repair and all customer pages
+  // Nav links: Customer portal navbar matches the 8 menu items
   const getNavLinks = () => {
     if (isAdmin && location.pathname.startsWith('/admin')) {
       return [
@@ -83,12 +99,70 @@ export default function Navbar({ onOpenEditProfile }) {
     }
     if (isCustomer || (user && user.role === 'customer')) {
       return [
-        { name: 'Dashboard', path: '/dashboard' },
-        { name: 'Book Repair', path: '/book' },
-        { name: 'Track Order', path: '/track-repair' },
-        { name: 'Services', path: '/services' },
-        { name: 'How It Works', path: '/how-it-works' },
-        { name: 'Pricing', path: '/pricing' }
+        { 
+          id: 'dashboard', 
+          name: 'Dashboard', 
+          path: '/dashboard', 
+          icon: Home 
+        },
+        { 
+          id: 'new', 
+          name: 'New Repair', 
+          path: '/book', 
+          icon: PlusCircle 
+        },
+        { 
+          id: 'my-repairs', 
+          name: 'My Repairs', 
+          path: '/dashboard?tab=repairs', 
+          icon: Laptop 
+        },
+        { 
+          id: 'track-pickup', 
+          name: 'Track Pickup', 
+          path: '/track-repair', 
+          icon: Package 
+        },
+        { 
+          id: 'messages', 
+          name: 'Messages', 
+          path: '/dashboard?tab=messages', 
+          icon: MessageSquare,
+          action: () => {
+            if (onOpenMessages) onOpenMessages();
+            else navigate('/dashboard?tab=messages');
+          }
+        },
+        { 
+          id: 'payments', 
+          name: 'Payments', 
+          path: '/dashboard?tab=payments', 
+          icon: CreditCard,
+          action: () => {
+            if (onOpenPayments) onOpenPayments();
+            else navigate('/dashboard?tab=payments');
+          }
+        },
+        { 
+          id: 'notifications', 
+          name: 'Notifications', 
+          path: '/dashboard?tab=notifications', 
+          icon: Bell,
+          action: () => {
+            if (onOpenNotifications) onOpenNotifications();
+            else navigate('/dashboard?tab=notifications');
+          }
+        },
+        { 
+          id: 'help', 
+          name: 'Help & Support', 
+          path: '/dashboard?tab=help', 
+          icon: HelpCircle,
+          action: () => {
+            if (onOpenHelp) onOpenHelp();
+            else navigate('/dashboard?tab=help');
+          }
+        }
       ];
     }
 
@@ -104,6 +178,36 @@ export default function Navbar({ onOpenEditProfile }) {
   };
 
   const isLinkActive = (link) => {
+    if (isCustomer || (user && user.role === 'customer')) {
+      const params = new URLSearchParams(location.search);
+      const currentTab = params.get('tab');
+
+      if (link.id === 'new') {
+        return location.pathname === '/book';
+      }
+      if (link.id === 'track-pickup') {
+        return location.pathname === '/track-repair';
+      }
+      if (link.id === 'my-repairs') {
+        return location.pathname === '/dashboard' && currentTab === 'repairs';
+      }
+      if (link.id === 'messages') {
+        return currentTab === 'messages';
+      }
+      if (link.id === 'payments') {
+        return currentTab === 'payments';
+      }
+      if (link.id === 'notifications') {
+        return currentTab === 'notifications';
+      }
+      if (link.id === 'help') {
+        return currentTab === 'help';
+      }
+      if (link.id === 'dashboard') {
+        return location.pathname === '/dashboard' && (!currentTab || currentTab === 'dashboard');
+      }
+    }
+
     if (link.tab && link.basePath) {
       if (location.pathname !== link.basePath) return false;
       const params = new URLSearchParams(location.search);
@@ -120,6 +224,14 @@ export default function Navbar({ onOpenEditProfile }) {
       return location.pathname === '/' || location.pathname === '/home';
     }
     return location.pathname === link.path;
+  };
+
+  const handleNavLinkClick = (link) => {
+    if (link.action) {
+      link.action();
+    } else if (link.path) {
+      navigate(link.path);
+    }
   };
 
   const navLinks = getNavLinks();
@@ -147,13 +259,15 @@ export default function Navbar({ onOpenEditProfile }) {
           <div className="silicone-bay silicone-bay-center">
             {navLinks.map((link, idx) => {
               const isActive = isLinkActive(link);
+              const Icon = link.icon;
               return (
                 <button
                   key={idx}
-                  onClick={() => navigate(link.path)}
+                  onClick={() => handleNavLinkClick(link)}
                   className={`silicone-nav-link ${isActive ? 'silicone-nav-link--active' : ''}`}
                 >
-                  {link.name}
+                  {Icon && <Icon size={15} className="silicone-nav-link-icon" />}
+                  <span>{link.name}</span>
                 </button>
               );
             })}
@@ -320,16 +434,20 @@ export default function Navbar({ onOpenEditProfile }) {
 
             {navLinks.map((link, idx) => {
               const isActive = isLinkActive(link);
+              const Icon = link.icon;
               return (
                 <button
                   key={idx}
                   onClick={() => {
-                    navigate(link.path);
+                    handleNavLinkClick(link);
                     setMobileMenuOpen(false);
                   }}
                   className={`silicone-mobile-nav-btn ${isActive ? 'silicone-mobile-nav-btn--active' : ''}`}
                 >
-                  <span>{link.name}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {Icon && <Icon size={16} />}
+                    <span>{link.name}</span>
+                  </div>
                   {isActive && (
                     <span style={{ 
                       fontSize: '0.68rem', 
