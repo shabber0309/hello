@@ -402,34 +402,8 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
           </button>
         </div>
 
-        {/* Auth Header with Pulsing Badge & Icon Wrap */}
+        {/* Auth Header with Icon Wrap */}
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '7px',
-              padding: '5px 14px',
-              borderRadius: '9999px',
-              fontSize: '11px',
-              fontWeight: 800,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              background: roleMeta.badgeBg,
-              color: roleMeta.badgeColor,
-              border: `1px solid ${roleMeta.badgeBorder}`
-            }}>
-              <span style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: roleMeta.dotColor,
-                boxShadow: `0 0 8px ${roleMeta.dotColor}`
-              }} />
-              {roleMeta.badgeText}
-            </span>
-          </div>
-
           <div style={{
             width: '58px',
             height: '58px',
@@ -450,11 +424,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
             {mode === 'register' && 'Create Free Account'}
             {mode === 'forgot' && 'Reset Account Password'}
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0, lineHeight: 1.45 }}>
-            {mode === 'login' && roleMeta.subtitle}
-            {mode === 'register' && 'Enter your details below to join Live Fix with full hardware transparency'}
-            {mode === 'forgot' && 'Enter your registered email or phone number for secure OTP password recovery'}
-          </p>
+          
         </div>
 
         {/* Error Alert */}

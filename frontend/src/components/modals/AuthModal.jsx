@@ -382,35 +382,8 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
           </button>
         </div>
 
-        {/* Auth Header with Icon Wrap & Badge (from E-Commerce project) */}
+        {/* Auth Header with Icon Wrap */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          {/* Badge Wrapper with pulsing dot */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 12px',
-              borderRadius: '9999px',
-              fontSize: '11px',
-              fontWeight: 800,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              background: roleMeta.badgeBg,
-              color: roleMeta.badgeColor,
-              border: `1px solid ${roleMeta.badgeBorder}`
-            }}>
-              <span style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: roleMeta.dotColor,
-                boxShadow: `0 0 6px ${roleMeta.dotColor}`
-              }} />
-              {roleMeta.title}
-            </span>
-          </div>
-
           {/* Icon Wrap */}
           <div style={{
             width: '54px',
