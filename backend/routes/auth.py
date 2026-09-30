@@ -363,7 +363,9 @@ def update_profile(current_user):
         existing = User.query.filter_by(username=username).first()
         if existing and existing.id != current_user.id:
             return jsonify({'error': 'Username already taken by another user'}), 400
-        current_user.username = username
+    avatar = data.get('avatar') or data.get('photo')
+    if avatar is not None:
+        current_user.avatar = avatar
     if password:
         current_user.set_password(password)
 

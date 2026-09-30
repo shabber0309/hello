@@ -292,9 +292,20 @@ export default function Navbar({
               >
                 <div 
                   className="silicone-avatar-circle"
-                  style={{ background: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb') }}
+                  style={{ 
+                    background: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb'),
+                    overflow: 'hidden'
+                  }}
                 >
-                  {user.name?.charAt(0) || 'U'}
+                  {(user.avatar || user.photo || user.photo_url) ? (
+                    <img 
+                      src={user.avatar || user.photo || user.photo_url} 
+                      alt={user.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  ) : (
+                    user.name?.charAt(0) || 'U'
+                  )}
                 </div>
                 <span className="silicone-user-name">
                   {user.name?.split(' ')[0] || 'User'}
@@ -306,21 +317,49 @@ export default function Navbar({
             {/* Profile Dropdown Menu for Logged In Users */}
             {user && showProfileMenu && (
               <div className="silicone-profile-dropdown">
-                <div className="silicone-dropdown-header">
-                  <div className="silicone-dropdown-name">{user.name}</div>
-                  <div className="silicone-dropdown-email">{user.email}</div>
-                  <span 
-                    className="badge" 
-                    style={{
-                      marginTop: '4px',
-                      fontSize: '0.62rem',
-                      background: 'rgba(56, 189, 248, 0.16)',
-                      color: '#0284c7',
-                      border: '1px solid rgba(56, 189, 248, 0.3)'
+                <div className="silicone-dropdown-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div 
+                    style={{ 
+                      width: '42px', 
+                      height: '42px', 
+                      borderRadius: '50%',
+                      background: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb'),
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
                     }}
                   >
-                    {user.role?.toUpperCase()}
-                  </span>
+                    {(user.avatar || user.photo || user.photo_url) ? (
+                      <img 
+                        src={user.avatar || user.photo || user.photo_url} 
+                        alt={user.name} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      />
+                    ) : (
+                      <span style={{ fontSize: '1.1rem', fontWeight: 800 }}>{user.name?.charAt(0) || 'U'}</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="silicone-dropdown-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</div>
+                    <div className="silicone-dropdown-email" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                    <span 
+                      className="badge" 
+                      style={{
+                        marginTop: '4px',
+                        fontSize: '0.62rem',
+                        background: 'rgba(56, 189, 248, 0.16)',
+                        color: '#0284c7',
+                        border: '1px solid rgba(56, 189, 248, 0.3)'
+                      }}
+                    >
+                      {user.role?.toUpperCase()}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Role Switchers - Only visible to Admins */}
@@ -470,8 +509,34 @@ export default function Navbar({
         {mobileMenuOpen && (
           <div className="silicone-mobile-drawer">
             {user && (
-              <div className="silicone-mobile-user-card">
-                <div>
+              <div className="silicone-mobile-user-card" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div 
+                  style={{ 
+                    width: '38px', 
+                    height: '38px', 
+                    borderRadius: '50%',
+                    background: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb'),
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    border: '1.5px solid rgba(255, 255, 255, 0.3)'
+                  }}
+                >
+                  {(user.avatar || user.photo || user.photo_url) ? (
+                    <img 
+                      src={user.avatar || user.photo || user.photo_url} 
+                      alt={user.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  ) : (
+                    user.name?.charAt(0) || 'U'
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: '#fff', fontWeight: 800, fontSize: '0.9rem' }}>{user.name}</div>
                   <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem' }}>{user.email}</div>
                 </div>

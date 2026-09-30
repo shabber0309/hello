@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, Lock, X, CheckCircle2, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Phone, Lock, X, CheckCircle2, AlertCircle, Camera, Upload, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Modals.css';
 
 export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) {
   const { user, token, updateCurrentUser } = useAuth();
+  const fileInputRef = useRef(null);
   const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
+  const [avatar, setAvatar] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -16,8 +17,8 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
   useEffect(() => {
     if (user) {
       setName(user.name || '');
-      setUsername(user.username || '');
       setPhone(user.phone || '');
+      setAvatar(user.avatar || user.photo || user.photo_url || '');
       setPassword('');
       setError('');
       setSuccess('');
@@ -25,6 +26,21 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
   }, [user, isOpen]);
 
   if (!isOpen) return null;
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Photo size should be less than 5MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatar(reader.result);
+      setError('');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,8 +58,8 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
         },
         body: JSON.stringify({
           name,
-          username,
           phone,
+          avatar,
           password: password || undefined
         })
       });
@@ -51,10 +67,9 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
       const data = await res.json();
       if (res.ok) {
         setSuccess('Profile updated successfully!');
-        if (data.user) {
-          updateCurrentUser(data.user);
-          if (onProfileUpdated) onProfileUpdated(data.user);
-        }
+        const updated = data.user || { ...user, name, phone, avatar };
+        updateCurrentUser(updated);
+        if (onProfileUpdated) onProfileUpdated(updated);
         setTimeout(() => {
           onClose();
         }, 1200);
@@ -63,7 +78,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
       }
     } catch (err) {
       // Local fallback
-      const updatedMock = { ...user, name, username, phone };
+      const updatedMock = { ...user, name, phone, avatar };
       updateCurrentUser(updatedMock);
       if (onProfileUpdated) onProfileUpdated(updatedMock);
       setSuccess('Profile updated successfully!');
@@ -170,6 +185,130 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Profile Photo Upload Section */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '18px',
+            padding: '14px',
+            background: 'rgba(56, 189, 248, 0.05)',
+            border: '1px solid rgba(56, 189, 248, 0.18)',
+            borderRadius: '16px'
+          }}>
+            <div style={{ position: 'relative', width: '70px', height: '70px', flexShrink: 0 }}>
+              <div style={{
+                width: '70px',
+                height: '70px',
+                borderRadius: '50%',
+                overflow: 'hidden',
+                background: user?.role === 'technician' ? '#d97706' : (user?.role === 'admin' ? '#059669' : '#2563eb'),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px solid rgba(255, 255, 255, 0.45)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)'
+              }}>
+                {avatar ? (
+                  <img 
+                    src={avatar} 
+                    alt={name || 'Profile'} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#ffffff' }}>
+                    {name?.charAt(0) || user?.name?.charAt(0) || 'U'}
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Upload profile photo"
+                style={{
+                  position: 'absolute',
+                  bottom: '-2px',
+                  right: '-2px',
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '50%',
+                  background: '#2563eb',
+                  border: '2px solid #ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)'
+                }}
+              >
+                <Camera size={13} />
+              </button>
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                Profile Photo
+              </div>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                Upload your avatar image (PNG, JPG, WebP)
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(37, 99, 235, 0.15)',
+                    border: '1px solid rgba(37, 99, 235, 0.35)',
+                    color: '#3b82f6',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Upload size={12} /> {avatar ? 'Change Photo' : 'Upload Photo'}
+                </button>
+
+                {avatar && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAvatar('');
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#ef4444',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Trash2 size={12} /> Remove
+                  </button>
+                )}
+              </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                accept="image/*" 
+                onChange={handlePhotoUpload} 
+                style={{ display: 'none' }} 
+              />
+            </div>
+          </div>
+
           <div>
             <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
               Full Name
@@ -180,19 +319,6 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
               onChange={(e) => setName(e.target.value)} 
               style={{ width: '100%' }}
               required 
-            />
-          </div>
-
-          <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-              Username (Optional)
-            </label>
-            <input 
-              type="text" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)} 
-              placeholder="e.g. username"
-              style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
             />
           </div>
 
