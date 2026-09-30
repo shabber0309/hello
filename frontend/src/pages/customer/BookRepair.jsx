@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   Laptop, ShieldCheck, MapPin, Calendar, Check, ArrowRight, ArrowLeft, 
-  Lock, AlertTriangle, Upload, Image as ImageIcon, Trash2, Info, Sliders, CheckCircle2
+  Lock, AlertTriangle, Upload, Image as ImageIcon, Trash2, Info, Sliders, CheckCircle2,
+  Layers, Wrench
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { TamperSealBadge } from '../../components/common';
-import { LAPTOP_PROBLEM_CATEGORIES } from '../../data/laptopProblems';
+import { TamperSealBadge, SearchableDropdown } from '../../components/common';
+import { LAPTOP_PROBLEM_CATEGORIES, ALL_PROBLEMS_FLAT } from '../../data/laptopProblems';
 import './BookRepair.css';
 
 // Official Brand Vector Logos
@@ -167,9 +168,41 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     setStep(2);
   };
 
-  // Step 2 Category Dropdown Change Handler
-  const handleCategoryChange = (e) => {
-    const catId = e.target.value;
+  // Memoized options for SearchableDropdowns
+  const categoryOptions = LAPTOP_PROBLEM_CATEGORIES.map(cat => ({
+    id: cat.id,
+    value: cat.id,
+    label: cat.name,
+    badge: `${cat.problems.length} services`,
+    meta: cat.shortName
+  }));
+
+  const problemOptions = currentCategory.problems.map(prob => ({
+    id: prob.id,
+    value: prob.id,
+    num: prob.id,
+    label: prob.name,
+    priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
+    basePrice: prob.basePrice,
+    maxPrice: prob.maxPrice,
+    categoryName: currentCategory.shortName
+  }));
+
+  const allProblemsOptions = ALL_PROBLEMS_FLAT.map(prob => ({
+    id: prob.id,
+    value: prob.id,
+    num: prob.id,
+    label: prob.name,
+    priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
+    basePrice: prob.basePrice,
+    maxPrice: prob.maxPrice,
+    categoryId: prob.categoryId,
+    categoryName: prob.shortCategory
+  }));
+
+  // Step 2 Category Dropdown Selection Handler
+  const handleCategorySelect = (opt) => {
+    const catId = opt.id || opt.value;
     setSelectedCatId(catId);
     const cat = LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === catId);
     if (cat && cat.problems.length > 0) {
@@ -186,14 +219,18 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     }
   };
 
-  // Step 2 Problem Dropdown Change Handler
-  const handleProblemChange = (e) => {
-    const probId = parseInt(e.target.value, 10);
+  // Step 2 Problem Dropdown Selection Handler (Supports cross-category search!)
+  const handleProblemSelect = (opt) => {
+    const probId = opt.num || opt.id || opt.value;
+    if (opt.categoryId && opt.categoryId !== selectedCatId) {
+      setSelectedCatId(opt.categoryId);
+    }
     setSelectedProbId(probId);
-    const prob = currentCategory.problems.find(p => p.id === probId);
+    const prob = ALL_PROBLEMS_FLAT.find(p => p.id === probId) || currentCategory.problems.find(p => p.id === probId);
     if (prob) {
       setFormData(prev => ({
         ...prev,
+        issue_category: prob.categoryName || currentCategory.name,
         issue_name: prob.name,
         base_price_min: prob.basePrice,
         base_price_max: prob.maxPrice,
@@ -449,40 +486,31 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               Select the diagnostic category and specific laptop fault from our 2026 indicative database (covering 200 services across Software, Hardware, Display, Power, Motherboard, and Recovery).
             </p>
 
-            <div className="book-form-grid-2">
-              {/* Category Dropdown */}
-              <div>
-                <label className="form-label">1. Issue Category (20 Categories)</label>
-                <select
-                  className="form-input"
-                  value={selectedCatId}
-                  onChange={handleCategoryChange}
-                  style={{ fontWeight: 600 }}
-                >
-                  {LAPTOP_PROBLEM_CATEGORIES.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name} ({cat.problems.length} services)
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="book-dropdowns-stack">
+              {/* 1. Category Dropdown - Full Width */}
+              <SearchableDropdown
+                label="1. Issue Category (20 Categories)"
+                sublabel="Select primary diagnostic domain"
+                value={selectedCatId}
+                options={categoryOptions}
+                placeholder="Choose category..."
+                searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
+                icon={Layers}
+                onChange={handleCategorySelect}
+              />
 
-              {/* Specific Problem Dropdown */}
-              <div>
-                <label className="form-label">2. Specific Problem / Service</label>
-                <select
-                  className="form-input"
-                  value={selectedProbId}
-                  onChange={handleProblemChange}
-                  style={{ fontWeight: 600 }}
-                >
-                  {currentCategory.problems.map(prob => (
-                    <option key={prob.id} value={prob.id}>
-                      #{prob.id} {prob.name} — Indicative: ₹{prob.basePrice.toLocaleString()} - ₹{prob.maxPrice.toLocaleString()}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* 2. Specific Problem / Service Dropdown - Full Width */}
+              <SearchableDropdown
+                label="2. Specific Problem / Service"
+                sublabel={`Showing ${currentCategory.problems.length} services in ${currentCategory.shortName} (or type to search all 200)`}
+                value={selectedProbId}
+                options={problemOptions}
+                fallbackAllOptions={allProblemsOptions}
+                placeholder="Search or select specific fault..."
+                searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
+                icon={Wrench}
+                onChange={handleProblemSelect}
+              />
             </div>
 
             {/* Indicative Benchmark Rate Box */}

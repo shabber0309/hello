@@ -194,6 +194,14 @@
   }
 }
 
+/* Line-by-Line Stack for Searchable Dropdowns */
+.book-dropdowns-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
 /* Form Controls - Standard 50px Height */
 .form-label {
   display: block;

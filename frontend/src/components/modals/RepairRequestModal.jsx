@@ -14,9 +14,12 @@ import {
   Check,
   AlertTriangle,
   Trash2,
-  Info
+  Info,
+  Layers,
+  Wrench
 } from 'lucide-react';
-import { LAPTOP_PROBLEM_CATEGORIES } from '../../data/laptopProblems';
+import { SearchableDropdown } from '../common';
+import { LAPTOP_PROBLEM_CATEGORIES, ALL_PROBLEMS_FLAT } from '../../data/laptopProblems';
 import './RepairRequestModal.css';
 
 export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess }) {
@@ -91,8 +94,39 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
     setPhotos(prev => prev.filter(p => p.id !== id));
   };
 
-  const handleCategoryChange = (e) => {
-    const catId = e.target.value;
+  const categoryOptions = LAPTOP_PROBLEM_CATEGORIES.map(cat => ({
+    id: cat.id,
+    value: cat.id,
+    label: cat.name,
+    badge: `${cat.problems.length} services`,
+    meta: cat.shortName
+  }));
+
+  const problemOptions = currentCategory.problems.map(prob => ({
+    id: prob.id,
+    value: prob.id,
+    num: prob.id,
+    label: prob.name,
+    priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
+    basePrice: prob.basePrice,
+    maxPrice: prob.maxPrice,
+    categoryName: currentCategory.shortName
+  }));
+
+  const allProblemsOptions = ALL_PROBLEMS_FLAT.map(prob => ({
+    id: prob.id,
+    value: prob.id,
+    num: prob.id,
+    label: prob.name,
+    priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
+    basePrice: prob.basePrice,
+    maxPrice: prob.maxPrice,
+    categoryId: prob.categoryId,
+    categoryName: prob.shortCategory
+  }));
+
+  const handleCategorySelect = (opt) => {
+    const catId = opt.id || opt.value;
     setSelectedCatId(catId);
     const cat = LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === catId);
     if (cat && cat.problems.length > 0) {
@@ -107,10 +141,13 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
     }
   };
 
-  const handleProblemChange = (e) => {
-    const probId = parseInt(e.target.value, 10);
+  const handleProblemSelect = (opt) => {
+    const probId = opt.num || opt.id || opt.value;
+    if (opt.categoryId && opt.categoryId !== selectedCatId) {
+      setSelectedCatId(opt.categoryId);
+    }
     setSelectedProbId(probId);
-    const prob = currentCategory.problems.find(p => p.id === probId);
+    const prob = ALL_PROBLEMS_FLAT.find(p => p.id === probId) || currentCategory.problems.find(p => p.id === probId);
     if (prob) {
       setFormData(prev => ({
         ...prev,
@@ -438,37 +475,30 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Step 2 — Diagnostic Category & Service</h3>
 
-                <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                    1. Issue Category (20 Categories)
-                  </label>
-                  <select 
-                    value={selectedCatId}
-                    onChange={handleCategoryChange}
-                    style={{ width: '100%' }}
-                  >
-                    {LAPTOP_PROBLEM_CATEGORIES.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* 1. Category Dropdown - Line 1 */}
+                <SearchableDropdown
+                  label="1. Issue Category (20 Categories)"
+                  sublabel="Select diagnostic domain"
+                  value={selectedCatId}
+                  options={categoryOptions}
+                  placeholder="Choose category..."
+                  searchPlaceholder="Search 20 repair categories..."
+                  icon={Layers}
+                  onChange={handleCategorySelect}
+                />
 
-                <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                    2. Specific Problem / Fault (Indicative Rates)
-                  </label>
-                  <select 
-                    value={selectedProbId}
-                    onChange={handleProblemChange}
-                    style={{ width: '100%' }}
-                  >
-                    {currentCategory.problems.map(p => (
-                      <option key={p.id} value={p.id}>
-                        #{p.id} {p.name} (₹{p.basePrice.toLocaleString()} - ₹{p.maxPrice.toLocaleString()})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* 2. Specific Problem Dropdown - Line 2 */}
+                <SearchableDropdown
+                  label="2. Specific Problem / Service"
+                  sublabel={`Showing ${currentCategory.problems.length} services (or search all 200)`}
+                  value={selectedProbId}
+                  options={problemOptions}
+                  fallbackAllOptions={allProblemsOptions}
+                  placeholder="Select or search fault..."
+                  searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid, fan)..."
+                  icon={Wrench}
+                  onChange={handleProblemSelect}
+                />
 
                 <div>
                   <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
