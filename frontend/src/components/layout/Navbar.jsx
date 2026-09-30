@@ -124,16 +124,6 @@ export default function Navbar({
           icon: Package 
         },
         { 
-          id: 'messages', 
-          name: 'Messages', 
-          path: '/dashboard?tab=messages', 
-          icon: MessageSquare,
-          action: () => {
-            if (onOpenMessages) onOpenMessages();
-            else navigate('/dashboard?tab=messages');
-          }
-        },
-        { 
           id: 'payments', 
           name: 'Payments', 
           path: '/dashboard?tab=payments', 
@@ -151,16 +141,6 @@ export default function Navbar({
           action: () => {
             if (onOpenNotifications) onOpenNotifications();
             else navigate('/dashboard?tab=notifications');
-          }
-        },
-        { 
-          id: 'help', 
-          name: 'Help & Support', 
-          path: '/dashboard?tab=help', 
-          icon: HelpCircle,
-          action: () => {
-            if (onOpenHelp) onOpenHelp();
-            else navigate('/dashboard?tab=help');
           }
         }
       ];
@@ -372,8 +352,32 @@ export default function Navbar({
                   </div>
                 )}
 
-                {/* Edit Profile & Sign Out */}
+                {/* User Actions: Messages, Help, Edit Profile, Sign Out */}
                 <div className="silicone-dropdown-footer">
+                  <button
+                    className="silicone-dropdown-item"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      if (onOpenMessages) onOpenMessages();
+                      else navigate('/dashboard?tab=messages');
+                    }}
+                  >
+                    <MessageSquare size={14} color="var(--primary)" />
+                    <span>Messages</span>
+                  </button>
+
+                  <button
+                    className="silicone-dropdown-item"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      if (onOpenHelp) onOpenHelp();
+                      else navigate('/dashboard?tab=help');
+                    }}
+                  >
+                    <HelpCircle size={14} color="var(--primary)" />
+                    <span>Help & Support</span>
+                  </button>
+
                   <button
                     className="silicone-dropdown-item"
                     onClick={() => {
@@ -475,6 +479,32 @@ export default function Navbar({
                 flexDirection: 'column',
                 gap: '6px'
               }}>
+                <button
+                  className="silicone-mobile-nav-btn"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onOpenMessages) onOpenMessages();
+                    else navigate('/dashboard?tab=messages');
+                  }}
+                  style={{ fontSize: '0.84rem' }}
+                >
+                  <MessageSquare size={15} color="#93c5fd" />
+                  <span>Messages</span>
+                </button>
+
+                <button
+                  className="silicone-mobile-nav-btn"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onOpenHelp) onOpenHelp();
+                    else navigate('/dashboard?tab=help');
+                  }}
+                  style={{ fontSize: '0.84rem' }}
+                >
+                  <HelpCircle size={15} color="#93c5fd" />
+                  <span>Help & Support</span>
+                </button>
+
                 <button
                   className="silicone-mobile-nav-btn"
                   onClick={() => {
