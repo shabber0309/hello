@@ -220,12 +220,12 @@ export default function CustomerDashboard({ onNewBooking }) {
 
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
                     gap: '12px',
                     background: 'var(--bg-card-subtle)',
                     padding: '14px',
                     borderRadius: '12px',
-                    marginBottom: '20px',
+                    marginBottom: '16px',
                     fontSize: '0.82rem'
                   }}>
                     <div>
@@ -237,10 +237,45 @@ export default function CustomerDashboard({ onNewBooking }) {
                       <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>{r.tamper_seal_code || 'Pending'}</strong>
                     </div>
                     <div>
-                      <span style={{ color: 'var(--text-dim)' }}>Estimate: </span>
-                      <strong>₹{r.quote_amount || 0}</strong>
+                      <span style={{ color: 'var(--text-dim)' }}>Target Budget: </span>
+                      <strong style={{ color: '#059669' }}>₹{r.customer_selected_price || r.quote_amount || 0}</strong>
+                      {r.base_price_min && (
+                        <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', display: 'block' }}>
+                          Range: ₹{r.base_price_min} - ₹{r.base_price_max}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)' }}>Pickup Location: </span>
+                      <strong>{r.pickup_area ? `${r.pickup_area}, ` : ''}{r.pickup_city || 'Hyderabad'}</strong>
                     </div>
                   </div>
+
+                  {/* Photo Proof Thumbnails if attached */}
+                  {Array.isArray(r.problem_photos) && r.problem_photos.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                      <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Fault Photos:</span>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {r.problem_photos.slice(0, 5).map((imgUrl, pIdx) => (
+                          <img
+                            key={pIdx}
+                            src={imgUrl}
+                            alt={`Fault ${pIdx + 1}`}
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '6px',
+                              objectFit: 'cover',
+                              border: '1px solid var(--border-light)'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                        ({r.problem_photos.length} photo proof attached)
+                      </span>
+                    </div>
+                  )}
 
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button 

@@ -55,9 +55,12 @@ class LaptopRepairOrder(db.Model):
     issue_description = db.Column(db.Text, nullable=True)
 
     pickup_address = db.Column(db.Text, nullable=False)
+    pickup_area = db.Column(db.String(100), nullable=True)
     pickup_city = db.Column(db.String(50), default='Hyderabad')
+    pickup_pincode = db.Column(db.String(20), nullable=True)
     pickup_slot = db.Column(db.String(100), nullable=False)
     tamper_seal_code = db.Column(db.String(50), nullable=True)
+    problem_photos = db.Column(db.Text, nullable=True)  # JSON-encoded array of base64 photo proofs
 
     # Status milestones:
     # 1. 'Order Placed'
@@ -121,9 +124,12 @@ class LaptopRepairOrder(db.Model):
             'issue_category': self.issue_category,
             'issue_description': self.issue_description,
             'pickup_address': self.pickup_address,
+            'pickup_area': self.pickup_area,
             'pickup_city': self.pickup_city,
+            'pickup_pincode': self.pickup_pincode,
             'pickup_slot': self.pickup_slot,
             'tamper_seal_code': self.tamper_seal_code,
+            'problem_photos': json.loads(self.problem_photos) if self.problem_photos else [],
             'status': self.status,
             'quote_amount': self.quote_amount,
             'quote_approved': self.quote_approved,

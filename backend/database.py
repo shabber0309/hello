@@ -27,6 +27,9 @@ def init_database(app):
             ("laptop_repair_orders", "final_review", "TEXT"),
             ("laptop_repair_orders", "meet_recording_url", "VARCHAR(255)"),
             ("laptop_repair_orders", "meet_recording_sent_to_email", "BOOLEAN DEFAULT FALSE"),
+            ("laptop_repair_orders", "pickup_area", "VARCHAR(100)"),
+            ("laptop_repair_orders", "pickup_pincode", "VARCHAR(20)"),
+            ("laptop_repair_orders", "problem_photos", "TEXT"),
         ]
         for tbl, col, col_def in migrations:
             try:

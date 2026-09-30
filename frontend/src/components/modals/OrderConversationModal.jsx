@@ -232,6 +232,42 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
           </div>
         </header>
 
+        {/* Customer Problem Photo Proof Row */}
+        {Array.isArray(order.problem_photos) && order.problem_photos.length > 0 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '8px 24px',
+            background: 'rgba(37, 99, 235, 0.05)',
+            borderBottom: '1px solid var(--border-light, #e2e8f0)',
+            fontSize: '0.8rem'
+          }}>
+            <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>📸 Photo Proof ({order.problem_photos.length}):</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {order.problem_photos.map((src, idx) => (
+                <a key={idx} href={src} target="_blank" rel="noreferrer" title="Click to view full image">
+                  <img
+                    src={src}
+                    alt={`Proof ${idx + 1}`}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '6px',
+                      objectFit: 'cover',
+                      border: '1.5px solid var(--border-medium, #cbd5e1)',
+                      cursor: 'pointer'
+                    }}
+                  />
+                </a>
+              ))}
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+              (Uploaded by customer during device booking)
+            </span>
+          </div>
+        )}
+
         {/* 9-Stage Progress Stepper */}
         <div className="order-conv-stepper">
           {stepsList.map(s => {

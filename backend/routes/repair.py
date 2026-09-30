@@ -27,8 +27,12 @@ def create_repair(current_user):
     issue_category = data.get('issue_category', 'General Diagnostics')
     issue_description = data.get('issue_description', '')
     pickup_address = data.get('pickup_address', '').strip()
+    pickup_area = data.get('pickup_area', '').strip()
     pickup_city = data.get('pickup_city', 'Hyderabad')
+    pickup_pincode = data.get('pickup_pincode', '').strip()
     pickup_slot = data.get('pickup_slot', 'Today, 2:00 PM - 4:00 PM')
+    problem_photos = data.get('problem_photos')
+    photos_json = json.dumps(problem_photos) if problem_photos and isinstance(problem_photos, list) else None
 
     if not laptop_brand or not laptop_model or not pickup_address:
         return jsonify({'error': 'Brand, Model, and Pickup Address are required'}), 400
@@ -46,8 +50,10 @@ def create_repair(current_user):
         'SSD & RAM Speed Upgrade': (1800.0, 4200.0),
         'Overheating & Thermal Paste': (800.0, 1800.0)
     }
-    base_min, base_max = category_ranges.get(issue_category, (1500.0, 3500.0))
-    initial_quote = round((base_min + base_max) / 2, 2)
+    default_min, default_max = category_ranges.get(issue_category, (1500.0, 3500.0))
+    base_min = float(data.get('base_price_min')) if data.get('base_price_min') else default_min
+    base_max = float(data.get('base_price_max')) if data.get('base_price_max') else default_max
+    target_price = float(data.get('customer_selected_price')) if data.get('customer_selected_price') else round((base_min + base_max) / 2, 2)
 
     order = LaptopRepairOrder(
         order_number=order_num,
@@ -58,15 +64,19 @@ def create_repair(current_user):
         issue_category=issue_category,
         issue_description=issue_description,
         pickup_address=pickup_address,
+        pickup_area=pickup_area,
         pickup_city=pickup_city,
+        pickup_pincode=pickup_pincode,
         pickup_slot=pickup_slot,
         tamper_seal_code=seal_code,
+        problem_photos=photos_json,
         status='Order Placed',
         base_price_min=base_min,
         base_price_max=base_max,
-        quote_amount=initial_quote,
+        customer_selected_price=target_price,
+        quote_amount=target_price,
         quote_approved=False,
-        price_status='pending',
+        price_status='customer_proposed',
         pickup_status='not_requested',
         unseal_status='sealed',
         reseal_status='not_resealed'
@@ -85,7 +95,7 @@ def create_repair(current_user):
         metadata_json=json.dumps({
             "base_price_min": base_min,
             "base_price_max": base_max,
-            "initial_estimate": initial_quote,
+            "initial_estimate": target_price,
             "tamper_seal_code": seal_code
         })
     )

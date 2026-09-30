@@ -363,4 +363,255 @@ textarea.form-input {
   .book-brands-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .book-form-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 3-Column Responsive Grid */
+.book-form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+/* Photo Proof Upload Section */
+.book-photo-section {
+  padding: 16px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px dashed var(--border-medium, #cbd5e1);
+  border-radius: 12px;
+  margin-top: 6px;
+}
+
+[data-theme="dark"] .book-photo-section {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.photo-count-badge {
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.photo-count-valid {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+}
+
+.photo-upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 16px;
+  background: var(--bg-surface, #f8fafc);
+  border: 1.5px dashed #3b82f6;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.photo-upload-dropzone:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+[data-theme="dark"] .photo-upload-dropzone {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.photo-previews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.photo-preview-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-medium, #cbd5e1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.photo-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.65) 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 6px;
+}
+
+.photo-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.photo-delete-btn {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.photo-delete-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Indicative Rate Card */
+.indicative-rate-card {
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: 12px;
+}
+
+.indicative-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.indicative-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* E-Commerce Price Slider Box */
+.price-slider-box {
+  padding: 20px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .price-slider-box {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.customer-budget-tag {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  color: #1e40af;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .customer-budget-tag {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.budget-val {
+  font-size: 1.1rem;
+  color: #2563eb;
+  font-weight: 800;
+  margin-left: 4px;
+}
+
+[data-theme="dark"] .budget-val {
+  color: #60a5fa;
+}
+
+.ecommerce-range-slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #10b981 0%, #2563eb 100%);
+  outline: none;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.price-transparency-disclaimer {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: #166534;
+  line-height: 1.45;
+}
+
+[data-theme="dark"] .price-transparency-disclaimer {
+  background: rgba(6, 78, 59, 0.3);
+  border-color: rgba(5, 150, 105, 0.4);
+  color: #6ee7b7;
+}
+
+/* Booking Summary Card */
+.booking-summary-card {
+  background: var(--bg-surface, #f8fafc);
+  border: 1px solid var(--border-medium, #e2e8f0);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+[data-theme="dark"] .booking-summary-card {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.summary-row strong, .summary-row span:last-child {
+  text-align: right;
 }

@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   Laptop, ShieldCheck, MapPin, Calendar, Check, ArrowRight, ArrowLeft, 
-  Lock, AlertTriangle, Cpu, Battery, Monitor, Droplets, HardDrive
+  Lock, AlertTriangle, Upload, Image as ImageIcon, Trash2, Info, Sliders, CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { TamperSealBadge } from '../../components/common';
+import { LAPTOP_PROBLEM_CATEGORIES } from '../../data/laptopProblems';
 import './BookRepair.css';
 
 // Official Brand Vector Logos
@@ -65,17 +66,31 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [photoError, setPhotoError] = useState('');
+
+  // Selected Category and Problem State (Default: Software -> Windows not booting)
+  const [selectedCatId, setSelectedCatId] = useState('software');
+  const [selectedProbId, setSelectedProbId] = useState(1);
+
+  // Photos State: Min 1, Max 5 required
+  const [photos, setPhotos] = useState([]);
 
   // Form State
   const [formData, setFormData] = useState({
     laptop_brand: 'Apple',
     laptop_model: 'MacBook Air M2 (2023)',
     serial_number: '',
-    issue_category: 'Motherboard / No Power',
+    issue_category: '1. Software & Windows Problems',
+    issue_name: 'Windows not booting',
     issue_description: prefill ? `Selected Issue: ${prefill}` : '',
-    pickup_address: 'Flat 302, Cyber Towers View, Madhapur',
+    pickup_address: 'Flat 302, Cyber Towers View',
+    pickup_area: 'Madhapur',
     pickup_city: 'Hyderabad',
-    pickup_slot: 'Today, 2:00 PM - 4:00 PM'
+    pickup_pincode: '500081',
+    pickup_slot: 'Today, 2:00 PM - 4:00 PM',
+    base_price_min: 500,
+    base_price_max: 1500,
+    customer_selected_price: 1000
   });
 
   const popularBrands = [
@@ -87,24 +102,126 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     { name: 'Acer', logo: AcerLogo, color: '#83B81A' }
   ];
 
-  const issuesList = [
-    { title: 'Motherboard / No Power', desc: 'No LED, dead after surge or sleep', icon: Cpu },
-    { title: 'Display / Cracked Glass', desc: 'Broken matrix, black screen, vertical lines', icon: Monitor },
-    { title: 'Battery Replacement', desc: 'Swollen pouch, not holding charge', icon: Battery },
-    { title: 'Liquid Damage Clean & Rework', desc: 'Spilled water, tea, or coffee', icon: Droplets },
-    { title: 'SSD & RAM Speed Upgrade', desc: 'Storage expansion or memory boost', icon: HardDrive }
-  ];
-
   const timeSlots = [
     'Today, 2:00 PM - 4:00 PM',
     'Today, 5:00 PM - 7:00 PM',
     'Tomorrow, 10:00 AM - 12:00 PM',
-    'Tomorrow, 2:00 PM - 4:00 PM'
+    'Tomorrow, 2:00 PM - 4:00 PM',
+    'Tomorrow, 5:00 PM - 7:00 PM'
   ];
+
+  // Active Category & Problem objects
+  const currentCategory = LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === selectedCatId) || LAPTOP_PROBLEM_CATEGORIES[0];
+  const currentProblem = currentCategory.problems.find(p => p.id === selectedProbId) || currentCategory.problems[0];
+
+  // Handle Photo selection (converts files to base64 data URLs for immediate preview & zero-setup persistence)
+  const handlePhotoUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    if (photos.length + files.length > 5) {
+      setPhotoError('Maximum 5 photos allowed. Please select fewer images.');
+      return;
+    }
+    setPhotoError('');
+
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        setPhotoError('Only image files (JPG, PNG, WebP) are supported.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPhotos(prev => {
+          if (prev.length >= 5) return prev;
+          return [...prev, {
+            id: Math.random().toString(36).substring(2, 9),
+            name: file.name,
+            size: (file.size / 1024).toFixed(1) + ' KB',
+            dataUrl: event.target.result
+          }];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = '';
+  };
+
+  const removePhoto = (id) => {
+    setPhotos(prev => prev.filter(p => p.id !== id));
+  };
+
+  // Step 1 Validation (Device Specs & Photo Proof Min 1, Max 5)
+  const handleProceedToStep2 = () => {
+    if (!formData.laptop_brand.trim() || !formData.laptop_model.trim()) {
+      setError('Please provide laptop brand and model name.');
+      return;
+    }
+    if (photos.length === 0) {
+      setPhotoError('Photo proof is required (Min 1, Max 5). Please upload at least 1 photo showing the problem or device label.');
+      return;
+    }
+    setError('');
+    setPhotoError('');
+    setStep(2);
+  };
+
+  // Step 2 Category Dropdown Change Handler
+  const handleCategoryChange = (e) => {
+    const catId = e.target.value;
+    setSelectedCatId(catId);
+    const cat = LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === catId);
+    if (cat && cat.problems.length > 0) {
+      const firstProb = cat.problems[0];
+      setSelectedProbId(firstProb.id);
+      setFormData(prev => ({
+        ...prev,
+        issue_category: cat.name,
+        issue_name: firstProb.name,
+        base_price_min: firstProb.basePrice,
+        base_price_max: firstProb.maxPrice,
+        customer_selected_price: Math.round((firstProb.basePrice + firstProb.maxPrice) / 2)
+      }));
+    }
+  };
+
+  // Step 2 Problem Dropdown Change Handler
+  const handleProblemChange = (e) => {
+    const probId = parseInt(e.target.value, 10);
+    setSelectedProbId(probId);
+    const prob = currentCategory.problems.find(p => p.id === probId);
+    if (prob) {
+      setFormData(prev => ({
+        ...prev,
+        issue_name: prob.name,
+        base_price_min: prob.basePrice,
+        base_price_max: prob.maxPrice,
+        customer_selected_price: Math.round((prob.basePrice + prob.maxPrice) / 2)
+      }));
+    }
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
+
+    const payload = {
+      laptop_brand: formData.laptop_brand,
+      laptop_model: formData.laptop_model,
+      serial_number: formData.serial_number,
+      issue_category: `${currentCategory.shortName}: ${currentProblem.name}`,
+      issue_description: formData.issue_description,
+      pickup_address: formData.pickup_address,
+      pickup_area: formData.pickup_area,
+      pickup_city: formData.pickup_city,
+      pickup_pincode: formData.pickup_pincode,
+      pickup_slot: formData.pickup_slot,
+      base_price_min: formData.base_price_min,
+      base_price_max: formData.base_price_max,
+      customer_selected_price: formData.customer_selected_price,
+      problem_photos: photos.map(p => p.dataUrl)
+    };
 
     try {
       const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
@@ -114,7 +231,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${activeToken}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (res.ok) {
@@ -123,14 +240,14 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
         setError(data.error || 'Failed to book repair.');
       }
     } catch (err) {
-      // Fallback local mock for resilient demo
+      // Local resilient fallback
       const mockOrder = {
         id: Date.now(),
         order_number: `EOF-2026-${Math.floor(10000 + Math.random() * 90000)}`,
-        ...formData,
+        ...payload,
         tamper_seal_code: `SEAL-TX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         status: 'Order Placed',
-        quote_amount: 3200.0,
+        quote_amount: formData.customer_selected_price,
         quote_approved: false
       };
       onBookingSuccess(mockOrder);
@@ -147,17 +264,17 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
           Schedule Tamper-Proof Laptop Collection
         </h2>
         <p className="book-repair-subtitle">
-          Your machine will be placed inside a serialized security pouch right in front of you.
+          Transparent Hyderabad 2026 diagnostics with serialized security pouch & live camera bench streaming.
         </p>
       </div>
 
       {/* Stepper Bar */}
       <div className="book-stepper-bar">
         {[
-          { num: 1, label: 'Device Specs' },
+          { num: 1, label: 'Device Specs & Photos' },
           { num: 2, label: 'Issue Checklist' },
           { num: 3, label: 'Pickup Logistics' },
-          { num: 4, label: 'Tamper Guarantee' }
+          { num: 4, label: 'Price Range & Confirm' }
         ].map((s) => (
           <div key={s.num} className="book-step-col">
             <div className={`book-step-circle ${step >= s.num ? 'book-step-circle-active' : 'book-step-circle-inactive'}`}>
@@ -186,11 +303,11 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
 
       {/* Step Content */}
       <div className="book-card-container">
-        {/* STEP 1: DEVICE SPECS */}
+        {/* STEP 1: DEVICE SPECS & PHOTO PROOFS */}
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', margin: '0 0 4px' }}>
-              <Laptop size={20} color="var(--primary)" /> Step 1: Laptop Brand & Model
+              <Laptop size={20} color="var(--primary)" /> Step 1: Laptop Brand, Model & Photo Proof
             </h3>
 
             <div>
@@ -240,84 +357,169 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               </div>
             </div>
 
+            {/* Photo Proof Upload Section (Min 1, Max 5 required) */}
+            <div className="book-photo-section">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <ImageIcon size={16} color="var(--primary)" />
+                  Problem Photo Proof <span style={{ color: '#ef4444' }}>*</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>
+                    (Min 1 photo required, Max 5)
+                  </span>
+                </label>
+                <span className={`photo-count-badge ${photos.length >= 1 ? 'photo-count-valid' : ''}`}>
+                  {photos.length} / 5 photos uploaded {photos.length >= 1 && <Check size={12} />}
+                </span>
+              </div>
+
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 12px' }}>
+                Upload photos of the physical damage, screen defect, battery, or back label so the technician can review photo proof before doorstep pickup.
+              </p>
+
+              {/* Upload Drop Zone / Button */}
+              {photos.length < 5 && (
+                <label className="photo-upload-dropzone">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoUpload}
+                    style={{ display: 'none' }}
+                  />
+                  <Upload size={22} color="var(--primary)" />
+                  <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                    Click to browse or take photos
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    PNG, JPG, WebP supported (Max 5 photos)
+                  </span>
+                </label>
+              )}
+
+              {photoError && (
+                <div style={{ color: '#ef4444', fontSize: '0.82rem', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertTriangle size={14} /> {photoError}
+                </div>
+              )}
+
+              {/* Photos Previews Grid */}
+              {photos.length > 0 && (
+                <div className="photo-previews-grid">
+                  {photos.map((p, idx) => (
+                    <div key={p.id} className="photo-preview-card">
+                      <img src={p.dataUrl} alt={`Fault proof ${idx + 1}`} className="photo-thumbnail" />
+                      <div className="photo-preview-overlay">
+                        <span className="photo-tag">Photo #{idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(p.id)}
+                          className="photo-delete-btn"
+                          title="Remove photo"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="book-actions-footer">
               <div />
               <button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={handleProceedToStep2}
                 className="btn-action"
               >
-                Next: Issue Details <ArrowRight size={16} />
+                Next: Issue Checklist <ArrowRight size={16} />
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 2: ISSUE CHECKLIST */}
+        {/* STEP 2: ISSUE CHECKLIST (Cascading Dropdowns for 200 items in 20 categories + Description) */}
         {step === 2 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <AlertTriangle size={20} color="var(--primary)" /> Step 2: Diagnostic Category
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', margin: '0 0 4px' }}>
+              <AlertTriangle size={20} color="var(--primary)" /> Step 2: Issue Checklist & Description
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {issuesList.map((item) => {
-                const Icon = item.icon;
-                const isSelected = formData.issue_category === item.title;
-                return (
-                  <div
-                    key={item.title}
-                    onClick={() => setFormData({ ...formData, issue_category: item.title })}
-                    style={{
-                      padding: '14px 18px',
-                      borderRadius: '10px',
-                      background: isSelected ? 'rgba(6, 182, 212, 0.12)' : 'var(--bg-input)',
-                      border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border-light)'}`,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '8px',
-                      background: isSelected ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)',
-                      color: isSelected ? '#000' : 'var(--text-muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Icon size={18} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, color: isSelected ? '#38bdf8' : 'var(--text-main)', fontSize: '0.95rem' }}>
-                        {item.title}
-                      </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        {item.desc}
-                      </div>
-                    </div>
-                    {isSelected && <Check size={18} color="var(--primary)" />}
-                  </div>
-                );
-              })}
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+              Select the diagnostic category and specific laptop fault from our 2026 indicative database (covering 200 services across Software, Hardware, Display, Power, Motherboard, and Recovery).
+            </p>
+
+            <div className="book-form-grid-2">
+              {/* Category Dropdown */}
+              <div>
+                <label className="form-label">1. Issue Category (20 Categories)</label>
+                <select
+                  className="form-input"
+                  value={selectedCatId}
+                  onChange={handleCategoryChange}
+                  style={{ fontWeight: 600 }}
+                >
+                  {LAPTOP_PROBLEM_CATEGORIES.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name} ({cat.problems.length} services)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Specific Problem Dropdown */}
+              <div>
+                <label className="form-label">2. Specific Problem / Service</label>
+                <select
+                  className="form-input"
+                  value={selectedProbId}
+                  onChange={handleProblemChange}
+                  style={{ fontWeight: 600 }}
+                >
+                  {currentCategory.problems.map(prob => (
+                    <option key={prob.id} value={prob.id}>
+                      #{prob.id} {prob.name} — Indicative: ₹{prob.basePrice.toLocaleString()} - ₹{prob.maxPrice.toLocaleString()}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
+            {/* Indicative Benchmark Rate Box */}
+            <div className="indicative-rate-card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="indicative-icon-circle">
+                  <Info size={18} color="var(--primary)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+                    Hyderabad 2026 Indicative Range
+                  </div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    ₹{formData.base_price_min.toLocaleString()} – ₹{formData.base_price_max.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              <div className="indicative-note">
+                Base price represents fixed inspection/component rework. The highest price covers OEM/original replacement parts or complex micro-soldering.
+              </div>
+            </div>
+
+            {/* Problem Description in Words */}
             <div>
-              <label className="form-label">Detailed Symptoms / Notes for Technician</label>
+              <label className="form-label">
+                Describe the problem in words <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Explain symptoms, sounds, or events)</span>
+              </label>
               <textarea
                 className="form-input"
-                rows={3}
-                placeholder="What happened before the issue occurred? Any unusual sounds, burning smell, or liquid spills?"
+                rows={4}
+                placeholder="Describe what occurred (e.g. system shut down during gaming, screen shows flickering green lines when adjusted, battery drops from 80% to 0%, or tea spill on the keyboard)."
                 value={formData.issue_description}
                 onChange={(e) => setFormData({ ...formData, issue_description: e.target.value })}
               />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+            <div className="book-actions-footer">
               <button
                 type="button"
                 onClick={() => setStep(1)}
@@ -336,14 +538,40 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
           </div>
         )}
 
-        {/* STEP 3: PICKUP LOGISTICS */}
+        {/* STEP 3: DOORSTEP PICKUP SLOT & ADDRESS */}
         {step === 3 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', margin: '0 0 4px' }}>
               <MapPin size={20} color="var(--primary)" /> Step 3: Doorstep Pickup Slot & Address
             </h3>
 
-            <div className="book-form-grid-2">
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+              Our verified courier arrives with a tamper-evident pouch and seals your machine directly in front of you.
+            </p>
+
+            <div>
+              <label className="form-label">Complete Doorstep Address (Flat, House No., Building, Street)</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Flat 302, Cyber Towers View, Hitec City Road"
+                value={formData.pickup_address}
+                onChange={(e) => setFormData({ ...formData, pickup_address: e.target.value })}
+              />
+            </div>
+
+            <div className="book-form-grid-3">
+              <div>
+                <label className="form-label">Area / Locality</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Madhapur, Gachibowli, Kondapur"
+                  value={formData.pickup_area}
+                  onChange={(e) => setFormData({ ...formData, pickup_area: e.target.value })}
+                />
+              </div>
+
               <div>
                 <label className="form-label">City</label>
                 <select 
@@ -351,35 +579,36 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                   value={formData.pickup_city}
                   onChange={(e) => setFormData({ ...formData, pickup_city: e.target.value })}
                 >
-                  <option value="Hyderabad">Hyderabad (Full Coverage: Hitec City, Gachibowli, Banjara Hills, Kondapur, Jubilee Hills)</option>
-                  <option value="Bengaluru">Bengaluru (Whitefield, Koramangala, Indiranagar)</option>
-                  <option value="Pune">Pune (Kothrud, Hinjewadi, Viman Nagar)</option>
+                  <option value="Hyderabad">Hyderabad (All Zones)</option>
+                  <option value="Bengaluru">Bengaluru</option>
+                  <option value="Pune">Pune</option>
                 </select>
               </div>
 
               <div>
-                <label className="form-label">Pickup Time Slot</label>
-                <select
+                <label className="form-label">Pincode</label>
+                <input
+                  type="text"
+                  maxLength={6}
                   className="form-input"
-                  value={formData.pickup_slot}
-                  onChange={(e) => setFormData({ ...formData, pickup_slot: e.target.value })}
-                >
-                  {timeSlots.map(t => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
+                  placeholder="e.g. 500081"
+                  value={formData.pickup_pincode}
+                  onChange={(e) => setFormData({ ...formData, pickup_pincode: e.target.value })}
+                />
               </div>
             </div>
 
             <div>
-              <label className="form-label">Complete Doorstep Address</label>
-              <textarea
+              <label className="form-label">Preferred Pickup Time Slot</label>
+              <select
                 className="form-input"
-                rows={3}
-                placeholder="House/Flat number, Building, Street, Landmark"
-                value={formData.pickup_address}
-                onChange={(e) => setFormData({ ...formData, pickup_address: e.target.value })}
-              />
+                value={formData.pickup_slot}
+                onChange={(e) => setFormData({ ...formData, pickup_slot: e.target.value })}
+              >
+                {timeSlots.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             </div>
 
             <div className="book-actions-footer">
@@ -395,53 +624,107 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                 onClick={() => setStep(4)}
                 className="btn-action"
               >
-                Next: Review & Tamper Seal <ArrowRight size={16} />
+                Next: Price Range & Confirmation <ArrowRight size={16} />
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 4: TAMPER GUARANTEE & CONFIRMATION */}
+        {/* STEP 4: PRICE RANGE SELECTION & ONLINE SUBMISSION */}
         {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Lock size={20} color="var(--primary)" /> Step 4: Security Seal & Live Stream Activation
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', margin: '0 0 4px' }}>
+              <Sliders size={20} color="var(--primary)" /> Step 4: Budget Range & Security Confirmation
             </h3>
 
-            {/* Tamper Seal Preview */}
-            <TamperSealBadge sealCode="SEAL-TX-READY" city={formData.pickup_city} />
+            {/* E-Commerce Price Range Slider Box */}
+            <div className="price-slider-box">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    Indicative Price Range for: {currentProblem.name}
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    ₹{formData.base_price_min.toLocaleString()} — ₹{formData.base_price_max.toLocaleString()}
+                  </div>
+                </div>
 
-            <div style={{
-              background: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: '12px',
-              padding: '20px',
-              fontSize: '0.88rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px'
-            }}>
-              <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                Booking Summary:
+                <div className="customer-budget-tag">
+                  Your Target Budget: <span className="budget-val">₹{formData.customer_selected_price.toLocaleString()}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
-                <span>Device:</span>
-                <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>{formData.laptop_brand} - {formData.laptop_model}</span>
+
+              {/* Slider Input */}
+              <div style={{ margin: '18px 0 8px' }}>
+                <input
+                  type="range"
+                  min={formData.base_price_min}
+                  max={formData.base_price_max}
+                  step={50}
+                  value={formData.customer_selected_price}
+                  onChange={(e) => setFormData({ ...formData, customer_selected_price: Number(e.target.value) })}
+                  className="ecommerce-range-slider"
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  <span>Fixed Base Price: ₹{formData.base_price_min.toLocaleString()}</span>
+                  <span style={{ color: '#2563eb', fontWeight: 700 }}>Selected: ₹{formData.customer_selected_price.toLocaleString()}</span>
+                  <span>Highest Benchmark: ₹{formData.base_price_max.toLocaleString()}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
-                <span>Reported Fault:</span>
-                <span style={{ color: '#38bdf8' }}>{formData.issue_category}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
-                <span>Pickup Time:</span>
-                <span style={{ color: 'var(--text-main)' }}>{formData.pickup_slot}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
-                <span>Google Meet Stream:</span>
-                <span style={{ color: '#10b981', fontWeight: 600 }}>Automated Live Invitation Included</span>
+
+              {/* Transparent Disclaimer */}
+              <div className="price-transparency-disclaimer">
+                <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <strong>Estimated Repair Cost: ₹{formData.base_price_min.toLocaleString()} – ₹{formData.base_price_max.toLocaleString()}</strong>.
+                  <div style={{ marginTop: '2px' }}>
+                    Final price depends on laptop brand, model, part availability (OEM vs compatible parts), and technician diagnosis during the live workbench video stream. You will approve the final quote before any repair proceeds.
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+            {/* Tamper Seal Badge */}
+            <TamperSealBadge sealCode="SEAL-TX-READY" city={formData.pickup_city} />
+
+            {/* Booking Summary Card */}
+            <div className="booking-summary-card">
+              <div style={{ fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px', fontSize: '0.95rem' }}>
+                Repair Order Preview:
+              </div>
+
+              <div className="summary-row">
+                <span>Laptop:</span>
+                <strong>{formData.laptop_brand} {formData.laptop_model}</strong>
+              </div>
+
+              <div className="summary-row">
+                <span>Problem Category:</span>
+                <span style={{ color: '#2563eb', fontWeight: 600 }}>{currentCategory.shortName}: {currentProblem.name}</span>
+              </div>
+
+              <div className="summary-row">
+                <span>Photo Proof:</span>
+                <span style={{ color: '#059669', fontWeight: 600 }}>{photos.length} photo(s) attached</span>
+              </div>
+
+              <div className="summary-row">
+                <span>Pickup Address:</span>
+                <span>{formData.pickup_address}, {formData.pickup_area}, {formData.pickup_city} - {formData.pickup_pincode}</span>
+              </div>
+
+              <div className="summary-row">
+                <span>Pickup Slot:</span>
+                <span>{formData.pickup_slot}</span>
+              </div>
+
+              <div className="summary-row">
+                <span>Customer Target Budget:</span>
+                <strong style={{ color: '#059669', fontSize: '1rem' }}>₹{formData.customer_selected_price.toLocaleString()}</strong>
+              </div>
+            </div>
+
+            <div className="book-actions-footer">
               <button
                 type="button"
                 onClick={() => setStep(3)}
@@ -456,7 +739,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                 className="btn-verified"
                 style={{ padding: '12px 28px', fontSize: '1rem' }}
               >
-                <ShieldCheck size={18} /> {loading ? 'Booking Pickup...' : 'Confirm Doorstep Pickup & Tamper Seal'}
+                <ShieldCheck size={18} /> {loading ? 'Posting Repair Request...' : 'Post Problem Online & Confirm Pickup'}
               </button>
             </div>
           </div>
