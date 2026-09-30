@@ -48,7 +48,7 @@ export default function Navbar({ onOpenEditProfile }) {
   // Check if we are currently inside an authenticated internal workspace
   const isInternalApp = (location.pathname.startsWith('/admin') && isAdmin) ||
                         (location.pathname.startsWith('/technician') && isTech) ||
-                        (location.pathname.startsWith('/dashboard') && isCustomer);
+                        isCustomer;
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -58,40 +58,38 @@ export default function Navbar({ onOpenEditProfile }) {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  // Nav links: Public layout matches Image 2 exactly
+  // Nav links: Customer navbar persists across Book Repair and all customer pages
   const getNavLinks = () => {
-    if (isInternalApp) {
-      if (isAdmin) {
-        return [
-          { name: 'Console', path: '/admin?tab=users', basePath: '/admin', tab: 'users' },
-          { name: 'Repair Orders', path: '/admin?tab=orders', basePath: '/admin', tab: 'orders' },
-          { name: 'Cleanrooms', path: '/admin?tab=streams', basePath: '/admin', tab: 'streams' },
-          { name: 'Tamper Seals', path: '/admin?tab=custody', basePath: '/admin', tab: 'custody' },
-          { name: 'Financials', path: '/admin?tab=escrow', basePath: '/admin', tab: 'escrow' },
-          { name: 'System Health', path: '/admin?tab=database', basePath: '/admin', tab: 'database' }
-        ];
-      }
-      if (isTech) {
-        return [
-          { name: 'Workbench', path: '/technician?tab=dashboard', basePath: '/technician', tab: 'dashboard' },
-          { name: 'Requests', path: '/technician?tab=requests', basePath: '/technician', tab: 'requests' },
-          { name: 'Active Repairs', path: '/technician?tab=active', basePath: '/technician', tab: 'active' },
-          { name: 'My Jobs', path: '/technician?tab=my-jobs', basePath: '/technician', tab: 'my-jobs' },
-          { name: 'Earnings', path: '/technician?tab=earnings', basePath: '/technician', tab: 'earnings' },
-          { name: 'Customer Chat', path: '/technician?tab=messages', basePath: '/technician', tab: 'messages' },
-          { name: 'ESD Certs', path: '/technician?tab=verification', basePath: '/technician', tab: 'verification' }
-        ];
-      }
-      if (isCustomer) {
-        return [
-          { name: 'Dashboard', path: '/dashboard' },
-          { name: 'Book Repair', path: '/book' },
-          { name: 'Track Order', path: '/track-repair' },
-          { name: 'Services', path: '/services' },
-          { name: 'How It Works', path: '/how-it-works' },
-          { name: 'Pricing', path: '/pricing' }
-        ];
-      }
+    if (isAdmin && location.pathname.startsWith('/admin')) {
+      return [
+        { name: 'Console', path: '/admin?tab=users', basePath: '/admin', tab: 'users' },
+        { name: 'Repair Orders', path: '/admin?tab=orders', basePath: '/admin', tab: 'orders' },
+        { name: 'Cleanrooms', path: '/admin?tab=streams', basePath: '/admin', tab: 'streams' },
+        { name: 'Tamper Seals', path: '/admin?tab=custody', basePath: '/admin', tab: 'custody' },
+        { name: 'Financials', path: '/admin?tab=escrow', basePath: '/admin', tab: 'escrow' },
+        { name: 'System Health', path: '/admin?tab=database', basePath: '/admin', tab: 'database' }
+      ];
+    }
+    if (isTech && location.pathname.startsWith('/technician')) {
+      return [
+        { name: 'Workbench', path: '/technician?tab=dashboard', basePath: '/technician', tab: 'dashboard' },
+        { name: 'Requests', path: '/technician?tab=requests', basePath: '/technician', tab: 'requests' },
+        { name: 'Active Repairs', path: '/technician?tab=active', basePath: '/technician', tab: 'active' },
+        { name: 'My Jobs', path: '/technician?tab=my-jobs', basePath: '/technician', tab: 'my-jobs' },
+        { name: 'Earnings', path: '/technician?tab=earnings', basePath: '/technician', tab: 'earnings' },
+        { name: 'Customer Chat', path: '/technician?tab=messages', basePath: '/technician', tab: 'messages' },
+        { name: 'ESD Certs', path: '/technician?tab=verification', basePath: '/technician', tab: 'verification' }
+      ];
+    }
+    if (isCustomer || (user && user.role === 'customer')) {
+      return [
+        { name: 'Dashboard', path: '/dashboard' },
+        { name: 'Book Repair', path: '/book' },
+        { name: 'Track Order', path: '/track-repair' },
+        { name: 'Services', path: '/services' },
+        { name: 'How It Works', path: '/how-it-works' },
+        { name: 'Pricing', path: '/pricing' }
+      ];
     }
 
     // Public links matching brand navigation
@@ -138,7 +136,7 @@ export default function Navbar({ onOpenEditProfile }) {
           {/* Brand Bay - Live fix (Exact 3D text styling, free-floating) */}
           <div 
             className="silicone-bay-brand"
-            onClick={() => navigate('/')}
+            onClick={() => navigate(isCustomer ? '/dashboard' : (isTech ? '/technician' : (isAdmin ? '/admin' : '/')))}
             title="Live fix - Home"
           >
             <span className="livefix-3d-text">Live fix</span>
