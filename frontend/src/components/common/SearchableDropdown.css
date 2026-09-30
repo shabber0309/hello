@@ -100,18 +100,33 @@
   color: #60a5fa;
 }
 
-.search-bar-input {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: transparent;
-  outline: none;
+.searchable-dropdown-root input.search-bar-input,
+.searchable-dropdown-root input.search-bar-input:focus,
+.searchable-dropdown-root input.search-bar-input:active,
+.searchable-dropdown-root input.search-bar-input:focus-visible,
+.search-bar-container input.search-bar-input,
+.search-bar-container input.search-bar-input:focus,
+.search-bar-container input.search-bar-input:active,
+.search-bar-container input.search-bar-input:focus-visible {
+  border: none !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  border-color: transparent !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
   font-size: 0.94rem;
   font-weight: 600;
   color: var(--text-main, #0f172a);
   font-family: inherit;
-  padding: 0;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
 }
 
 .search-bar-input::placeholder {

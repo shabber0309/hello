@@ -145,7 +145,7 @@ nav button:hover {
   color: var(--text-main) !important;
 }
 
-input, textarea, select {
+input:not(.search-bar-input):not(.dropdown-search-input), textarea, select {
   font-family: inherit;
   outline: none;
   background-color: var(--bg-input);
@@ -155,7 +155,7 @@ input, textarea, select {
   padding: 10px 14px;
 }
 
-input:focus, textarea:focus, select:focus {
+input:not(.search-bar-input):not(.dropdown-search-input):focus, textarea:focus, select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
