@@ -86,9 +86,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     <div className="book-repair-root">
       {/* Header */}
       <div className="book-repair-header">
-        <span className="badge badge-cyan book-repair-badge">
-          <ShieldCheck size={13} /> ZERO-TRUST HARDWARE PICKUP
-        </span>
         <h2 className="book-repair-h2">
           Schedule Tamper-Proof Laptop Collection
         </h2>
