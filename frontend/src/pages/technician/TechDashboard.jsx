@@ -282,78 +282,10 @@ export default function TechDashboard() {
     'Quality Check': 'Repaired & Awaiting Payment',
     'Repaired & Awaiting Payment': 'Return Pickup',
     'Return Pickup': 'Delivered'
-  };  return (
+  };
+
+  return (
     <div className="tech-dashboard-root">
-      {/* Technician Sidebar */}
-      <aside className="tech-sidebar">
-        <div className="tech-sidebar-title">
-          Technician Workbench
-        </div>
-
-        {[
-          { id: 'dashboard', label: 'Dashboard', icon: Home },
-          { id: 'requests', label: 'Repair Requests', icon: Wrench, count: nearbyRequests.length },
-          { id: 'active', label: 'Active Repairs', icon: Radio, count: activeRepairs.length, isLive: activeRepairs.some(r => r.status === 'In Repair') },
-          { id: 'my-jobs', label: 'My Jobs', icon: CheckCircle2, count: completedRepairs.length },
-          { id: 'earnings', label: 'Earnings & Escrow', icon: DollarSign },
-          { id: 'messages', label: 'Customer Chat', icon: MessageSquare, count: 1 },
-          { id: 'verification', label: 'Certifications', icon: Award },
-          { id: 'settings', label: 'Station Settings', icon: Settings }
-        ].map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSidebarNav === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                handleSidebarChange(item.id);
-                setFeedbackMsg('');
-                setErrorMsg('');
-              }}
-              className={`tech-sidebar-nav-btn ${isActive ? 'tech-sidebar-nav-btn-active' : ''}`}
-            >
-              <div className="tech-sidebar-btn-content">
-                <Icon size={16} />
-                <span>{item.label}</span>
-              </div>
-              {item.count !== undefined && item.count > 0 && (
-                <span className={`badge ${item.isLive ? 'badge-live' : 'badge-orange'} tech-sidebar-badge`}>
-                  {item.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-
-        <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--border-light)' }}>
-          <div style={{ padding: '0 12px 10px', fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-            Station ID: <strong style={{ color: 'var(--primary)' }}>STATION-04-HYD</strong>
-          </div>
-          <button
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              borderRadius: '10px',
-              background: 'transparent',
-              color: '#ef4444',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              border: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            <LogOut size={16} /> Logout Workbench
-          </button>
-        </div>
-      </aside>
-
       {/* Main Content Area */}
       <main className="tech-main-content">
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>

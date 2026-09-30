@@ -176,12 +176,13 @@
 }
 
 /* Center Navigation Bays Group - Transparent Container for Individual Bays */
+/* Center Navigation Bays Group - Transparent Container for 3D Pill Buttons */
 .silicone-nav-group {
   flex: 1;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -194,34 +195,33 @@
   display: none;
 }
 
-/* Individual Separate Box for Each Navbar Item (Matching Login Bay Box) */
+/* Individual Transparent Wrapper for Each 3D Pill Button */
 .silicone-bay-item {
   width: auto;
-  padding: 0 8px;
+  padding: 0 !important;
+  margin: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;
-  background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 100%);
-  border: 1px solid #cce0f7;
-  border-top-color: #e2eefb;
-  border-bottom-color: #bad6f5;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(30, 64, 175, 0.05);
-  transition: all 0.2s ease;
+  transition: transform 0.18s ease;
   user-select: none;
 }
 
 .silicone-bay-item:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(180deg, #ffffff 0%, #e8f2fe 100%);
-  border-color: #93c5fd;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .silicone-bay-item:active {
-  transform: translateY(1px);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .silicone-bay-item--active {
@@ -235,24 +235,27 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  transform: translateY(-2px);
 }
 
-/* Inner Navigation Button inside the Individual Bay */
+/* All Navbar Items (Inactive Links) - 3D Blue Pill Button */
 .silicone-nav-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  height: 48px;
-  padding: 0 16px;
+  gap: 8px;
+  height: 50px;
+  min-height: 50px;
+  padding: 0 20px;
   border-radius: 9999px;
-  font-size: 0.88rem;
+  font-size: 0.90rem;
   font-weight: 700;
-  color: #1e293b;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  color: #ffffff !important;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1e40af !important;
+  border-top-color: #60a5fa !important;
+  border-bottom-color: #1e3a8a !important;
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
   cursor: pointer;
   transition: all 0.18s ease;
   white-space: nowrap;
@@ -261,80 +264,124 @@
   box-sizing: border-box;
 }
 
+.silicone-nav-link svg,
 .silicone-nav-link-icon {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
+.silicone-nav-link:hover,
 .silicone-bay-item:hover .silicone-nav-link {
-  color: #1d4ed8;
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  color: #ffffff !important;
 }
 
-/* Active Nav Pill Button (The Blue Color Div - Height Bigger 50px) */
+.silicone-nav-link:active,
+.silicone-bay-item:active .silicone-nav-link {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Active Nav Pill Button - 3D Emerald Green Pill Button */
 .silicone-nav-link--active {
   height: 50px !important;
   min-height: 50px !important;
   padding: 0 22px !important;
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
-  border: 1px solid #1e40af !important;
-  border-top-color: #60a5fa !important;
-  border-bottom-color: #1e3a8a !important;
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%) !important;
+  border: 1px solid #047857 !important;
+  border-top-color: #6ee7b7 !important;
+  border-bottom-color: #064e3b !important;
   color: #ffffff !important;
   font-size: 0.92rem !important;
   font-weight: 800 !important;
   border-radius: 9999px !important;
-  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 3px 0 #064e3b, 0 6px 16px rgba(16, 185, 129, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35) !important;
 }
 
+.silicone-nav-link--active svg,
+.silicone-nav-link--active .silicone-nav-link-icon {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.silicone-nav-link--active:hover,
 .silicone-bay-item:hover .silicone-nav-link--active {
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
-  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%) !important;
+  box-shadow: 0 4px 0 #064e3b, 0 8px 20px rgba(16, 185, 129, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
 }
 
-/* Bay 4: Theme Toggle Bay */
+.silicone-nav-link--active:active,
+.silicone-bay-item:active .silicone-nav-link--active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #064e3b, 0 2px 4px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Bay 4: Theme Toggle Bay - Standalone 3D Button without outer box */
 .silicone-bay-theme {
-  width: 64px;
+  width: auto;
+  min-width: 50px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .silicone-theme-btn {
-  width: 36px;
-  height: 36px;
+  width: 50px;
+  height: 50px;
+  min-height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #ffffff 0%, #eef5fc 100%);
-  border: 1px solid #cce0f7;
-  border-top-color: #ffffff;
-  border-bottom-color: #bad6f5;
-  color: #1e3a8a;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1.5px solid #1e40af !important;
+  color: #ffffff !important;
   cursor: pointer;
-  box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   transition: all 0.18s ease;
+  box-sizing: border-box;
+}
+
+.silicone-theme-btn svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .silicone-theme-btn:hover {
   transform: translateY(-2px);
-  background: linear-gradient(180deg, #ffffff 0%, #e0effe 100%);
-  box-shadow: 0 4px 0 #bad6f5, 0 6px 12px rgba(37, 99, 235, 0.15), inset 0 1px 0 #ffffff;
-  color: #1d4ed8;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+  border: 1.5px solid #2563eb !important;
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  color: #ffffff !important;
 }
 
 .silicone-theme-btn:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #bad6f5, 0 2px 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
-/* Bay 5: Login Button / User Profile Dropdown */
+/* Bay 5: Login Button / User Profile Dropdown - Standalone without outer box */
 .silicone-bay-login {
   position: relative;
   width: auto;
-  min-width: 110px;
-  padding: 0 14px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -345,35 +392,36 @@
 
 .silicone-login-btn {
   height: 50px;
+  min-height: 50px;
   padding: 0 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
-  border: 1px solid #1e40af;
-  border-top-color: #60a5fa;
-  border-bottom-color: #1e3a8a;
-  color: #ffffff;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1e40af !important;
+  border-top-color: #60a5fa !important;
+  border-bottom-color: #1e3a8a !important;
+  color: #ffffff !important;
   font-size: 0.92rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   transition: all 0.18s ease;
   white-space: nowrap;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
   box-sizing: border-box;
 }
 
 .silicone-login-btn:hover {
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
   transform: translateY(-2px);
-  box-shadow: 0 5px 0 #1e3a8a, 0 9px 18px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
 }
 
 .silicone-login-btn:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
 .silicone-profile-trigger {
@@ -381,47 +429,60 @@
   align-items: center;
   gap: 8px;
   height: 50px;
-  background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%);
-  border: 1px solid #cce0f7;
-  border-top-color: #ffffff;
-  border-bottom-color: #bad6f5;
+  min-height: 50px;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1e40af !important;
+  border-top-color: #60a5fa !important;
+  border-bottom-color: #1e3a8a !important;
   border-radius: 9999px;
-  padding: 0 16px 0 8px;
+  padding: 0 18px 0 10px;
   cursor: pointer;
-  box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
-  color: #0f172a;
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
   font-weight: 800;
-  font-size: 0.88rem;
+  font-size: 0.90rem;
   transition: all 0.18s ease;
   white-space: nowrap;
   flex-shrink: 0;
-  text-shadow: none;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
   box-sizing: border-box;
 }
 
 .silicone-profile-trigger:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #eaf2fc 100%);
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 0 #bad6f5, 0 6px 12px rgba(37, 99, 235, 0.12), inset 0 1px 0 #ffffff;
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
 }
 
 .silicone-profile-trigger:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #bad6f5, 0 2px 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+}
+
+.silicone-profile-trigger svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.silicone-user-name {
+  color: #ffffff !important;
+  font-weight: 800;
+  font-size: 0.90rem;
 }
 
 .silicone-avatar-circle {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 800;
   flex-shrink: 0;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
@@ -564,11 +625,11 @@
 }
 
 .silicone-mobile-nav-btn--active {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
-  border-color: rgba(147, 197, 253, 0.5) !important;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-color: rgba(110, 231, 183, 0.6) !important;
   color: #ffffff !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
 }
 
 /* ROW 2: Precision Engineering Micro-Calibrated Screw Wells Ruler Track */
@@ -721,38 +782,165 @@
   }
 }
 
-/* Dark Theme Silicone Bays & Items */
-[data-theme="dark"] .silicone-bay-item {
-  background: linear-gradient(180deg, #15203b 0%, #0c1424 100%);
-  border-color: rgba(255, 255, 255, 0.12);
-  border-top-color: rgba(255, 255, 255, 0.18);
-  border-bottom-color: rgba(0, 0, 0, 0.4);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.4);
+/* ==========================================================================
+   Dark Theme Silicone Header & 3D Items Adaptation
+   ========================================================================== */
+
+/* Dark Navbar Container */
+[data-theme="dark"] .silicone-header {
+  background: linear-gradient(180deg, #0d1527 0%, #090e1a 100%) !important;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.22) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
-[data-theme="dark"] .silicone-bay-item:hover {
-  background: linear-gradient(180deg, #1a294d 0%, #0f1a30 100%);
-  border-color: #38bdf8;
+/* Dark Engineering Ruler Track */
+[data-theme="dark"] .silicone-ruler-track {
+  background: linear-gradient(180deg, #0a1120 0%, #060a14 100%) !important;
+  border-color: rgba(56, 189, 248, 0.18) !important;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
 }
 
-[data-theme="dark"] .silicone-bay-item--active {
+[data-theme="dark"] .silicone-ruler-well {
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: inset 0.5px 0.5px 1px rgba(0, 0, 0, 0.8), 0 0.5px 0.5px rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Dark Mode Bays - Transparent Wrappers */
+[data-theme="dark"] .silicone-bay-item,
+[data-theme="dark"] .silicone-bay-theme,
+[data-theme="dark"] .silicone-bay-login {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
 }
 
+[data-theme="dark"] .silicone-bay-item:hover,
+[data-theme="dark"] .silicone-bay-item--active,
 [data-theme="dark"] .silicone-bay-item--active:hover {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-[data-theme="dark"] .silicone-bay-item .silicone-nav-link {
-  color: #e2e8f0;
+/* Dark Mode Inactive Nav Items (Dark Slate/Midnight 3D Pill with High-Contrast Text) */
+[data-theme="dark"] .silicone-nav-link {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  border-top-color: rgba(255, 255, 255, 0.22) !important;
+  border-bottom-color: #020617 !important;
+  box-shadow: 0 3px 0 #020617, 0 5px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
 }
 
-[data-theme="dark"] .silicone-bay-item .silicone-nav-link--active {
+[data-theme="dark"] .silicone-nav-link svg,
+[data-theme="dark"] .silicone-nav-link-icon {
+  color: #38bdf8 !important;
+  stroke: #38bdf8 !important;
+}
+
+[data-theme="dark"] .silicone-nav-link:hover,
+[data-theme="dark"] .silicone-bay-item:hover .silicone-nav-link {
+  background: linear-gradient(180deg, #283750 0%, #152238 100%) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 4px 0 #020617, 0 8px 20px rgba(56, 189, 248, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .silicone-nav-link:active,
+[data-theme="dark"] .silicone-bay-item:active .silicone-nav-link {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #020617, 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Dark Mode Active Nav Item (Glowing Emerald Green 3D Pill) */
+[data-theme="dark"] .silicone-nav-link--active {
+  background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
+  border: 1px solid #059669 !important;
+  border-top-color: #6ee7b7 !important;
+  border-bottom-color: #022c22 !important;
+  box-shadow: 0 3px 0 #022c22, 0 6px 22px rgba(16, 185, 129, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .silicone-nav-link--active svg,
+[data-theme="dark"] .silicone-nav-link--active .silicone-nav-link-icon {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+[data-theme="dark"] .silicone-nav-link--active:hover,
+[data-theme="dark"] .silicone-bay-item:hover .silicone-nav-link--active {
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%) !important;
+  box-shadow: 0 4px 0 #022c22, 0 8px 26px rgba(16, 185, 129, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+/* Dark Mode Theme Toggle Button - Complete 360-Degree Circular Ring */
+[data-theme="dark"] .silicone-theme-btn {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 2px solid rgba(251, 191, 36, 0.55) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 12px rgba(251, 191, 36, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .silicone-theme-btn svg {
+  color: #fbbf24 !important;
+  stroke: #fbbf24 !important;
+}
+
+[data-theme="dark"] .silicone-theme-btn:hover {
+  background: linear-gradient(180deg, #283750 0%, #152238 100%) !important;
+  border: 2px solid #fbbf24 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), 0 0 18px rgba(251, 191, 36, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Dark Mode Profile Trigger Button */
+[data-theme="dark"] .silicone-profile-trigger {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  border-top-color: rgba(255, 255, 255, 0.2) !important;
+  border-bottom-color: #020617 !important;
+  box-shadow: 0 3px 0 #020617, 0 5px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .silicone-profile-trigger:hover {
+  background: linear-gradient(180deg, #283750 0%, #152238 100%) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 4px 0 #020617, 0 8px 18px rgba(56, 189, 248, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+[data-theme="dark"] .silicone-profile-trigger svg {
+  color: #94a3b8 !important;
+  stroke: #94a3b8 !important;
+}
+
+[data-theme="dark"] .silicone-user-name {
+  color: #f8fafc !important;
+}
+
+/* Dark Mode Mobile Drawer */
+[data-theme="dark"] .silicone-mobile-menu-drawer {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-theme="dark"] .silicone-mobile-nav-btn {
+  background: #15203b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .silicone-mobile-nav-btn:hover {
+  background: #1a2a4e !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .silicone-mobile-nav-btn--active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
   color: #ffffff !important;
 }
 

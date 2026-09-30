@@ -19,7 +19,9 @@ import {
   MessageSquare,
   CreditCard,
   Bell,
-  HelpCircle
+  HelpCircle,
+  DollarSign,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
@@ -36,7 +38,9 @@ export default function Navbar({
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, switchRole } = useAuth();
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('livefix_theme') || 'light';
+  });
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
@@ -68,6 +72,8 @@ export default function Navbar({
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('livefix_theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
@@ -92,8 +98,6 @@ export default function Navbar({
         { name: 'Requests', path: '/technician?tab=requests', basePath: '/technician', tab: 'requests' },
         { name: 'Active Repairs', path: '/technician?tab=active', basePath: '/technician', tab: 'active' },
         { name: 'My Jobs', path: '/technician?tab=my-jobs', basePath: '/technician', tab: 'my-jobs' },
-        { name: 'Earnings', path: '/technician?tab=earnings', basePath: '/technician', tab: 'earnings' },
-        { name: 'Customer Chat', path: '/technician?tab=messages', basePath: '/technician', tab: 'messages' },
         { name: 'ESD Certs', path: '/technician?tab=verification', basePath: '/technician', tab: 'verification' }
       ];
     }
@@ -288,35 +292,74 @@ export default function Navbar({
               >
                 <div 
                   className="silicone-avatar-circle"
-                  style={{ background: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb') }}
+                  style={{ 
+                    background: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb'),
+                    overflow: 'hidden'
+                  }}
                 >
-                  {user.name?.charAt(0) || 'U'}
+                  {(user.avatar || user.photo || user.photo_url) ? (
+                    <img 
+                      src={user.avatar || user.photo || user.photo_url} 
+                      alt={user.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  ) : (
+                    user.name?.charAt(0) || 'U'
+                  )}
                 </div>
                 <span className="silicone-user-name">
                   {user.name?.split(' ')[0] || 'User'}
                 </span>
-                <ChevronDown size={14} color="#64748b" />
+                <ChevronDown size={14} color="#ffffff" strokeWidth={2.4} />
               </button>
             )}
 
             {/* Profile Dropdown Menu for Logged In Users */}
             {user && showProfileMenu && (
               <div className="silicone-profile-dropdown">
-                <div className="silicone-dropdown-header">
-                  <div className="silicone-dropdown-name">{user.name}</div>
-                  <div className="silicone-dropdown-email">{user.email}</div>
-                  <span 
-                    className="badge" 
-                    style={{
-                      marginTop: '4px',
-                      fontSize: '0.62rem',
-                      background: 'rgba(56, 189, 248, 0.16)',
-                      color: '#0284c7',
-                      border: '1px solid rgba(56, 189, 248, 0.3)'
+                <div className="silicone-dropdown-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div 
+                    style={{ 
+                      width: '42px', 
+                      height: '42px', 
+                      borderRadius: '50%',
+                      background: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb'),
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
                     }}
                   >
-                    {user.role?.toUpperCase()}
-                  </span>
+                    {(user.avatar || user.photo || user.photo_url) ? (
+                      <img 
+                        src={user.avatar || user.photo || user.photo_url} 
+                        alt={user.name} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      />
+                    ) : (
+                      <span style={{ fontSize: '1.1rem', fontWeight: 800 }}>{user.name?.charAt(0) || 'U'}</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="silicone-dropdown-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</div>
+                    <div className="silicone-dropdown-email" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                    <span 
+                      className="badge" 
+                      style={{
+                        marginTop: '4px',
+                        fontSize: '0.62rem',
+                        background: 'rgba(56, 189, 248, 0.16)',
+                        color: '#0284c7',
+                        border: '1px solid rgba(56, 189, 248, 0.3)'
+                      }}
+                    >
+                      {user.role?.toUpperCase()}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Role Switchers - Only visible to Admins */}
@@ -360,42 +403,81 @@ export default function Navbar({
                   </div>
                 )}
 
-                {/* User Actions: Messages, Help, Edit Profile, Sign Out */}
+                {/* User Actions based on role */}
                 <div className="silicone-dropdown-footer">
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      if (onOpenMessages) onOpenMessages();
-                      else navigate('/dashboard?tab=messages');
-                    }}
-                  >
-                    <MessageSquare size={14} color="var(--primary)" />
-                    <span>Messages</span>
-                  </button>
+                  {(isTech || user?.role === 'technician') ? (
+                    <>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/technician?tab=earnings');
+                        }}
+                      >
+                        <DollarSign size={14} color="var(--cta-orange)" />
+                        <span>Earnings & Escrow</span>
+                      </button>
 
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      if (onOpenHelp) onOpenHelp();
-                      else navigate('/dashboard?tab=help');
-                    }}
-                  >
-                    <HelpCircle size={14} color="var(--primary)" />
-                    <span>Help & Support</span>
-                  </button>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/technician?tab=messages');
+                        }}
+                      >
+                        <MessageSquare size={14} color="var(--primary)" />
+                        <span>Customer Chat</span>
+                      </button>
 
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      if (onOpenEditProfile) onOpenEditProfile();
-                    }}
-                  >
-                    <Edit size={14} color="var(--primary)" />
-                    <span>Edit Profile</span>
-                  </button>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/technician?tab=settings');
+                        }}
+                      >
+                        <Settings size={14} color="var(--primary)" />
+                        <span>Station Settings</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenMessages) onOpenMessages();
+                          else navigate('/dashboard?tab=messages');
+                        }}
+                      >
+                        <MessageSquare size={14} color="var(--primary)" />
+                        <span>Messages</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenHelp) onOpenHelp();
+                          else navigate('/dashboard?tab=help');
+                        }}
+                      >
+                        <HelpCircle size={14} color="var(--primary)" />
+                        <span>Help & Support</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenEditProfile) onOpenEditProfile();
+                        }}
+                      >
+                        <Edit size={14} color="var(--primary)" />
+                        <span>Edit Profile</span>
+                      </button>
+                    </>
+                  )}
 
                   <button
                     className="silicone-dropdown-item silicone-dropdown-logout"
@@ -427,8 +509,34 @@ export default function Navbar({
         {mobileMenuOpen && (
           <div className="silicone-mobile-drawer">
             {user && (
-              <div className="silicone-mobile-user-card">
-                <div>
+              <div className="silicone-mobile-user-card" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div 
+                  style={{ 
+                    width: '38px', 
+                    height: '38px', 
+                    borderRadius: '50%',
+                    background: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb'),
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    border: '1.5px solid rgba(255, 255, 255, 0.3)'
+                  }}
+                >
+                  {(user.avatar || user.photo || user.photo_url) ? (
+                    <img 
+                      src={user.avatar || user.photo || user.photo_url} 
+                      alt={user.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  ) : (
+                    user.name?.charAt(0) || 'U'
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: '#fff', fontWeight: 800, fontSize: '0.9rem' }}>{user.name}</div>
                   <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem' }}>{user.email}</div>
                 </div>
@@ -466,7 +574,7 @@ export default function Navbar({
                     <span style={{ 
                       fontSize: '0.68rem', 
                       background: '#ffffff', 
-                      color: '#1d4ed8', 
+                      color: '#059669', 
                       padding: '2px 8px', 
                       borderRadius: '9999px', 
                       fontWeight: 800 
@@ -487,43 +595,83 @@ export default function Navbar({
                 flexDirection: 'column',
                 gap: '6px'
               }}>
-                <button
-                  className="silicone-mobile-nav-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenMessages) onOpenMessages();
-                    else navigate('/dashboard?tab=messages');
-                  }}
-                  style={{ fontSize: '0.84rem' }}
-                >
-                  <MessageSquare size={15} color="#93c5fd" />
-                  <span>Messages</span>
-                </button>
+                {(isTech || user?.role === 'technician') ? (
+                  <>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/technician?tab=earnings');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <DollarSign size={15} color="#93c5fd" />
+                      <span>Earnings & Escrow</span>
+                    </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/technician?tab=messages');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <MessageSquare size={15} color="#93c5fd" />
+                      <span>Customer Chat</span>
+                    </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/technician?tab=settings');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <Settings size={15} color="#93c5fd" />
+                      <span>Station Settings</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onOpenMessages) onOpenMessages();
+                        else navigate('/dashboard?tab=messages');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <MessageSquare size={15} color="#93c5fd" />
+                      <span>Messages</span>
+                    </button>
 
-                <button
-                  className="silicone-mobile-nav-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenHelp) onOpenHelp();
-                    else navigate('/dashboard?tab=help');
-                  }}
-                  style={{ fontSize: '0.84rem' }}
-                >
-                  <HelpCircle size={15} color="#93c5fd" />
-                  <span>Help & Support</span>
-                </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onOpenHelp) onOpenHelp();
+                        else navigate('/dashboard?tab=help');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <HelpCircle size={15} color="#93c5fd" />
+                      <span>Help & Support</span>
+                    </button>
 
-                <button
-                  className="silicone-mobile-nav-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenEditProfile) onOpenEditProfile();
-                  }}
-                  style={{ fontSize: '0.84rem' }}
-                >
-                  <Edit size={15} color="#93c5fd" />
-                  <span>Edit Profile</span>
-                </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onOpenEditProfile) onOpenEditProfile();
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <Edit size={15} color="#93c5fd" />
+                      <span>Edit Profile</span>
+                    </button>
+                  </>
+                )}
 
                 {isAdmin && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', margin: '4px 0' }}>

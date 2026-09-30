@@ -14,6 +14,7 @@ class User(db.Model):
     phone = db.Column(db.String(20), nullable=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='customer')  # 'customer', 'technician', 'admin'
+    avatar = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     # Relationships
@@ -34,6 +35,7 @@ class User(db.Model):
             'email': self.email,
             'phone': self.phone,
             'role': self.role,
+            'avatar': self.avatar,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
