@@ -1,0 +1,157 @@
+/* ==========================================================================
+   TrackRepairPage.css - Public & Customer Chain-of-Custody Tracking
+   Senior Engineering Architecture - BEM / Modular Scoped Stylesheet
+   ========================================================================== */
+
+.track-page-root {
+  padding: 40px 0 80px;
+}
+
+.track-page-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Page Header */
+.track-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.track-header-badge {
+  margin-bottom: 10px;
+}
+
+.track-header-h1 {
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--text-main);
+}
+
+.track-header-sub {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 680px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Search Card */
+.track-search-card {
+  padding: 24px 32px;
+  margin-bottom: 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.track-search-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.track-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+
+.track-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+}
+
+.track-search-input {
+  width: 100%;
+  padding: 14px 16px 14px 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-deep);
+  color: var(--text-main);
+  font-size: 0.96rem;
+  outline: none;
+  font-weight: 600;
+  transition: border-color 0.2s ease;
+}
+
+.track-search-input:focus {
+  border-color: var(--primary);
+}
+
+.track-search-btn {
+  padding: 14px 28px;
+  font-size: 0.94rem;
+  font-weight: 700;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* Empty State */
+.track-empty-card {
+  padding: 48px 24px;
+  text-align: center;
+  border-radius: 16px;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-light);
+}
+
+.track-empty-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: var(--primary);
+}
+
+/* Results Grid */
+.track-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 28px;
+}
+
+/* Timeline */
+.track-timeline-card {
+  padding: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.track-timeline-step {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.track-timeline-step:last-child {
+  padding-bottom: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .track-search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .track-search-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

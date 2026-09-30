@@ -18,7 +18,7 @@ This project is configured to deploy as a **single, unified service** on Render'
    - **Build Command**: `chmod +x ./build.sh && ./build.sh`
    - **Start Command**: `gunicorn --chdir backend app:app --workers 2 --threads 4 --timeout 120`
    - **Health Check**: `/api/health`
-6. Click **Apply**. Render will build the frontend, install backend dependencies, seed Admin Shabber, and give you a live URL (e.g. `https://fixconnect-live-hardware.onrender.com`).
+6. Click **Apply**. Render will build the frontend, install backend dependencies, initialize the clean administrator account, and give you a live URL (e.g. `https://fixconnect-live-hardware.onrender.com`).
 
 ---
 
@@ -58,9 +58,9 @@ If you prefer to configure it manually on Render:
 
 ---
 
-## 🔑 Default Credentials on Render
-When the application first boots on Render, the database is automatically created with:
-- **Admin Username**: `shabber`
-- **Email**: `shabberhussain934@gmail.com`
-- **Password**: `123123123`
+## 🔑 Default Administrator Credentials on Render
+When the application first boots on Render, the clean database is automatically initialized with:
+- **Admin Username**: `admin`
+- **Email**: `admin@livefix.com`
+- **Password**: `admin123`
 *(You can log in and change your password at `/login` or via the Admin Console).*

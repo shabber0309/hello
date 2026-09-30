@@ -112,9 +112,14 @@ def update_status(current_user, order_id):
     new_status = data.get('status')
     valid_statuses = [
         'Order Placed',
+        'Technician Accepted',
+        'Pickup Scheduled',
         'Picked Up',
+        'Delivered to Bench',
         'In Repair',
+        'Quality Check',
         'Repaired & Awaiting Payment',
+        'Return Pickup',
         'Delivered'
     ]
     if new_status not in valid_statuses:
@@ -132,6 +137,33 @@ def update_status(current_user, order_id):
 
     return jsonify({
         'message': f'Status updated to {new_status}',
+        'order': order.to_dict()
+    }), 200
+
+
+@repair_bp.route('/<int:order_id>/accept', methods=['POST'])
+@token_required
+def accept_repair(current_user, order_id):
+    order = LaptopRepairOrder.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'Order not found'}), 404
+
+    if current_user.role not in ['technician', 'admin']:
+        return jsonify({'error': 'Only technicians can accept repair requests'}), 403
+
+    order.technician_id = current_user.id
+    order.status = 'Technician Accepted'
+    
+    data = request.get_json() or {}
+    if 'quote_amount' in data and data['quote_amount']:
+        order.quote_amount = float(data['quote_amount'])
+    if 'technician_notes' in data and data['technician_notes']:
+        order.technician_notes = data['technician_notes']
+
+    db.session.commit()
+
+    return jsonify({
+        'message': f'Order {order.order_number} successfully accepted by {current_user.name}!',
         'order': order.to_dict()
     }), 200
 

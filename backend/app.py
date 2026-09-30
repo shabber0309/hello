@@ -34,7 +34,7 @@ def create_app(config_class=Config):
     def health_check():
         return jsonify({
             'status': 'healthy',
-            'service': 'FixConnect API - Verified Transparent Laptop Care',
+            'service': 'Live Fix API - Verified Transparent Laptop Care',
             'version': '2.0.0',
             'database': 'Connected'
         }), 200
@@ -53,7 +53,7 @@ def create_app(config_class=Config):
                 return send_from_directory(frontend_dist, 'index.html')
             return jsonify({'error': 'API endpoint not found'}), 404
 
-    # Initialize database tables and Admin Shabber outside of app.py
+    # Initialize database tables outside of app.py
     init_database(app)
 
     return app

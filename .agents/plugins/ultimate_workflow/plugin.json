@@ -1,0 +1,12 @@
+{
+  "id": "ultimate_workflow_agent",
+  "name": "Ultimate Developer Suite",
+  "version": "1.0.0",
+  "description": "Orchestrates Roo Code instructions, GSD task handling, and Ralph Loop behaviors with CodeRabbit review passing.",
+  "entrypoint": "system_prompt.md",
+  "type": "subagent",
+  "mcp_servers": [],
+  "lifecycle_hooks": {
+    "post_commit": "echo 'Triggering CodeRabbit PR validation webhook check...'"
+  }
+}

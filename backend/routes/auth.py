@@ -55,9 +55,9 @@ def send_otp_via_smtp(recipient_email, otp_code, role='customer'):
     """
     mail_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
     mail_port = int(current_app.config.get('MAIL_PORT', 587))
-    mail_username = current_app.config.get('MAIL_USERNAME', 'shabber12396@gmail.com')
-    mail_password = current_app.config.get('MAIL_PASSWORD', 'wkwzifnnfzfjxrdp')
-    sender_email = current_app.config.get('MAIL_DEFAULT_SENDER', mail_username)
+    mail_username = current_app.config.get('MAIL_USERNAME', '')
+    mail_password = current_app.config.get('MAIL_PASSWORD', '')
+    sender_email = current_app.config.get('MAIL_DEFAULT_SENDER', 'support@livefix.com')
 
     role_title = "Hardware Technician Console" if role == 'technician' else "Customer Hardware Portal"
 
@@ -195,7 +195,7 @@ def verify_otp():
         user = User(
             name=default_name,
             email=email,
-            phone="+91 98765 00000",
+            phone="+91 90000 00000",
             role=role
         )
         user.set_password("otp-authenticated-account-2026")

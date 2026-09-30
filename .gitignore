@@ -37,3 +37,9 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Test artifacts & debug screenshots
+test_screenshots/
+inspect_*.png
+navbar_*.png
+verify_*.png

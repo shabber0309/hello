@@ -26,7 +26,7 @@ class Config:
 
     # MySQL connection configuration (can be overridden with DATABASE_URL env)
     MYSQL_USER = os.environ.get('MYSQL_USER', 'root')
-    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', 'shabber')
+    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', 'livefix_db')
     MYSQL_HOST = os.environ.get('MYSQL_HOST', 'localhost')
     MYSQL_PORT = os.environ.get('MYSQL_PORT', '3306')
     MYSQL_DB = os.environ.get('MYSQL_DB', 'eyeonfix_db')
@@ -42,7 +42,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Google API Key (for Google Cloud / Gemini AI / Maps)
-    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyCSiQ6g0yaB2v-n6i-9lfQIsy7kOJL3zcw')
+    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', '')
     # Google Meet API credentials path (optional service account or OAuth client secrets)
     GOOGLE_CREDENTIALS_FILE = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', os.path.join(BASE_DIR, 'google_credentials.json'))
     GOOGLE_CALENDAR_ID = os.environ.get('GOOGLE_CALENDAR_ID', 'primary')
@@ -51,11 +51,11 @@ class Config:
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'shabber12396@gmail.com')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', 'wkwzifnnfzfjxrdp')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'shabber12396@gmail.com')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'support@livefix.com')
 
     # Razorpay & Store UPI Configuration
     RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_TgJilFyDTJEMzP')
     RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'eaZjzBw6hEyEckgKRLde6tKP')
-    STORE_UPI_ID = os.environ.get('STORE_UPI_ID', '9704039617@fam')
+    STORE_UPI_ID = os.environ.get('STORE_UPI_ID', 'support@upi')

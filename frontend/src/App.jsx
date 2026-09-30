@@ -1,33 +1,38 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Navbar from './components/Navbar';
-import LandingPage from './pages/LandingPage';
-import HowItWorksPage from './pages/HowItWorksPage';
-import ServicesPage from './pages/ServicesPage';
-import ForTechniciansPage from './pages/ForTechniciansPage';
-import PricingPage from './pages/PricingPage';
-import TrackRepairPage from './pages/TrackRepairPage';
-import BookRepair from './pages/BookRepair';
-import UserDashboard from './pages/UserDashboard';
-import TechDashboard from './pages/TechDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import StreamModal from './components/StreamModal';
-import AuthModal from './components/AuthModal';
-import ChainOfCustodyModal from './components/ChainOfCustodyModal';
-import RepairRequestModal from './components/RepairRequestModal';
-import TrackRepairModal from './components/TrackRepairModal';
-import TechOnboardingModal from './components/TechOnboardingModal';
-import TamperSealModal from './components/TamperSealModal';
-import RepairReportModal from './components/RepairReportModal';
-import FeedbackModal from './components/FeedbackModal';
-import PaymentsModal from './components/PaymentsModal';
-import NotificationsModal from './components/NotificationsModal';
-import HelpSupportModal from './components/HelpSupportModal';
-import EditProfileModal from './components/EditProfileModal';
-import QualityCheckDeliveryModal from './components/QualityCheckDeliveryModal';
-import AuthPage from './pages/AuthPage';
-import SiliconeWorkbenchFrame from './components/SiliconeWorkbenchFrame';
+import { Navbar, SiliconeWorkbenchFrame } from './components/layout';
+import './App.css';
+// Role-based Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import BookRepair from './pages/customer/BookRepair';
+import TrackRepairPage from './pages/customer/TrackRepairPage';
+import TechDashboard from './pages/technician/TechDashboard';
+import ForTechniciansPage from './pages/technician/ForTechniciansPage';
+import LandingPage from './pages/public/LandingPage';
+import HowItWorksPage from './pages/public/HowItWorksPage';
+import ServicesPage from './pages/public/ServicesPage';
+import PricingPage from './pages/public/PricingPage';
+import AuthPage from './pages/auth/AuthPage';
+
+// Modals
+import {
+  StreamModal,
+  AuthModal,
+  ChainOfCustodyModal,
+  RepairRequestModal,
+  TrackRepairModal,
+  TechOnboardingModal,
+  TamperSealModal,
+  RepairReportModal,
+  FeedbackModal,
+  PaymentsModal,
+  NotificationsModal,
+  HelpSupportModal,
+  EditProfileModal,
+  QualityCheckDeliveryModal
+} from './components/modals';
 import { ShieldCheck, Video, Lock, Heart } from 'lucide-react';
 
 function MainApp() {
@@ -49,8 +54,8 @@ function MainApp() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
-  const openAuth = (role = 'admin') => {
-    navigate('/login');
+  const openAuth = (role = 'customer') => {
+    navigate('/login', { state: { role } });
   };
 
   const handleOpenTrackWithId = (id = '') => {
@@ -80,7 +85,7 @@ function MainApp() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-root">
       <Navbar 
         onOpenAuthModal={openAuth}
         onOpenRequestModal={() => (user ? navigate('/book') : openAuth('customer'))}
@@ -91,7 +96,7 @@ function MainApp() {
         onOpenEditProfile={() => setIsEditProfileOpen(true)}
       />
 
-      <main style={{ flex: 1 }}>
+      <main className="app-main-content">
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={
@@ -119,7 +124,7 @@ function MainApp() {
 
           <Route path="/services" element={
             <ServicesPage 
-              onStartBooking={() => navigate('/book')}
+              onStartBooking={(problem) => navigate('/book', { state: { prefillProblem: problem } })}
             />
           } />
 
@@ -150,26 +155,42 @@ function MainApp() {
           <Route path="/signup" element={<Navigate to="/register" replace />} />
 
           <Route path="/book" element={
-            <BookRepair
-              onBookingSuccess={(newOrder) => {
-                navigate('/dashboard');
-              }}
-              onCancel={() => navigate('/')}
-            />
+            user ? (
+              <BookRepair
+                onBookingSuccess={(newOrder) => {
+                  navigate('/dashboard');
+                }}
+                onCancel={() => navigate('/')}
+              />
+            ) : (
+              <Navigate to="/login" replace state={{ from: '/book' }} />
+            )
           } />
 
           {/* Role Protected / Dedicated Portals */}
           <Route path="/dashboard" element={
-            <UserDashboard onNewBooking={() => navigate('/book')} />
+            user ? (
+              <CustomerDashboard onNewBooking={() => navigate('/book')} />
+            ) : (
+              <Navigate to="/login" replace state={{ from: '/dashboard' }} />
+            )
           } />
 
           <Route path="/technician" element={
-            <TechDashboard />
+            user ? (
+              <TechDashboard />
+            ) : (
+              <Navigate to="/login" replace state={{ from: '/technician', role: 'technician' }} />
+            )
           } />
           <Route path="/tech" element={<Navigate to="/technician" replace />} />
 
           <Route path="/admin" element={
-            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
+            user && user.role === 'admin' ? (
+              <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(null)} />
+            ) : (
+              <Navigate to="/login" replace state={{ from: '/admin', role: 'admin' }} />
+            )
           } />
 
           {/* Catch-all */}
@@ -267,41 +288,36 @@ function MainApp() {
         }}
       />
 
-      {/* Modern Footer for FixConnect */}
-      <footer style={{
-        background: 'var(--bg-surface)',
-        borderTop: '1px solid var(--border-light)',
-        padding: '36px 0 24px',
-        color: 'var(--text-dim)',
-        fontSize: '0.85rem'
-      }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* Modern Footer for Live Fix */}
+      <footer className="app-footer">
+        <div className="container app-footer-inner">
+          <div className="app-footer-brand-wrap">
             <span 
               onClick={() => navigate('/')} 
-              style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.1rem', cursor: 'pointer' }}
+              className="app-footer-brand-title"
             >
-              Fix<span style={{ color: 'var(--primary)' }}>Connect</span>
+              Live<span className="app-footer-brand-accent"> Fix</span>
             </span>
-            <span>— Laptop Repair, Without the Guesswork.</span>
+            <span className="app-footer-tagline">— Laptop Repair, Without the Guesswork.</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/how-it-works')}>How It Works</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/services')}>Services</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/for-technicians')}>For Technicians</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/pricing')}>Pricing</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/track-repair')}>Track Repair</span>
+          <div className="app-footer-nav">
+            <span className="app-footer-nav-link" onClick={() => navigate('/how-it-works')}>How It Works</span>
+            <span className="app-footer-nav-link" onClick={() => navigate('/services')}>Services</span>
+            <span className="app-footer-nav-link" onClick={() => navigate('/for-technicians')}>For Technicians</span>
+            <span className="app-footer-nav-link" onClick={() => navigate('/pricing')}>Pricing</span>
+            <span className="app-footer-nav-link" onClick={() => navigate('/track-repair')}>Track Repair</span>
             {user?.role === 'admin' && (
-              <span style={{ cursor: 'pointer', color: '#10b981', fontWeight: 700 }} onClick={() => navigate('/admin')}>
+              <span className="app-footer-nav-link admin-link" onClick={() => navigate('/admin')}>
                 Admin Console
               </span>
             )}
-            <span style={{ cursor: 'pointer' }} onClick={() => setIsHelpOpen(true)}>Help & Support</span>
+            <span className="app-footer-nav-link" onClick={() => setIsHelpOpen(true)}>Help & Support</span>
           </div>
 
-          <div style={{ color: 'var(--text-dim)' }}>
-            © 2026 FixConnect. Verified Technician ➔ Secure Pickup ➔ Live Transparent Repair ➔ Tamper-Protected Return.
+          <div className="app-footer-bottom">
+            <span>© 2026 Live Fix. All rights reserved.</span>
+            <span>Verified Technician ➔ Secure Pickup ➔ Live Transparent Repair ➔ Tamper-Protected Return.</span>
           </div>
         </div>
       </footer>

@@ -1,0 +1,371 @@
+/* ==========================================================================
+   ForTechniciansPage.css - Technician Network Partner Recruitment
+   Senior Developer Modular CSS Architecture
+   ========================================================================== */
+
+.for-tech-root {
+  padding: 40px 0 80px;
+}
+
+.for-tech-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Hero Section */
+.for-tech-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.for-tech-badge {
+  margin-bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.for-tech-h1 {
+  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+  color: var(--text-main);
+}
+
+.for-tech-gradient-text {
+  background: linear-gradient(135deg, #1d4ed8 0%, #0284c7 50%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.for-tech-subtitle {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 680px;
+  margin: 0 auto 28px;
+  line-height: 1.6;
+}
+
+.for-tech-cta-group {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.for-tech-btn-primary {
+  padding: 12px 28px;
+  font-size: 0.96rem;
+  font-weight: 800;
+}
+
+.for-tech-btn-secondary {
+  padding: 12px 24px;
+  font-size: 0.96rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Earnings Calculator Card */
+.for-tech-calc-wrapper {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.95) 100%);
+  border-radius: 24px;
+  border: 1.5px solid var(--border-medium);
+  padding: 36px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 64px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+  align-items: center;
+}
+
+.for-tech-calc-tag {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.for-tech-calc-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--text-main);
+}
+
+.for-tech-calc-desc {
+  font-size: 0.94rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.for-tech-slider-group {
+  margin-bottom: 16px;
+}
+
+.for-tech-slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.for-tech-slider-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.for-tech-slider-val {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #2563eb;
+}
+
+.for-tech-slider-input {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.for-tech-calc-result-box {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  border-radius: 18px;
+  padding: 28px;
+  color: #ffffff;
+  text-align: center;
+  box-shadow: 0 12px 28px rgba(29, 78, 216, 0.25);
+}
+
+.for-tech-calc-result-tag {
+  font-size: 0.85rem;
+  color: #bfdbfe;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.for-tech-calc-amount {
+  font-size: clamp(2.2rem, 3.5vw, 3rem);
+  font-weight: 900;
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.for-tech-calc-note {
+  font-size: 0.82rem;
+  color: #bfdbfe;
+  margin: 0 0 16px;
+}
+
+.for-tech-calc-apply-btn {
+  background: #ffffff;
+  color: #1d4ed8;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.for-tech-calc-apply-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Benefits Section */
+.for-tech-section-block {
+  margin-bottom: 64px;
+}
+
+.for-tech-section-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.for-tech-section-tag {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.for-tech-section-h2 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 6px 0 0;
+  color: var(--text-main);
+}
+
+.for-tech-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.for-tech-benefit-card {
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.for-tech-benefit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.for-tech-benefit-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.for-tech-benefit-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.for-tech-benefit-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Roadmap Section */
+.for-tech-roadmap-card {
+  background: var(--bg-surface);
+  border-radius: 24px;
+  border: 1px solid var(--border-light);
+  padding: 36px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 64px;
+}
+
+.for-tech-roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.for-tech-roadmap-step {
+  background: var(--bg-card-subtle);
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.for-tech-roadmap-num {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #2563eb;
+  margin-bottom: 8px;
+}
+
+.for-tech-roadmap-tag {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #059669;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.for-tech-roadmap-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.for-tech-roadmap-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Bottom Callout */
+.for-tech-bottom-callout {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 24px;
+  padding: 44px 36px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.for-tech-callout-h2 {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 900;
+  margin-bottom: 14px;
+}
+
+.for-tech-callout-p {
+  font-size: 1.05rem;
+  color: #94a3b8;
+  max-width: 600px;
+  margin: 0 auto 28px;
+  line-height: 1.5;
+}
+
+.for-tech-callout-btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 12px 28px;
+  border-radius: 9999px;
+  border: none;
+  font-weight: 800;
+  font-size: 0.96rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.for-tech-callout-btn-primary:hover {
+  transform: translateY(-2px);
+}
+
+.for-tech-callout-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.96rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.for-tech-callout-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
