@@ -131,27 +131,20 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       <div className="book-card-container">
         {/* STEP 1: DEVICE SPECS */}
         {step === 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', margin: '0 0 4px' }}>
               <Laptop size={20} color="var(--primary)" /> Step 1: Laptop Brand & Model
             </h3>
 
             <div>
               <label className="form-label">Brand</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              <div className="book-brands-grid">
                 {popularBrands.map((b) => (
                   <button
                     key={b}
                     type="button"
                     onClick={() => setFormData({ ...formData, laptop_brand: b })}
-                    style={{
-                      padding: '12px',
-                      borderRadius: '8px',
-                      background: formData.laptop_brand === b ? 'rgba(6, 182, 212, 0.2)' : 'var(--bg-input)',
-                      border: `1px solid ${formData.laptop_brand === b ? 'var(--primary)' : 'var(--border-light)'}`,
-                      color: formData.laptop_brand === b ? '#38bdf8' : 'var(--text-main)',
-                      fontWeight: 600
-                    }}
+                    className={`book-brand-btn ${formData.laptop_brand === b ? 'book-brand-btn-active' : ''}`}
                   >
                     {b}
                   </button>
@@ -159,29 +152,32 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               </div>
             </div>
 
-            <div>
-              <label className="form-label">Model Name / Number</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. MacBook Pro M2, XPS 15 9520, ThinkPad X1 Carbon"
-                value={formData.laptop_model}
-                onChange={(e) => setFormData({ ...formData, laptop_model: e.target.value })}
-              />
+            <div className="book-form-grid-2">
+              <div>
+                <label className="form-label">Model Name / Number</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. MacBook Air M2, ThinkPad X1, XPS 15"
+                  value={formData.laptop_model}
+                  onChange={(e) => setFormData({ ...formData, laptop_model: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Serial Number (Optional)</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. C02G9012MD6R or leave empty"
+                  value={formData.serial_number}
+                  onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="form-label">Serial Number (Optional - can be verified on camera)</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. C02G9012MD6R or leave empty"
-                value={formData.serial_number}
-                onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+            <div className="book-actions-footer">
+              <div />
               <button
                 type="button"
                 onClick={() => setStep(2)}
@@ -283,7 +279,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               <MapPin size={20} color="var(--primary)" /> Step 3: Doorstep Pickup Slot & Address
             </h3>
 
-            <div className="grid-2">
+            <div className="book-form-grid-2">
               <div>
                 <label className="form-label">City</label>
                 <select 
@@ -322,7 +318,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+            <div className="book-actions-footer">
               <button
                 type="button"
                 onClick={() => setStep(2)}
