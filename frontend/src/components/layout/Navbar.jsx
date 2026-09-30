@@ -505,7 +505,7 @@ export default function Navbar({
                     <span style={{ 
                       fontSize: '0.68rem', 
                       background: '#ffffff', 
-                      color: '#1d4ed8', 
+                      color: '#059669', 
                       padding: '2px 8px', 
                       borderRadius: '9999px', 
                       fontWeight: 800 
