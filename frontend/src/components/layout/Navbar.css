@@ -348,9 +348,7 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
-  border: 1px solid #1e40af !important;
-  border-top-color: #60a5fa !important;
-  border-bottom-color: #1e3a8a !important;
+  border: 1.5px solid #1e40af !important;
   color: #ffffff !important;
   cursor: pointer;
   box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
@@ -366,6 +364,7 @@
 .silicone-theme-btn:hover {
   transform: translateY(-2px);
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+  border: 1.5px solid #2563eb !important;
   box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
   color: #ffffff !important;
 }
@@ -878,13 +877,11 @@
   color: #ffffff !important;
 }
 
-/* Dark Mode Theme Toggle Button */
+/* Dark Mode Theme Toggle Button - Complete 360-Degree Circular Ring */
 [data-theme="dark"] .silicone-theme-btn {
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
-  border: 1px solid rgba(251, 191, 36, 0.4) !important;
-  border-top-color: rgba(255, 255, 255, 0.25) !important;
-  border-bottom-color: #020617 !important;
-  box-shadow: 0 3px 0 #020617, 0 5px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  border: 2px solid rgba(251, 191, 36, 0.55) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 12px rgba(251, 191, 36, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
   color: #fbbf24 !important;
 }
 
@@ -895,8 +892,8 @@
 
 [data-theme="dark"] .silicone-theme-btn:hover {
   background: linear-gradient(180deg, #283750 0%, #152238 100%) !important;
-  border-color: #fbbf24 !important;
-  box-shadow: 0 4px 0 #020617, 0 8px 18px rgba(251, 191, 36, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  border: 2px solid #fbbf24 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), 0 0 18px rgba(251, 191, 36, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Dark Mode Profile Trigger Button */
