@@ -35,7 +35,8 @@ import {
   FeedbackModal,
   PaymentsModal,
   NotificationsModal,
-  HelpSupportModal
+  HelpSupportModal,
+  OrderConversationModal
 } from '../../components/modals';
 import './CustomerDashboard.css';
 
@@ -51,6 +52,7 @@ export default function CustomerDashboard({ onNewBooking }) {
   const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [conversationOrder, setConversationOrder] = useState(null);
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -77,29 +79,38 @@ export default function CustomerDashboard({ onNewBooking }) {
     }
   }, [location.search]);
 
-  useEffect(() => {
-    const fetchRepairs = async () => {
-      try {
-        const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
-        if (!activeToken) {
-          setLoading(false);
-          return;
-        }
-        const res = await fetch('/api/repairs', {
-          headers: { 'Authorization': `Bearer ${activeToken}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setRepairs(data.orders || []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch user repairs:', err);
-      } finally {
+  const fetchRepairs = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
+      if (!activeToken) {
         setLoading(false);
+        return;
       }
-    };
-    fetchRepairs();
-  }, []);
+      const res = await fetch('/api/repairs', {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRepairs(data.orders || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch user repairs:', err);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRepairs(false);
+
+    // Auto-refresh repairs every 4 seconds so created repairs and status updates appear live
+    const interval = setInterval(() => {
+      fetchRepairs(true);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [token, location.key]);
 
   const activeRepairs = repairs.filter(r => r.status !== 'Delivered');
   const pastRepairs = repairs.filter(r => r.status === 'Delivered');
@@ -136,7 +147,28 @@ export default function CustomerDashboard({ onNewBooking }) {
           {/* Active Repairs Section */}
           <div id="customer-active-repairs" style={{ marginBottom: '36px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>Active Repairs</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>Active Repairs</h2>
+                <button
+                  type="button"
+                  onClick={() => fetchRepairs(false)}
+                  title="Refresh repairs"
+                  style={{
+                    background: 'var(--bg-card-subtle)',
+                    border: '1px solid var(--border-subtle, rgba(226, 232, 240, 0.8))',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
               {activeRepairs.some(r => r.stream_session?.is_live) && (
                 <span className="badge badge-live">
                   <Radio size={12} className="pulse-dot" /> LIVE WORKBENCH SESSION
@@ -188,12 +220,12 @@ export default function CustomerDashboard({ onNewBooking }) {
 
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
                     gap: '12px',
                     background: 'var(--bg-card-subtle)',
                     padding: '14px',
                     borderRadius: '12px',
-                    marginBottom: '20px',
+                    marginBottom: '16px',
                     fontSize: '0.82rem'
                   }}>
                     <div>
@@ -205,14 +237,56 @@ export default function CustomerDashboard({ onNewBooking }) {
                       <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>{r.tamper_seal_code || 'Pending'}</strong>
                     </div>
                     <div>
-                      <span style={{ color: 'var(--text-dim)' }}>Estimate: </span>
-                      <strong>₹{r.quote_amount || 0}</strong>
+                      <span style={{ color: 'var(--text-dim)' }}>Target Budget: </span>
+                      <strong style={{ color: '#059669' }}>₹{r.customer_selected_price || r.quote_amount || 0}</strong>
+                      {r.base_price_min && (
+                        <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', display: 'block' }}>
+                          Range: ₹{r.base_price_min} - ₹{r.base_price_max}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)' }}>Pickup Location: </span>
+                      <strong>{r.pickup_area ? `${r.pickup_area}, ` : ''}{r.pickup_city || 'Hyderabad'}</strong>
                     </div>
                   </div>
 
+                  {/* Photo Proof Thumbnails if attached */}
+                  {Array.isArray(r.problem_photos) && r.problem_photos.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                      <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Fault Photos:</span>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {r.problem_photos.slice(0, 5).map((imgUrl, pIdx) => (
+                          <img
+                            key={pIdx}
+                            src={imgUrl}
+                            alt={`Fault ${pIdx + 1}`}
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '6px',
+                              objectFit: 'cover',
+                              border: '1px solid var(--border-light)'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                        ({r.problem_photos.length} photo proof attached)
+                      </span>
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <button 
+                      className="btn-cta" 
+                      onClick={() => setConversationOrder(r)} 
+                      style={{ fontSize: '0.85rem' }}
+                    >
+                      <MessageSquare size={16} /> Live Negotiation & Custody Thread
+                    </button>
                     {r.stream_session?.is_live && (
-                      <button className="btn-cta" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.85rem' }}>
+                      <button className="btn-secondary" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.85rem' }}>
                         <Video size={16} /> Join Live Repair
                       </button>
                     )}
@@ -281,6 +355,17 @@ export default function CustomerDashboard({ onNewBooking }) {
       <PaymentsModal isOpen={isPaymentsOpen} onClose={() => setIsPaymentsOpen(false)} />
       <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} onActionClick={() => setIsStreamOpen(true)} />
       <HelpSupportModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      {conversationOrder && (
+        <OrderConversationModal
+          isOpen={Boolean(conversationOrder)}
+          initialOrder={conversationOrder}
+          onClose={() => setConversationOrder(null)}
+          onOpenLiveStream={(ord) => {
+            setConversationOrder(null);
+            setIsStreamOpen(true);
+          }}
+        />
+      )}
     </div>
   );
 }

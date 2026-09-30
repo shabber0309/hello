@@ -26,10 +26,11 @@ import {
   ArrowRight,
   ExternalLink,
   Activity,
-  Check
+  Check,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { StreamModal } from '../../components/modals';
+import { StreamModal, OrderConversationModal } from '../../components/modals';
 import './AdminDashboard.css';
 
 export default function AdminDashboard({ onOpenLiveStream }) {
@@ -37,6 +38,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('users'); // 'users', 'orders', 'streams', 'custody', 'escrow', 'database'
+  const [adminConversationOrder, setAdminConversationOrder] = useState(null);
 
   // Sync activeTab with URL query param ?tab=
   useEffect(() => {
@@ -691,6 +693,26 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                             </button>
 
                             <button
+                              onClick={() => setAdminConversationOrder(ord)}
+                              title="Inspect Customer-Technician Negotiation & Custody Thread"
+                              style={{
+                                background: 'rgba(37, 99, 235, 0.1)',
+                                border: '1px solid rgba(37, 99, 235, 0.3)',
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                color: '#2563eb',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <MessageSquare size={13} /> Chat & Custody
+                            </button>
+
+                            <button
                               onClick={() => handleEditOrderClick(ord)}
                               style={{
                                 background: 'var(--bg-card-subtle)',
@@ -855,19 +877,22 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                       </td>
                       <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                         <button
-                          onClick={() => alert(`Audit Log for ${ord.tamper_seal_code || ord.order_number}:\n\n- Scanned at Pickup by Courier OTP\n- Scanned at Cleanroom Station #4\n- Hologram confirmed intact under 4K camera`)}
+                          onClick={() => setAdminConversationOrder(ord)}
                           style={{
-                            background: 'var(--bg-card-subtle)',
-                            border: '1px solid var(--border-light)',
-                            padding: '6px 12px',
+                            background: 'rgba(37, 99, 235, 0.12)',
+                            border: '1px solid rgba(37, 99, 235, 0.35)',
+                            padding: '6px 14px',
                             borderRadius: '8px',
                             fontSize: '0.78rem',
                             fontWeight: 700,
-                            color: 'var(--primary)',
+                            color: '#2563eb',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
                             cursor: 'pointer'
                           }}
                         >
-                          View Chain Audit
+                          <MessageSquare size={13} /> View Audit & Custody Thread
                         </button>
                       </td>
                     </tr>
@@ -1512,6 +1537,18 @@ export default function AdminDashboard({ onOpenLiveStream }) {
             </form>
           </div>
         </div>
+      )}
+
+      {adminConversationOrder && (
+        <OrderConversationModal
+          isOpen={Boolean(adminConversationOrder)}
+          initialOrder={adminConversationOrder}
+          onClose={() => setAdminConversationOrder(null)}
+          onOpenLiveStream={(ord) => {
+            setAdminConversationOrder(null);
+            setLiveStreamOrder(ord);
+          }}
+        />
       )}
     </div>
   );

@@ -13,3 +13,4 @@ export { default as StreamModal } from './StreamModal';
 export { default as TamperSealModal } from './TamperSealModal';
 export { default as TechOnboardingModal } from './TechOnboardingModal';
 export { default as TrackRepairModal } from './TrackRepairModal';
+export { default as OrderConversationModal } from './OrderConversationModal';
