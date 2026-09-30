@@ -185,7 +185,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
 
           <div>
             <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-              Username
+              Username (Optional)
             </label>
             <input 
               type="text" 
@@ -193,7 +193,6 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
               onChange={(e) => setUsername(e.target.value)} 
               placeholder="e.g. username"
               style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
-              required 
             />
           </div>
 

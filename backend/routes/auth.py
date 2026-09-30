@@ -1,4 +1,5 @@
 import os
+import re
 import random
 import datetime
 import smtplib
@@ -244,22 +245,30 @@ def register():
     role = data.get('role', 'customer')
 
     if not name or not email or not password:
-        return jsonify({'error': 'Name, email, and password are required'}), 400
+        return jsonify({'error': 'Full name, email address, and password are required'}), 400
 
     if role not in ['customer', 'technician', 'admin']:
         role = 'customer'
 
-    username = data.get('username', '').strip().lower()
-    if not username:
-        username = email.split('@')[0].lower()
-
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
-        return jsonify({'error': 'An account with this email already exists'}), 409
+        return jsonify({'error': 'An account with this email address already exists'}), 409
 
-    existing_username = User.query.filter_by(username=username).first()
-    if existing_username:
-        username = f"{username}_{random.randint(100, 999)}"
+    if phone:
+        existing_phone = User.query.filter_by(phone=phone).first()
+        if existing_phone:
+            return jsonify({'error': 'An account with this phone number already exists'}), 409
+
+    # Automatically derive clean internal username from email or name without requiring user input
+    username = data.get('username', '').strip().lower()
+    if not username:
+        base_user = email.split('@')[0].lower()
+        base_user = re.sub(r'[^a-z0-9_]', '', base_user) or 'user'
+        existing_username = User.query.filter_by(username=base_user).first()
+        if existing_username:
+            username = f"{base_user}_{random.randint(100, 9999)}"
+        else:
+            username = base_user
 
     user = User(
         name=name,
@@ -292,20 +301,25 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json() or {}
-    identifier = data.get('email', '') or data.get('username', '')
-    identifier = identifier.strip().lower()
+    raw_identifier = str(data.get('identifier', '') or data.get('email', '') or data.get('phone', '') or data.get('username', '')).strip()
     password = data.get('password', '')
 
-    if not identifier or not password:
-        return jsonify({'error': 'Username/Email and password are required'}), 400
+    if not raw_identifier or not password:
+        return jsonify({'error': 'Email or phone number and password are required'}), 400
 
+    identifier_lower = raw_identifier.lower()
+    clean_phone = re.sub(r'[^0-9+]', '', raw_identifier)
+
+    # Search user by email, phone, or legacy username
     user = User.query.filter(
-        (db.func.lower(User.email) == identifier) | 
-        (db.func.lower(User.username) == identifier)
+        (db.func.lower(User.email) == identifier_lower) | 
+        (User.phone == raw_identifier) | 
+        (User.phone == clean_phone) | 
+        (db.func.lower(User.username) == identifier_lower)
     ).first()
 
     if not user or not user.check_password(password):
-        return jsonify({'error': 'Invalid username/email or password credentials'}), 401
+        return jsonify({'error': 'Invalid email/phone number or password credentials'}), 401
 
     # Generate JWT Token
     exp_hours = current_app.config.get('JWT_EXPIRATION_HOURS', 24)
@@ -363,21 +377,26 @@ def update_profile(current_user):
 @auth_bp.route('/forgot-password', methods=['POST'])
 def forgot_password():
     data = request.get_json() or {}
-    identifier = (data.get('email', '') or data.get('username', '') or data.get('identifier', '')).strip().lower()
+    raw_identifier = str(data.get('identifier', '') or data.get('email', '') or data.get('phone', '') or data.get('username', '')).strip()
 
-    if not identifier:
-        return jsonify({'error': 'Email or username is required'}), 400
+    if not raw_identifier:
+        return jsonify({'error': 'Email address or phone number is required'}), 400
+
+    identifier_lower = raw_identifier.lower()
+    clean_phone = re.sub(r'[^0-9+]', '', raw_identifier)
 
     user = User.query.filter(
-        (db.func.lower(User.email) == identifier) | 
-        (db.func.lower(User.username) == identifier)
+        (db.func.lower(User.email) == identifier_lower) | 
+        (User.phone == raw_identifier) | 
+        (User.phone == clean_phone) | 
+        (db.func.lower(User.username) == identifier_lower)
     ).first()
 
-    target_email = user.email if user else (identifier if '@' in identifier else None)
+    target_email = user.email if user else (raw_identifier if '@' in raw_identifier else None)
     target_role = user.role if user else 'customer'
 
     if not target_email:
-        return jsonify({'error': 'No account found with this username. Please enter your registered email address or create an account.'}), 404
+        return jsonify({'error': 'No account found with this email or phone number. Please enter your registered email address or create an account.'}), 404
 
     # Generate 6-digit OTP
     otp_code = str(random.randint(100000, 999999))
@@ -409,22 +428,27 @@ def forgot_password():
 @auth_bp.route('/reset-password', methods=['POST'])
 def reset_password():
     data = request.get_json() or {}
-    identifier = (data.get('email', '') or data.get('username', '') or data.get('identifier', '')).strip().lower()
+    raw_identifier = str(data.get('identifier', '') or data.get('email', '') or data.get('phone', '') or data.get('username', '')).strip()
     otp_code = str(data.get('otp', '')).strip()
     new_password = data.get('new_password', '')
 
-    if not identifier or not otp_code or not new_password:
-        return jsonify({'error': 'Email/Username, OTP code, and new password are required'}), 400
+    if not raw_identifier or not otp_code or not new_password:
+        return jsonify({'error': 'Email/Phone number, OTP code, and new password are required'}), 400
 
     if len(new_password) < 6:
         return jsonify({'error': 'Password must be at least 6 characters long'}), 400
 
+    identifier_lower = raw_identifier.lower()
+    clean_phone = re.sub(r'[^0-9+]', '', raw_identifier)
+
     user = User.query.filter(
-        (db.func.lower(User.email) == identifier) | 
-        (db.func.lower(User.username) == identifier)
+        (db.func.lower(User.email) == identifier_lower) | 
+        (User.phone == raw_identifier) | 
+        (User.phone == clean_phone) | 
+        (db.func.lower(User.username) == identifier_lower)
     ).first()
 
-    lookup_email = user.email if user else identifier
+    lookup_email = user.email if user else raw_identifier
 
     otp_record = EmailOTP.query.filter_by(email=lookup_email, is_verified=False).order_by(EmailOTP.id.desc()).first()
 

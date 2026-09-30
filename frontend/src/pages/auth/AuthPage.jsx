@@ -57,7 +57,6 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
   // Register form state
   const [regName, setRegName] = useState('');
-  const [regUsername, setRegUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
@@ -153,7 +152,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   const handleLoginSubmit = async (e) => {
     e?.preventDefault();
     if (!identifier.trim() || !password) {
-      setError('Username/Email and password are required');
+      setError('Email or phone number and password are required');
       return;
     }
     setLoading(true);
@@ -245,7 +244,6 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
     const res = await register({
       name: regName.trim(),
-      username: regUsername.trim() || regEmail.split('@')[0],
       email: regEmail.trim(),
       phone: regPhone.trim(),
       password: regPassword,
@@ -266,7 +264,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   const handleRequestOtp = async (e) => {
     e?.preventDefault();
     if (!forgotIdentifier.trim()) {
-      setError('Please provide your registered email or username');
+      setError('Please provide your registered email or phone number');
       return;
     }
     setLoading(true);
@@ -283,7 +281,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
         setForgotDevOtp(res.data.dev_otp);
       }
     } else {
-      setError(res.error || 'Account not found. Please verify your email or username.');
+      setError(res.error || 'Account not found. Please verify your email or phone number.');
     }
   };
 
@@ -349,7 +347,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   };
 
   return (
-    <div className="auth-page-root">
+    <div className="auth-page-root">  
       {/* Background glow effects */}
       <div className="auth-bg-glow" />
 
@@ -455,7 +453,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0, lineHeight: 1.45 }}>
             {mode === 'login' && roleMeta.subtitle}
             {mode === 'register' && 'Enter your details below to join Live Fix with full hardware transparency'}
-            {mode === 'forgot' && 'Enter your registered email or username for secure OTP password recovery'}
+            {mode === 'forgot' && 'Enter your registered email or phone number for secure OTP password recovery'}
           </p>
         </div>
 
@@ -560,14 +558,14 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
               <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div>
                   <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                    Username or Email Address
+                    Email Address or Phone Number
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="text"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="Enter username or email"
+                      placeholder="Enter registered email or phone"
                       style={{
                         width: '100%',
                         paddingLeft: '38px',
@@ -834,16 +832,18 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
                 <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                  Username (Optional)
+                  Email Address
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
-                    type="text"
-                    value={regUsername}
-                    onChange={(e) => setRegUsername(e.target.value)}
-                    placeholder="e.g. alex2026"
-                    style={{ width: '100%', paddingLeft: '12px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
+                    type="email"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="alex@example.com"
+                    style={{ width: '100%', paddingLeft: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
+                    required
                   />
+                  <Mail size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 </div>
               </div>
 
@@ -861,23 +861,6 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   />
                   <Phone size={14} color="var(--text-dim)" style={{ position: 'absolute', left: '10px', top: '13px' }} />
                 </div>
-              </div>
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                Email Address
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="email"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  placeholder="alex@example.com"
-                  style={{ width: '100%', paddingLeft: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  required
-                />
-                <Mail size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
               </div>
             </div>
 
@@ -1000,14 +983,14 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
               <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                    Registered Email or Username
+                    Registered Email or Phone Number
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="text"
                       value={forgotIdentifier}
                       onChange={(e) => setForgotIdentifier(e.target.value)}
-                      placeholder="Enter registered email or username"
+                      placeholder="Enter registered email or phone number"
                       style={{ width: '100%', paddingLeft: '38px', height: '42px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.88rem' }}
                       required
                       autoFocus
@@ -1015,7 +998,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
                   </div>
                   <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', display: 'block', marginTop: '4px' }}>
-                    We will send a 6-digit OTP code directly to your email inbox.
+                    We will send a 6-digit OTP code to the verified email for your account.
                   </span>
                 </div>
 

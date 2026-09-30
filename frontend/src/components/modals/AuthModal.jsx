@@ -20,7 +20,6 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
   
   // Register form state
   const [regName, setRegName] = useState('');
-  const [regUsername, setRegUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
@@ -104,7 +103,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
   const handleLoginSubmit = async (e) => {
     e?.preventDefault();
     if (!identifier.trim() || !password) {
-      setError('Please enter your username/email and password');
+      setError('Please enter your email or phone number and password');
       return;
     }
     setLoading(true);
@@ -117,7 +116,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
       if (onSuccess) onSuccess(res.user);
       onClose();
     } else {
-      setError(res.error || 'Invalid username/email or password credentials');
+      setError(res.error || 'Invalid credentials. Check your email/phone and password.');
     }
   };
 
@@ -145,7 +144,6 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
 
     const res = await register({
       name: regName.trim(),
-      username: regUsername.trim() || regEmail.split('@')[0],
       email: regEmail.trim(),
       phone: regPhone.trim(),
       password: regPassword,
@@ -164,7 +162,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
   const handleRequestOtp = async (e) => {
     e?.preventDefault();
     if (!forgotIdentifier.trim()) {
-      setError('Please provide your email or username');
+      setError('Please provide your registered email or phone number');
       return;
     }
     setLoading(true);
@@ -181,7 +179,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
         setForgotDevOtp(res.data.dev_otp);
       }
     } else {
-      setError(res.error || 'Could not find an account with that email/username');
+      setError(res.error || 'Could not find an account with that email or phone number');
     }
   };
 
@@ -436,7 +434,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
           <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0, lineHeight: 1.45 }}>
             {mode === 'login' && roleMeta.subtitle}
             {mode === 'register' && 'Join the transparent laptop repair marketplace'}
-            {mode === 'forgot' && 'Enter your email or username to receive a secure recovery code'}
+            {mode === 'forgot' && 'Enter your registered email or phone number to receive a secure recovery code'}
           </p>
         </div>
 
@@ -485,14 +483,14 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
           <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
               <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                Username or Email Address
+                Email Address or Phone Number
               </label>
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="Enter username or email"
+                  placeholder="Enter registered email or phone"
                   style={{
                     width: '100%',
                     paddingLeft: '38px',
@@ -623,37 +621,6 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={regUsername}
-                  onChange={(e) => setRegUsername(e.target.value)}
-                  placeholder="username"
-                  style={{ width: '100%', padding: '0 12px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                  Phone Number
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="text"
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
-                    style={{ width: '100%', paddingLeft: '32px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  />
-                  <Phone size={14} color="var(--text-dim)" style={{ position: 'absolute', left: '10px', top: '13px' }} />
-                </div>
-              </div>
-            </div>
-
             <div>
               <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                 Email Address
@@ -668,6 +635,22 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                   required
                 />
                 <Mail size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                Phone Number (Optional)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={regPhone}
+                  onChange={(e) => setRegPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  style={{ width: '100%', paddingLeft: '34px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
+                />
+                <Phone size={14} color="var(--text-dim)" style={{ position: 'absolute', left: '10px', top: '13px' }} />
               </div>
             </div>
 
@@ -824,14 +807,14 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
               <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                    Registered Email or Username
+                    Registered Email or Phone Number
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="text"
                       value={forgotIdentifier}
                       onChange={(e) => setForgotIdentifier(e.target.value)}
-                      placeholder="Enter registered email or username"
+                      placeholder="Enter registered email or phone"
                       style={{ width: '100%', paddingLeft: '38px', height: '42px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.88rem' }}
                       required
                     />

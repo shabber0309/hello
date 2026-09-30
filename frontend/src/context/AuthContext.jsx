@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: identifier, username: identifier, password })
+        body: JSON.stringify({ identifier, email: identifier, phone: identifier, username: identifier, password })
       });
       const data = await res.json();
       if (res.ok && data.user) {
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: identifier, username: identifier })
+        body: JSON.stringify({ identifier, email: identifier, phone: identifier, username: identifier })
       });
       const data = await res.json();
       if (res.ok) {
@@ -91,12 +91,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const resetPassword = async (email, otp, newPassword) => {
+  const resetPassword = async (emailOrPhone, otp, newPassword) => {
     try {
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, new_password: newPassword })
+        body: JSON.stringify({ identifier: emailOrPhone, email: emailOrPhone, phone: emailOrPhone, otp, new_password: newPassword })
       });
       const data = await res.json();
       if (res.ok) {
