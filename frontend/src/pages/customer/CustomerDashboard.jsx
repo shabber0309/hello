@@ -35,7 +35,8 @@ import {
   FeedbackModal,
   PaymentsModal,
   NotificationsModal,
-  HelpSupportModal
+  HelpSupportModal,
+  OrderConversationModal
 } from '../../components/modals';
 import './CustomerDashboard.css';
 
@@ -51,6 +52,7 @@ export default function CustomerDashboard({ onNewBooking }) {
   const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [conversationOrder, setConversationOrder] = useState(null);
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -211,8 +213,15 @@ export default function CustomerDashboard({ onNewBooking }) {
                   </div>
 
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <button 
+                      className="btn-cta" 
+                      onClick={() => setConversationOrder(r)} 
+                      style={{ fontSize: '0.85rem' }}
+                    >
+                      <MessageSquare size={16} /> Live Negotiation & Custody Thread
+                    </button>
                     {r.stream_session?.is_live && (
-                      <button className="btn-cta" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.85rem' }}>
+                      <button className="btn-secondary" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.85rem' }}>
                         <Video size={16} /> Join Live Repair
                       </button>
                     )}
@@ -281,6 +290,17 @@ export default function CustomerDashboard({ onNewBooking }) {
       <PaymentsModal isOpen={isPaymentsOpen} onClose={() => setIsPaymentsOpen(false)} />
       <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} onActionClick={() => setIsStreamOpen(true)} />
       <HelpSupportModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      {conversationOrder && (
+        <OrderConversationModal
+          isOpen={Boolean(conversationOrder)}
+          initialOrder={conversationOrder}
+          onClose={() => setConversationOrder(null)}
+          onOpenLiveStream={(ord) => {
+            setConversationOrder(null);
+            setIsStreamOpen(true);
+          }}
+        />
+      )}
     </div>
   );
 }

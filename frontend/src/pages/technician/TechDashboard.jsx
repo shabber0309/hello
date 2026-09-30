@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { StreamModal } from '../../components/modals';
+import { StreamModal, OrderConversationModal } from '../../components/modals';
 import './TechDashboard.css';
 
 export default function TechDashboard() {
@@ -43,6 +43,7 @@ export default function TechDashboard() {
   const [activeSidebarNav, setActiveSidebarNav] = useState('dashboard');
   const [isLiveStreamOpen, setIsLiveStreamOpen] = useState(false);
   const [streamOrder, setStreamOrder] = useState(null);
+  const [activeConversationOrder, setActiveConversationOrder] = useState(null);
 
   // Sync activeSidebarNav with URL query param ?tab=
   useEffect(() => {
@@ -954,7 +955,17 @@ export default function TechDashboard() {
                       {activeRepairs.length > 0 ? `Order: ${activeRepairs[0].order_number}` : 'Direct connection to active client'}
                     </div>
                   </div>
-                  <span className="badge badge-verified">Live Chat Active</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button
+                      className="btn-cta"
+                      type="button"
+                      onClick={() => setActiveConversationOrder(activeRepairs[0] || nearbyRequests[0])}
+                      style={{ fontSize: '0.82rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <ShieldCheck size={14} /> Open Negotiation & Custody Center
+                    </button>
+                    <span className="badge badge-verified">Live Chat Active</span>
+                  </div>
                 </div>
 
                 {/* Messages Body */}
@@ -1400,6 +1411,18 @@ export default function TechDashboard() {
         </div>
       )}
 
+      {activeConversationOrder && (
+        <OrderConversationModal
+          isOpen={Boolean(activeConversationOrder)}
+          initialOrder={activeConversationOrder}
+          onClose={() => setActiveConversationOrder(null)}
+          onOpenLiveStream={(ord) => {
+            setActiveConversationOrder(null);
+            setStreamOrder(ord);
+            setIsLiveStreamOpen(true);
+          }}
+        />
+      )}
     </div>
   );
 }
