@@ -180,3 +180,148 @@
   gap: 8px;
   margin-bottom: 16px;
 }
+
+/* ==========================================================================
+   Notifications Modal Dialog & Custom Scroll Area
+   ========================================================================== */
+
+.notifications-modal-card {
+  width: 100%;
+  max-width: 580px;
+  height: 640px;
+  max-height: 86vh;
+  background: var(--bg-surface);
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border-medium);
+  color: var(--text-main);
+  position: relative;
+  box-sizing: border-box;
+}
+
+[data-theme="light"] .notifications-modal-card {
+  background: #ffffff;
+  border-color: #cce0f7;
+  box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.2);
+}
+
+.notifications-modal-header {
+  padding: 22px 24px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+[data-theme="light"] .notifications-modal-header {
+  background: #ffffff;
+  border-bottom-color: #e2e8f0;
+}
+
+.notifications-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 20px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.35) transparent;
+}
+
+.notifications-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notifications-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notifications-scroll-area::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 9999px;
+}
+
+.notifications-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.6);
+}
+
+[data-theme="light"] .notifications-scroll-area {
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+[data-theme="light"] .notifications-scroll-area::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+.notification-item-card {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-light);
+  align-items: flex-start;
+  transition: all 0.18s ease;
+  box-sizing: border-box;
+}
+
+[data-theme="light"] .notification-item-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.notification-item-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12);
+}
+
+.notification-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffffff !important;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.notification-action-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.notifications-modal-footer {
+  padding: 12px 24px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+[data-theme="light"] .notifications-modal-footer {
+  background: #ffffff;
+  border-top-color: #e2e8f0;
+}

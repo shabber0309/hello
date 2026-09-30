@@ -68,84 +68,130 @@ export default function NotificationsModal({ isOpen, onClose, onActionClick }) {
     }
   ];
 
+  const getActionBtnStyle = (action) => {
+    switch (action) {
+      case 'Review Issue':
+        return {
+          background: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)',
+          boxShadow: '0 2px 8px rgba(217, 119, 6, 0.35)'
+        };
+      case 'Join Live':
+        return {
+          background: 'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)',
+          boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)'
+        };
+      case 'Track Pickup':
+        return {
+          background: 'linear-gradient(180deg, #f97316 0%, #ea580c 100%)',
+          boxShadow: '0 2px 8px rgba(249, 115, 22, 0.35)'
+        };
+      case 'View Report':
+        return {
+          background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
+          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.35)'
+        };
+      case 'Delivery OTP':
+        return {
+          background: 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)',
+          boxShadow: '0 2px 8px rgba(2, 132, 199, 0.35)'
+        };
+      default:
+        return {
+          background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+          boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35)'
+        };
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed',
       inset: 0,
       zIndex: 2200,
-      backgroundColor: 'rgba(15, 23, 42, 0.8)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'rgba(11, 17, 32, 0.82)',
+      backdropFilter: 'blur(10px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '20px'
     }}>
-      <div className="tech-card" style={{
-        width: '100%',
-        maxWidth: '600px',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-        background: 'var(--bg-surface)',
-        borderRadius: '24px',
-        padding: '32px',
-        position: 'relative'
-      }}>
-        <button 
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '24px',
-            right: '24px',
-            background: 'var(--bg-card-subtle)',
-            border: '1px solid var(--border-light)',
-            borderRadius: '50%',
-            width: '36px',
-            height: '36px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-muted)'
-          }}
-        >
-          <X size={18} />
-        </button>
+      <div className="notifications-modal-card">
+        {/* Sticky Header */}
+        <div className="notifications-modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'rgba(37, 99, 235, 0.12)',
+              color: 'var(--primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
+              <Bell size={20} />
+              <span style={{
+                position: 'absolute',
+                top: '-2px',
+                right: '-2px',
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                background: '#ef4444',
+                border: '2px solid var(--bg-surface)'
+              }} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Notifications</h2>
+                <span style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  background: 'rgba(37, 99, 235, 0.14)',
+                  color: '#2563eb',
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  border: '1px solid rgba(37, 99, 235, 0.3)'
+                }}>
+                  6 Active
+                </span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Real-time updates on your active repairs</div>
+            </div>
+          </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            background: 'var(--primary-subtle)',
-            color: 'var(--primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Bell size={20} />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Notifications</h2>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Real-time updates on your active repairs</div>
-          </div>
+          <button 
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              background: 'var(--bg-card-subtle)',
+              border: '1px solid var(--border-light)',
+              borderRadius: '50%',
+              width: '34px',
+              height: '34px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <X size={16} />
+          </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Inner Scrollable Notifications Area */}
+        <div className="notifications-scroll-area">
           {notifications.map((n) => {
             const Icon = n.icon;
             return (
-              <div key={n.id} style={{
-                display: 'flex',
-                gap: '14px',
-                padding: '14px',
-                borderRadius: '14px',
-                background: 'var(--bg-card-subtle)',
-                border: '1px solid var(--border-light)',
-                alignItems: 'flex-start'
-              }}>
+              <div key={n.id} className="notification-item-card">
                 <div style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '10px',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '12px',
                   background: n.bg,
                   color: n.color,
                   display: 'flex',
@@ -156,28 +202,69 @@ export default function NotificationsModal({ isOpen, onClose, onActionClick }) {
                   <Icon size={18} />
                 </div>
 
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>{n.title}</div>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>{n.time}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '3px' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-main)', lineHeight: 1.3 }}>
+                      {n.title}
+                    </div>
+                    <span style={{ 
+                      fontSize: '0.70rem', 
+                      fontWeight: 600,
+                      color: 'var(--text-dim)', 
+                      whiteSpace: 'nowrap',
+                      padding: '2px 6px',
+                      background: 'rgba(148, 163, 184, 0.1)',
+                      borderRadius: '6px'
+                    }}>
+                      {n.time}
+                    </span>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+
+                  <p style={{ fontSize: '0.80rem', color: 'var(--text-muted)', marginBottom: '10px', lineHeight: 1.45 }}>
                     {n.desc}
                   </p>
+
                   <button 
-                    className="btn-primary"
-                    style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                    className="notification-action-btn"
+                    style={getActionBtnStyle(n.action)}
                     onClick={() => {
                       onClose();
                       if (onActionClick) onActionClick(n.action);
                     }}
                   >
-                    {n.action}
+                    {n.action === 'Join Live' && (
+                      <span style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: '#ffffff',
+                        display: 'inline-block'
+                      }} />
+                    )}
+                    <span>{n.action}</span>
                   </button>
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* Footer */}
+        <div className="notifications-modal-footer">
+          <span>All timestamps verified by cleanroom audit</span>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--primary)',
+              fontSize: '0.76rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            Done
+          </button>
         </div>
       </div>
     </div>
