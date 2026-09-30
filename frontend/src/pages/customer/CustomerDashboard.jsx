@@ -79,29 +79,38 @@ export default function CustomerDashboard({ onNewBooking }) {
     }
   }, [location.search]);
 
-  useEffect(() => {
-    const fetchRepairs = async () => {
-      try {
-        const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
-        if (!activeToken) {
-          setLoading(false);
-          return;
-        }
-        const res = await fetch('/api/repairs', {
-          headers: { 'Authorization': `Bearer ${activeToken}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setRepairs(data.orders || []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch user repairs:', err);
-      } finally {
+  const fetchRepairs = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
+      if (!activeToken) {
         setLoading(false);
+        return;
       }
-    };
-    fetchRepairs();
-  }, []);
+      const res = await fetch('/api/repairs', {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRepairs(data.orders || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch user repairs:', err);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRepairs(false);
+
+    // Auto-refresh repairs every 4 seconds so created repairs and status updates appear live
+    const interval = setInterval(() => {
+      fetchRepairs(true);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [token, location.key]);
 
   const activeRepairs = repairs.filter(r => r.status !== 'Delivered');
   const pastRepairs = repairs.filter(r => r.status === 'Delivered');
@@ -138,7 +147,28 @@ export default function CustomerDashboard({ onNewBooking }) {
           {/* Active Repairs Section */}
           <div id="customer-active-repairs" style={{ marginBottom: '36px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>Active Repairs</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>Active Repairs</h2>
+                <button
+                  type="button"
+                  onClick={() => fetchRepairs(false)}
+                  title="Refresh repairs"
+                  style={{
+                    background: 'var(--bg-card-subtle)',
+                    border: '1px solid var(--border-subtle, rgba(226, 232, 240, 0.8))',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
               {activeRepairs.some(r => r.stream_session?.is_live) && (
                 <span className="badge badge-live">
                   <Radio size={12} className="pulse-dot" /> LIVE WORKBENCH SESSION

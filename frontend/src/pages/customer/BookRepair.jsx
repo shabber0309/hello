@@ -107,11 +107,12 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     setError('');
 
     try {
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
       const res = await fetch('/api/repairs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${activeToken}`
         },
         body: JSON.stringify(formData)
       });

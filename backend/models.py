@@ -96,6 +96,9 @@ class LaptopRepairOrder(db.Model):
     meet_recording_url = db.Column(db.String(255), nullable=True)
     meet_recording_sent_to_email = db.Column(db.Boolean, default=False)
 
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
     # Relationships
     stream_session = db.relationship('StreamSession', backref='order', uselist=False, cascade='all, delete-orphan')
     parts = db.relationship('PartReplacementLog', backref='order', lazy=True, cascade='all, delete-orphan')
