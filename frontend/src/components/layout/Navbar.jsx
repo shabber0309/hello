@@ -331,44 +331,46 @@ export default function Navbar({
                   </span>
                 </div>
 
-                {/* Role Switchers */}
-                <div className="silicone-dropdown-section">
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      switchRole('customer');
-                      setShowProfileMenu(false);
-                      navigate('/dashboard');
-                    }}
-                  >
-                    <UserCheck size={14} color="var(--primary)" />
-                    <span>Customer Portal</span>
-                  </button>
+                {/* Role Switchers - Only visible to Admins */}
+                {isAdmin && (
+                  <div className="silicone-dropdown-section">
+                    <button
+                      className="silicone-dropdown-item"
+                      onClick={() => {
+                        switchRole('customer');
+                        setShowProfileMenu(false);
+                        navigate('/dashboard');
+                      }}
+                    >
+                      <UserCheck size={14} color="var(--primary)" />
+                      <span>Customer Portal</span>
+                    </button>
 
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      switchRole('technician');
-                      setShowProfileMenu(false);
-                      navigate('/technician');
-                    }}
-                  >
-                    <Wrench size={14} color="var(--cta-orange)" />
-                    <span>Technician Workbench</span>
-                  </button>
+                    <button
+                      className="silicone-dropdown-item"
+                      onClick={() => {
+                        switchRole('technician');
+                        setShowProfileMenu(false);
+                        navigate('/technician');
+                      }}
+                    >
+                      <Wrench size={14} color="var(--cta-orange)" />
+                      <span>Technician Workbench</span>
+                    </button>
 
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      switchRole('admin');
-                      setShowProfileMenu(false);
-                      navigate('/admin');
-                    }}
-                  >
-                    <Shield size={14} color="#10b981" />
-                    <span>Admin Console</span>
-                  </button>
-                </div>
+                    <button
+                      className="silicone-dropdown-item"
+                      onClick={() => {
+                        switchRole('admin');
+                        setShowProfileMenu(false);
+                        navigate('/admin');
+                      }}
+                    >
+                      <Shield size={14} color="#10b981" />
+                      <span>Admin Console</span>
+                    </button>
+                  </div>
+                )}
 
                 {/* Edit Profile & Sign Out */}
                 <div className="silicone-dropdown-footer">
@@ -485,65 +487,67 @@ export default function Navbar({
                   <span>Edit Profile</span>
                 </button>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', margin: '4px 0' }}>
-                  <button
-                    onClick={() => {
-                      switchRole('customer');
-                      setMobileMenuOpen(false);
-                      navigate('/dashboard');
-                    }}
-                    style={{
-                      background: 'rgba(37, 99, 235, 0.25)',
-                      border: '1px solid rgba(147, 197, 253, 0.4)',
-                      color: '#ffffff',
-                      padding: '8px 4px',
-                      borderRadius: '8px',
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Customer
-                  </button>
-                  <button
-                    onClick={() => {
-                      switchRole('technician');
-                      setMobileMenuOpen(false);
-                      navigate('/technician');
-                    }}
-                    style={{
-                      background: 'rgba(234, 88, 12, 0.25)',
-                      border: '1px solid rgba(251, 146, 60, 0.4)',
-                      color: '#ffffff',
-                      padding: '8px 4px',
-                      borderRadius: '8px',
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Tech
-                  </button>
-                  <button
-                    onClick={() => {
-                      switchRole('admin');
-                      setMobileMenuOpen(false);
-                      navigate('/admin');
-                    }}
-                    style={{
-                      background: 'rgba(16, 185, 129, 0.25)',
-                      border: '1px solid rgba(52, 211, 153, 0.4)',
-                      color: '#ffffff',
-                      padding: '8px 4px',
-                      borderRadius: '8px',
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Admin
-                  </button>
-                </div>
+                {isAdmin && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', margin: '4px 0' }}>
+                    <button
+                      onClick={() => {
+                        switchRole('customer');
+                        setMobileMenuOpen(false);
+                        navigate('/dashboard');
+                      }}
+                      style={{
+                        background: 'rgba(37, 99, 235, 0.25)',
+                        border: '1px solid rgba(147, 197, 253, 0.4)',
+                        color: '#ffffff',
+                        padding: '8px 4px',
+                        borderRadius: '8px',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Customer
+                    </button>
+                    <button
+                      onClick={() => {
+                        switchRole('technician');
+                        setMobileMenuOpen(false);
+                        navigate('/technician');
+                      }}
+                      style={{
+                        background: 'rgba(234, 88, 12, 0.25)',
+                        border: '1px solid rgba(251, 146, 60, 0.4)',
+                        color: '#ffffff',
+                        padding: '8px 4px',
+                        borderRadius: '8px',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Tech
+                    </button>
+                    <button
+                      onClick={() => {
+                        switchRole('admin');
+                        setMobileMenuOpen(false);
+                        navigate('/admin');
+                      }}
+                      style={{
+                        background: 'rgba(16, 185, 129, 0.25)',
+                        border: '1px solid rgba(52, 211, 153, 0.4)',
+                        color: '#ffffff',
+                        padding: '8px 4px',
+                        borderRadius: '8px',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Admin
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
