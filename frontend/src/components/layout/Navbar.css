@@ -325,47 +325,64 @@
   box-shadow: 0 1px 0 #064e3b, 0 2px 4px rgba(16, 185, 129, 0.2) !important;
 }
 
-/* Bay 4: Theme Toggle Bay */
+/* Bay 4: Theme Toggle Bay - Standalone 3D Button without outer box */
 .silicone-bay-theme {
-  width: 64px;
+  width: auto;
+  min-width: 50px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .silicone-theme-btn {
-  width: 36px;
-  height: 36px;
+  width: 50px;
+  height: 50px;
+  min-height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #ffffff 0%, #eef5fc 100%);
-  border: 1px solid #cce0f7;
-  border-top-color: #ffffff;
-  border-bottom-color: #bad6f5;
-  color: #1e3a8a;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1e40af !important;
+  border-top-color: #60a5fa !important;
+  border-bottom-color: #1e3a8a !important;
+  color: #ffffff !important;
   cursor: pointer;
-  box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   transition: all 0.18s ease;
+  box-sizing: border-box;
+}
+
+.silicone-theme-btn svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .silicone-theme-btn:hover {
   transform: translateY(-2px);
-  background: linear-gradient(180deg, #ffffff 0%, #e0effe 100%);
-  box-shadow: 0 4px 0 #bad6f5, 0 6px 12px rgba(37, 99, 235, 0.15), inset 0 1px 0 #ffffff;
-  color: #1d4ed8;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  color: #ffffff !important;
 }
 
 .silicone-theme-btn:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #bad6f5, 0 2px 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
-/* Bay 5: Login Button / User Profile Dropdown */
+/* Bay 5: Login Button / User Profile Dropdown - Standalone without outer box */
 .silicone-bay-login {
   position: relative;
   width: auto;
-  min-width: 110px;
-  padding: 0 14px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -376,35 +393,36 @@
 
 .silicone-login-btn {
   height: 50px;
+  min-height: 50px;
   padding: 0 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
-  border: 1px solid #1e40af;
-  border-top-color: #60a5fa;
-  border-bottom-color: #1e3a8a;
-  color: #ffffff;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1e40af !important;
+  border-top-color: #60a5fa !important;
+  border-bottom-color: #1e3a8a !important;
+  color: #ffffff !important;
   font-size: 0.92rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   transition: all 0.18s ease;
   white-space: nowrap;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
   box-sizing: border-box;
 }
 
 .silicone-login-btn:hover {
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
   transform: translateY(-2px);
-  box-shadow: 0 5px 0 #1e3a8a, 0 9px 18px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
 }
 
 .silicone-login-btn:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
 .silicone-profile-trigger {
@@ -412,47 +430,60 @@
   align-items: center;
   gap: 8px;
   height: 50px;
-  background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%);
-  border: 1px solid #cce0f7;
-  border-top-color: #ffffff;
-  border-bottom-color: #bad6f5;
+  min-height: 50px;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1e40af !important;
+  border-top-color: #60a5fa !important;
+  border-bottom-color: #1e3a8a !important;
   border-radius: 9999px;
-  padding: 0 16px 0 8px;
+  padding: 0 18px 0 10px;
   cursor: pointer;
-  box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
-  color: #0f172a;
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
   font-weight: 800;
-  font-size: 0.88rem;
+  font-size: 0.90rem;
   transition: all 0.18s ease;
   white-space: nowrap;
   flex-shrink: 0;
-  text-shadow: none;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
   box-sizing: border-box;
 }
 
 .silicone-profile-trigger:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #eaf2fc 100%);
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 0 #bad6f5, 0 6px 12px rgba(37, 99, 235, 0.12), inset 0 1px 0 #ffffff;
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
 }
 
 .silicone-profile-trigger:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #bad6f5, 0 2px 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+}
+
+.silicone-profile-trigger svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.silicone-user-name {
+  color: #ffffff !important;
+  font-weight: 800;
+  font-size: 0.90rem;
 }
 
 .silicone-avatar-circle {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 800;
   flex-shrink: 0;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
@@ -785,5 +816,12 @@
 
 [data-theme="dark"] .silicone-bay-item .silicone-nav-link--active {
   color: #ffffff !important;
+}
+
+[data-theme="dark"] .silicone-bay-theme,
+[data-theme="dark"] .silicone-bay-login {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 

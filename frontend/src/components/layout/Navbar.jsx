@@ -295,7 +295,7 @@ export default function Navbar({
                 <span className="silicone-user-name">
                   {user.name?.split(' ')[0] || 'User'}
                 </span>
-                <ChevronDown size={14} color="#64748b" />
+                <ChevronDown size={14} color="#ffffff" strokeWidth={2.4} />
               </button>
             )}
 
