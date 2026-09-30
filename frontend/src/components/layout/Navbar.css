@@ -783,45 +783,167 @@
   }
 }
 
-/* Dark Theme Silicone Bays & Items */
-[data-theme="dark"] .silicone-bay-item {
+/* ==========================================================================
+   Dark Theme Silicone Header & 3D Items Adaptation
+   ========================================================================== */
+
+/* Dark Navbar Container */
+[data-theme="dark"] .silicone-header {
+  background: linear-gradient(180deg, #0d1527 0%, #090e1a 100%) !important;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.22) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Dark Engineering Ruler Track */
+[data-theme="dark"] .silicone-ruler-track {
+  background: linear-gradient(180deg, #0a1120 0%, #060a14 100%) !important;
+  border-color: rgba(56, 189, 248, 0.18) !important;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-theme="dark"] .silicone-ruler-well {
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: inset 0.5px 0.5px 1px rgba(0, 0, 0, 0.8), 0 0.5px 0.5px rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Dark Mode Bays - Transparent Wrappers */
+[data-theme="dark"] .silicone-bay-item,
+[data-theme="dark"] .silicone-bay-theme,
+[data-theme="dark"] .silicone-bay-login {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
 }
 
-[data-theme="dark"] .silicone-bay-item:hover {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-[data-theme="dark"] .silicone-bay-item--active {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
+[data-theme="dark"] .silicone-bay-item:hover,
+[data-theme="dark"] .silicone-bay-item--active,
 [data-theme="dark"] .silicone-bay-item--active:hover {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-[data-theme="dark"] .silicone-bay-item .silicone-nav-link {
+/* Dark Mode Inactive Nav Items (Dark Slate/Midnight 3D Pill with High-Contrast Text) */
+[data-theme="dark"] .silicone-nav-link {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  border-top-color: rgba(255, 255, 255, 0.22) !important;
+  border-bottom-color: #020617 !important;
+  box-shadow: 0 3px 0 #020617, 0 5px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .silicone-nav-link svg,
+[data-theme="dark"] .silicone-nav-link-icon {
+  color: #38bdf8 !important;
+  stroke: #38bdf8 !important;
+}
+
+[data-theme="dark"] .silicone-nav-link:hover,
+[data-theme="dark"] .silicone-bay-item:hover .silicone-nav-link {
+  background: linear-gradient(180deg, #283750 0%, #152238 100%) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 4px 0 #020617, 0 8px 20px rgba(56, 189, 248, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
   color: #ffffff !important;
 }
 
-[data-theme="dark"] .silicone-bay-item .silicone-nav-link--active {
+[data-theme="dark"] .silicone-nav-link:active,
+[data-theme="dark"] .silicone-bay-item:active .silicone-nav-link {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #020617, 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Dark Mode Active Nav Item (Glowing Emerald Green 3D Pill) */
+[data-theme="dark"] .silicone-nav-link--active {
+  background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
+  border: 1px solid #059669 !important;
+  border-top-color: #6ee7b7 !important;
+  border-bottom-color: #022c22 !important;
+  box-shadow: 0 3px 0 #022c22, 0 6px 22px rgba(16, 185, 129, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
   color: #ffffff !important;
 }
 
-[data-theme="dark"] .silicone-bay-theme,
-[data-theme="dark"] .silicone-bay-login {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+[data-theme="dark"] .silicone-nav-link--active svg,
+[data-theme="dark"] .silicone-nav-link--active .silicone-nav-link-icon {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+[data-theme="dark"] .silicone-nav-link--active:hover,
+[data-theme="dark"] .silicone-bay-item:hover .silicone-nav-link--active {
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%) !important;
+  box-shadow: 0 4px 0 #022c22, 0 8px 26px rgba(16, 185, 129, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+/* Dark Mode Theme Toggle Button */
+[data-theme="dark"] .silicone-theme-btn {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(251, 191, 36, 0.4) !important;
+  border-top-color: rgba(255, 255, 255, 0.25) !important;
+  border-bottom-color: #020617 !important;
+  box-shadow: 0 3px 0 #020617, 0 5px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .silicone-theme-btn svg {
+  color: #fbbf24 !important;
+  stroke: #fbbf24 !important;
+}
+
+[data-theme="dark"] .silicone-theme-btn:hover {
+  background: linear-gradient(180deg, #283750 0%, #152238 100%) !important;
+  border-color: #fbbf24 !important;
+  box-shadow: 0 4px 0 #020617, 0 8px 18px rgba(251, 191, 36, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Dark Mode Profile Trigger Button */
+[data-theme="dark"] .silicone-profile-trigger {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  border-top-color: rgba(255, 255, 255, 0.2) !important;
+  border-bottom-color: #020617 !important;
+  box-shadow: 0 3px 0 #020617, 0 5px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .silicone-profile-trigger:hover {
+  background: linear-gradient(180deg, #283750 0%, #152238 100%) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 4px 0 #020617, 0 8px 18px rgba(56, 189, 248, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+[data-theme="dark"] .silicone-profile-trigger svg {
+  color: #94a3b8 !important;
+  stroke: #94a3b8 !important;
+}
+
+[data-theme="dark"] .silicone-user-name {
+  color: #f8fafc !important;
+}
+
+/* Dark Mode Mobile Drawer */
+[data-theme="dark"] .silicone-mobile-menu-drawer {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-theme="dark"] .silicone-mobile-nav-btn {
+  background: #15203b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .silicone-mobile-nav-btn:hover {
+  background: #1a2a4e !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .silicone-mobile-nav-btn--active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
 }
 

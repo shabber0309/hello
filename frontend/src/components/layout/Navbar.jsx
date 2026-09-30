@@ -38,7 +38,9 @@ export default function Navbar({
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, switchRole } = useAuth();
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('livefix_theme') || 'light';
+  });
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
@@ -70,6 +72,8 @@ export default function Navbar({
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('livefix_theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
