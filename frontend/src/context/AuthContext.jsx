@@ -148,8 +148,29 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
   };
 
+  const defaultTechnicianUser = {
+    id: 5,
+    name: 'SHABBER HUSSAIN',
+    username: 'shabberhussain10343',
+    email: 'shabberhussain10343@gmail.com',
+    phone: '79889849849',
+    role: 'technician'
+  };
+
+  const loginAsTechnician = () => {
+    setUser(defaultTechnicianUser);
+    setToken('demo-tech-token');
+    localStorage.setItem('livefix_user', JSON.stringify(defaultTechnicianUser));
+    localStorage.setItem('livefix_token', 'demo-tech-token');
+    localStorage.setItem('token', 'demo-tech-token');
+    return defaultTechnicianUser;
+  };
+
   const switchRole = async (newRole) => {
-    // Clear credentials to allow switching accounts cleanly
+    if (newRole === 'technician') {
+      loginAsTechnician();
+      return true;
+    }
     return false;
   };
 
@@ -180,6 +201,7 @@ export const AuthProvider = ({ children }) => {
       resetPassword,
       sendOtp,
       loginWithOtp,
+      loginAsTechnician,
       logout, 
       switchRole, 
       verifyOtp, 

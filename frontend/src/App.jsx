@@ -35,6 +35,20 @@ import {
 } from './components/modals';
 import { ShieldCheck, Video, Lock, Heart } from 'lucide-react';
 
+function DirectTechnicianLogin() {
+  const { user, loginAsTechnician } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!user || user.role !== 'technician') {
+      loginAsTechnician();
+    }
+    navigate('/technician', { replace: true });
+  }, [user, navigate, loginAsTechnician]);
+
+  return null;
+}
+
 function MainApp() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -101,8 +115,10 @@ function MainApp() {
 
       <main className="app-main-content">
         <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={
+          {/* Direct Technician Login on Root / */}
+          <Route path="/" element={<DirectTechnicianLogin />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
+          <Route path="/landing" element={
             <LandingPage
               onStartBooking={() => navigate('/book')}
               onBecomeTechnician={() => navigate('/for-technicians')}
@@ -115,7 +131,6 @@ function MainApp() {
               }}
             />
           } />
-          <Route path="/home" element={<Navigate to="/" replace />} />
 
           <Route path="/how-it-works" element={
             <HowItWorksPage 
