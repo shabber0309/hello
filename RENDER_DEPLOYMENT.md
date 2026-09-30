@@ -58,6 +58,30 @@ If you prefer to configure it manually on Render:
 
 ---
 
+## 💾 Keeping Data Persistent Across Deployments (CRITICAL)
+
+### Why does SQLite data disappear on new deployments?
+Render Web Services (and platforms like Heroku/Railway) use **ephemeral containers**. Every time you push a new commit, Render tears down the old container and boots a new clean one. Any local SQLite `.db` file created inside the container is deleted along with the old container.
+
+### How to keep data permanently (Free & 2 Minutes):
+To keep all users, repair tickets, and profiles safe across every deployment, attach a **free cloud database**:
+
+#### Option A: Render Free PostgreSQL (Recommended)
+1. In your [Render Dashboard](https://dashboard.render.com/), click **New +** ➔ **PostgreSQL**.
+2. Name it (e.g. `livefix-postgres`), select your region, and choose the **Free** instance type.
+3. Click **Create Database**.
+4. Once created, copy the **Internal Database URL** (e.g. `postgres://livefix_user:...@dpg-xxx/livefix`).
+5. Open your `livefix-app` Web Service ➔ **Environment** tab.
+6. Add or update the variable:
+   - **Key**: `DATABASE_URL`
+   - **Value**: *(paste the Internal Database URL)*
+7. Click **Save Changes**. Render will automatically redeploy and connect to the persistent PostgreSQL database. From now on, your data will never disappear on git pushes!
+
+#### Option B: Supabase or Neon PostgreSQL
+1. Create a free project on [Supabase](https://supabase.com/) or [Neon](https://neon.tech/).
+2. Copy the Connection String URI.
+3. In your Render Web Service **Environment**, set `DATABASE_URL` to that URI.
+
 ## 🔑 Default Administrator Credentials on Render
 When the application first boots on Render, the clean database is automatically initialized with:
 - **Admin Username**: `admin`

@@ -31,13 +31,25 @@ class Config:
     MYSQL_PORT = os.environ.get('MYSQL_PORT', '3306')
     MYSQL_DB = os.environ.get('MYSQL_DB', 'livefix_db')
 
-    # If DATABASE_URL is set, use it; otherwise check USE_MYSQL flag
+    # Database connection resolution
+    # 1. External cloud DB via DATABASE_URL (Render PostgreSQL, Supabase, Neon, etc.)
+    # 2. Dedicated MySQL if USE_MYSQL is true
+    # 3. Local SQLite file for zero-friction local development
+    _db_url = os.environ.get('DATABASE_URL')
     USE_MYSQL = os.environ.get('USE_MYSQL', 'false').lower() == 'true'
-    if USE_MYSQL:
+
+    if _db_url:
+        # Normalize PostgreSQL URL for SQLAlchemy and explicitly target psycopg2 driver
+        if _db_url.startswith("postgres://"):
+            _db_url = _db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif _db_url.startswith("postgresql://") and not _db_url.startswith("postgresql+"):
+            _db_url = _db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        SQLALCHEMY_DATABASE_URI = _db_url
+    elif USE_MYSQL:
         SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"
     else:
         # Default zero-friction local SQLite file database
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(BASE_DIR, 'livefix.db')}")
+        SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(BASE_DIR, 'livefix.db')}"
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

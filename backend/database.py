@@ -5,11 +5,17 @@ def init_database(app):
     with app.app_context():
         try:
             db.create_all()
-            _ = User.query.first()
+        except Exception as err:
+            print(f"[Live Fix DB] create_all notice: {err}")
+            db.session.rollback()
+
+        # Non-destructive check to add missing columns (e.g. avatar) on existing databases
+        try:
+            from sqlalchemy import text
+            db.session.execute(text("ALTER TABLE users ADD COLUMN avatar TEXT;"))
+            db.session.commit()
         except Exception:
             db.session.rollback()
-            db.drop_all()
-            db.create_all()
 
         seed_clean_admin()
 
