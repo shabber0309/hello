@@ -168,6 +168,18 @@
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.18);
 }
 
+[data-theme="dark"] .book-brand-btn:hover {
+  border-color: #3b82f6;
+  background: rgba(37, 99, 235, 0.12);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .book-brand-btn-active {
+  background: rgba(37, 99, 235, 0.22) !important;
+  border-color: #3b82f6 !important;
+  color: #60a5fa !important;
+}
+
 /* 2-Column Balanced Form Grid */
 .book-form-grid-2 {
   display: grid;
