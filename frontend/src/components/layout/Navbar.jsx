@@ -293,7 +293,7 @@ export default function Navbar({ onOpenEditProfile }) {
             onClick={() => setMobileMenuOpen(prev => !prev)}
             title="Menu"
           >
-            {mobileMenuOpen ? <X size={22} color="#ffffff" strokeWidth={2.4} /> : <Menu size={22} color="#ffffff" strokeWidth={2.4} />}
+            {mobileMenuOpen ? <X size={22} color="#1e293b" strokeWidth={2.4} /> : <Menu size={22} color="#1e293b" strokeWidth={2.4} />}
           </div>
         </div>
 

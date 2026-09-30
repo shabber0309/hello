@@ -4,16 +4,16 @@
    Luminous Verification Seals, and Precision Molded Wells.
    ========================================================================== */
 
-/* Main Sticky Header: Deep Sapphire & Navy Trust Gradient */
+/* Main Sticky Header: Bright Luminous Cleanroom Navbar */
 .silicone-header {
   position: sticky;
   top: 0;
   z-index: 1000;
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(180deg, #071e3d 0%, #0b284e 52%, #061833 100%);
-  border-bottom: 2px solid rgba(56, 189, 248, 0.35);
-  box-shadow: 0 10px 32px rgba(2, 12, 28, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fe 60%, #eaf2fc 100%);
+  border-bottom: 2px solid #bcd5f2;
+  box-shadow: 0 4px 20px rgba(29, 78, 216, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   padding: 8px 16px 6px;
   transition: all 0.25s ease;
   overflow: visible;
@@ -39,14 +39,14 @@
   box-sizing: border-box;
 }
 
-/* Base Inset Molded Silicone Bay: Aerospace Cleanroom Precision Tray */
+/* Base Inset Molded Silicone Bay: Cleanroom Precision Tray */
 .silicone-bay {
   border-radius: 9px;
-  background: linear-gradient(180deg, rgba(2, 12, 28, 0.85) 0%, rgba(5, 20, 44, 0.65) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.22);
-  border-top-color: rgba(0, 0, 0, 0.8);
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(0, 0, 0, 0.9), 0 1px 1px rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 100%);
+  border: 1px solid #cce0f7;
+  border-top-color: #e2eefb;
+  border-bottom-color: #bad6f5;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(30, 64, 175, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,8 +66,8 @@
 }
 
 .silicone-bay-home:hover {
-  background: linear-gradient(180deg, rgba(7, 30, 64, 0.85) 0%, rgba(11, 42, 88, 0.65) 100%);
-  border-color: rgba(56, 189, 248, 0.4);
+  background: linear-gradient(180deg, #e8f2fe 0%, #d8e8fc 100%);
+  border-color: #93c5fd;
 }
 
 .silicone-home-box {
@@ -75,25 +75,25 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(180deg, #13345c 0%, #07192e 100%);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  border-top-color: rgba(255, 255, 255, 0.45);
-  border-bottom-color: #020914;
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  border-top-color: #ffffff;
+  border-bottom-color: #60a5fa;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 0 #020b17, 0 4px 8px rgba(0, 10, 25, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 0 #93c5fd, 0 3px 6px rgba(37, 99, 235, 0.12), inset 0 1px 0 #ffffff;
   transition: all 0.18s ease;
 }
 
 .silicone-bay-home:hover .silicone-home-box {
   transform: translateY(-2px);
-  box-shadow: 0 5px 0 #020b17, 0 8px 12px rgba(0, 10, 25, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 0 #93c5fd, 0 6px 10px rgba(37, 99, 235, 0.18), inset 0 1px 0 #ffffff;
 }
 
 .silicone-bay-home:active .silicone-home-box {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #020b17, 0 2px 4px rgba(0, 10, 25, 0.5);
+  box-shadow: 0 1px 0 #93c5fd, 0 2px 4px rgba(37, 99, 235, 0.12);
 }
 
 .silicone-home-status-dot {
@@ -110,10 +110,10 @@
 .silicone-home-label {
   font-size: 0.64rem;
   font-weight: 900;
-  color: #e2e8f0;
+  color: #1e3a8a;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-shadow: 0 1px 0 #000, 0 2px 2px rgba(0, 0, 0, 0.9), 0 -1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: none;
 }
 
 /* Bay 2: FixConnect Brand + LIVE VERIFIED Badge */
@@ -215,7 +215,7 @@
   border-radius: 9999px;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #cbd5e1;
+  color: #1e293b;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -223,14 +223,14 @@
   transition: all 0.18s ease;
   white-space: nowrap;
   letter-spacing: 0.015em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: none;
 }
 
 .silicone-nav-link:hover {
-  color: #ffffff;
-  background: rgba(56, 189, 248, 0.12);
+  color: #1d4ed8;
+  background: rgba(37, 99, 235, 0.09);
   transform: translateY(-1px);
-  text-shadow: 0 0 10px rgba(56, 189, 248, 0.8), 0 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: none;
 }
 
 .silicone-nav-link:active {
@@ -244,14 +244,14 @@
   color: #ffffff !important;
   font-weight: 800 !important;
   border-radius: 9999px !important;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
   transform: translateY(0);
 }
 
 .silicone-nav-link--active:hover {
-  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%) !important;
-  box-shadow: 0 5px 0 #0f2b66, 0 8px 22px rgba(37, 99, 235, 0.7), inset 0 1.5px 1px rgba(255, 255, 255, 0.85) !important;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+  box-shadow: 0 5px 18px rgba(37, 99, 235, 0.45), inset 0 1.5px 1px rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Bay 4: Theme Toggle Bay */
@@ -267,26 +267,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #16365c 0%, #081a30 100%);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-top-color: rgba(255, 255, 255, 0.4);
-  border-bottom-color: #010710;
-  color: #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #eef5fc 100%);
+  border: 1px solid #cce0f7;
+  border-top-color: #ffffff;
+  border-bottom-color: #bad6f5;
+  color: #1e3a8a;
   cursor: pointer;
-  box-shadow: 0 3px 0 #020a16, 0 4px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
   transition: all 0.18s ease;
 }
 
 .silicone-theme-btn:hover {
   transform: translateY(-2px);
-  background: linear-gradient(180deg, #1d4675 0%, #0b2342 100%);
-  box-shadow: 0 5px 0 #020a16, 0 7px 12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  color: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #e0effe 100%);
+  box-shadow: 0 4px 0 #bad6f5, 0 6px 12px rgba(37, 99, 235, 0.15), inset 0 1px 0 #ffffff;
+  color: #1d4ed8;
 }
 
 .silicone-theme-btn:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #020a16, 0 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 1px 0 #bad6f5, 0 2px 4px rgba(37, 99, 235, 0.1);
 }
 
 /* Bay 5: Login Button / User Profile Dropdown */
@@ -306,61 +306,61 @@
 .silicone-login-btn {
   padding: 8px 22px;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
-  border: 1px solid #cbd5e1;
-  border-top-color: #ffffff;
-  border-bottom-color: #94a3b8;
-  color: #071e3d;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  border: 1px solid #1e40af;
+  border-top-color: #60a5fa;
+  border-bottom-color: #1e3a8a;
+  color: #ffffff;
   font-size: 0.9rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 3px 0 #94a3b8, 0 5px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 #ffffff;
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   transition: all 0.18s ease;
   white-space: nowrap;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .silicone-login-btn:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
   transform: translateY(-2px);
-  box-shadow: 0 5px 0 #94a3b8, 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 #ffffff;
+  box-shadow: 0 5px 0 #1e3a8a, 0 8px 16px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .silicone-login-btn:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #94a3b8, 0 2px 4px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.25);
 }
 
 .silicone-profile-trigger {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
-  border: 1px solid #cbd5e1;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%);
+  border: 1px solid #cce0f7;
   border-top-color: #ffffff;
-  border-bottom-color: #94a3b8;
+  border-bottom-color: #bad6f5;
   border-radius: 9999px;
   padding: 5px 14px 5px 6px;
   cursor: pointer;
-  box-shadow: 0 3px 0 #94a3b8, 0 5px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 #ffffff;
-  color: #071e3d;
+  box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
+  color: #0f172a;
   font-weight: 800;
   font-size: 0.85rem;
   transition: all 0.18s ease;
   white-space: nowrap;
   flex-shrink: 0;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  text-shadow: none;
 }
 
 .silicone-profile-trigger:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #eaf2fc 100%);
   transform: translateY(-2px);
-  box-shadow: 0 5px 0 #94a3b8, 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 #ffffff;
+  box-shadow: 0 4px 0 #bad6f5, 0 6px 12px rgba(37, 99, 235, 0.12), inset 0 1px 0 #ffffff;
 }
 
 .silicone-profile-trigger:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #94a3b8, 0 2px 4px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 0 #bad6f5, 0 2px 4px rgba(37, 99, 235, 0.1);
 }
 
 .silicone-avatar-circle {
@@ -469,10 +469,10 @@
 }
 
 .silicone-mobile-drawer {
-  background: linear-gradient(180deg, #071e3d 0%, #031024 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%);
   border-radius: 10px;
-  border: 1px solid rgba(56, 189, 248, 0.28);
-  box-shadow: 0 16px 36px rgba(0, 10, 25, 0.6);
+  border: 1px solid #bcd5f2;
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.12);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -483,22 +483,24 @@
 }
 
 .silicone-mobile-user-card {
-  background: rgba(255, 255, 255, 0.08);
+  background: #eaf2fc;
+  border: 1px solid #cce0f7;
   padding: 10px 14px;
   border-radius: 8px;
   margin-bottom: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: #0f172a;
 }
 
 .silicone-mobile-nav-btn {
   width: 100%;
   padding: 10px 16px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: #f1f6fc;
+  border: 1px solid #cce0f7;
+  color: #0f172a;
   font-size: 0.94rem;
   font-weight: 600;
   display: flex;
@@ -509,11 +511,17 @@
   transition: all 0.15s ease;
 }
 
+.silicone-mobile-nav-btn:hover {
+  background: #e2effe;
+  color: #1d4ed8;
+}
+
 .silicone-mobile-nav-btn--active {
   background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
   border-color: rgba(147, 197, 253, 0.5) !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
 }
 
 /* ROW 2: Precision Engineering Micro-Calibrated Screw Wells Ruler Track */
@@ -526,17 +534,17 @@
   grid-template-columns: repeat(auto-fill, minmax(13px, 1fr));
   grid-template-rows: repeat(2, 9px);
   gap: 2.5px;
-  background: linear-gradient(180deg, rgba(3, 14, 30, 0.88) 0%, rgba(1, 8, 18, 0.96) 100%);
+  background: linear-gradient(180deg, #e4effb 0%, #d4e5f7 100%);
   padding: 3px 28px 3px 3px;
   border-radius: 4px;
-  border: 1px solid rgba(56, 189, 248, 0.18);
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.6);
+  border: 1px solid #bcd5f2;
+  box-shadow: inset 1px 1px 2px rgba(37, 99, 235, 0.08);
 }
 
 .silicone-ruler-well {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 1.5px;
-  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.6), 0 0.5px 0.5px rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0.5px 0.5px 1px rgba(37, 99, 235, 0.12), 0 0.5px 0.5px rgba(255, 255, 255, 0.9);
 }
 
 .silicone-ruler-star {
@@ -544,10 +552,10 @@
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  color: #38bdf8;
+  color: #0284c7;
   font-size: 11px;
   user-select: none;
-  text-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+  text-shadow: 0 0 6px rgba(2, 132, 199, 0.3);
 }
 
 /* Responsive Media Queries */
