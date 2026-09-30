@@ -236,10 +236,12 @@
 .silicone-nav-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  justify-content: center;
+  gap: 7px;
+  height: 48px;
+  padding: 0 16px;
   border-radius: 9999px;
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: #1e293b;
   background: transparent;
@@ -250,6 +252,7 @@
   white-space: nowrap;
   letter-spacing: 0.015em;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .silicone-nav-link-icon {
@@ -263,23 +266,26 @@
   color: #1d4ed8;
 }
 
-/* Active Nav Pill Button (Identical to Login Blue Pill in user's image!) */
+/* Active Nav Pill Button (The Blue Color Div - Height Bigger 50px) */
 .silicone-nav-link--active {
-  padding: 8px 18px !important;
+  height: 50px !important;
+  min-height: 50px !important;
+  padding: 0 22px !important;
   background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
   border: 1px solid #1e40af !important;
   border-top-color: #60a5fa !important;
   border-bottom-color: #1e3a8a !important;
   color: #ffffff !important;
+  font-size: 0.92rem !important;
   font-weight: 800 !important;
   border-radius: 9999px !important;
-  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3) !important;
 }
 
 .silicone-bay-item:hover .silicone-nav-link--active {
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
-  box-shadow: 0 4px 0 #1e3a8a, 0 7px 14px rgba(37, 99, 235, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Bay 4: Theme Toggle Bay */
@@ -332,26 +338,31 @@
 }
 
 .silicone-login-btn {
-  padding: 8px 22px;
+  height: 50px;
+  padding: 0 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 9999px;
   background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
   border: 1px solid #1e40af;
   border-top-color: #60a5fa;
   border-bottom-color: #1e3a8a;
   color: #ffffff;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   transition: all 0.18s ease;
   white-space: nowrap;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
 }
 
 .silicone-login-btn:hover {
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
   transform: translateY(-2px);
-  box-shadow: 0 5px 0 #1e3a8a, 0 8px 16px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 5px 0 #1e3a8a, 0 9px 18px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .silicone-login-btn:active {
@@ -363,21 +374,23 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  height: 50px;
   background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%);
   border: 1px solid #cce0f7;
   border-top-color: #ffffff;
   border-bottom-color: #bad6f5;
   border-radius: 9999px;
-  padding: 5px 14px 5px 6px;
+  padding: 0 16px 0 8px;
   cursor: pointer;
   box-shadow: 0 2px 0 #cce0f7, 0 3px 6px rgba(37, 99, 235, 0.08), inset 0 1px 0 #ffffff;
   color: #0f172a;
   font-weight: 800;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   transition: all 0.18s ease;
   white-space: nowrap;
   flex-shrink: 0;
   text-shadow: none;
+  box-sizing: border-box;
 }
 
 .silicone-profile-trigger:hover {

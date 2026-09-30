@@ -253,7 +253,7 @@ export default function Navbar({
                     type="button"
                     className={`silicone-nav-link ${isActive ? 'silicone-nav-link--active' : ''}`}
                   >
-                    {Icon && <Icon size={15} className="silicone-nav-link-icon" />}
+                    {Icon && <Icon size={17} className="silicone-nav-link-icon" />}
                     <span>{link.name}</span>
                   </button>
                 </div>
