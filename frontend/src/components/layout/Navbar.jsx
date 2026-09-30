@@ -19,7 +19,9 @@ import {
   MessageSquare,
   CreditCard,
   Bell,
-  HelpCircle
+  HelpCircle,
+  DollarSign,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
@@ -92,10 +94,7 @@ export default function Navbar({
         { name: 'Requests', path: '/technician?tab=requests', basePath: '/technician', tab: 'requests' },
         { name: 'Active Repairs', path: '/technician?tab=active', basePath: '/technician', tab: 'active' },
         { name: 'My Jobs', path: '/technician?tab=my-jobs', basePath: '/technician', tab: 'my-jobs' },
-        { name: 'Earnings', path: '/technician?tab=earnings', basePath: '/technician', tab: 'earnings' },
-        { name: 'Customer Chat', path: '/technician?tab=messages', basePath: '/technician', tab: 'messages' },
-        { name: 'ESD Certs', path: '/technician?tab=verification', basePath: '/technician', tab: 'verification' },
-        { name: 'Station Settings', path: '/technician?tab=settings', basePath: '/technician', tab: 'settings' }
+        { name: 'ESD Certs', path: '/technician?tab=verification', basePath: '/technician', tab: 'verification' }
       ];
     }
     if (isCustomer || (user && user.role === 'customer')) {
@@ -361,42 +360,81 @@ export default function Navbar({
                   </div>
                 )}
 
-                {/* User Actions: Messages, Help, Edit Profile, Sign Out */}
+                {/* User Actions based on role */}
                 <div className="silicone-dropdown-footer">
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      if (onOpenMessages) onOpenMessages();
-                      else navigate('/dashboard?tab=messages');
-                    }}
-                  >
-                    <MessageSquare size={14} color="var(--primary)" />
-                    <span>Messages</span>
-                  </button>
+                  {(isTech || user?.role === 'technician') ? (
+                    <>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/technician?tab=earnings');
+                        }}
+                      >
+                        <DollarSign size={14} color="var(--cta-orange)" />
+                        <span>Earnings & Escrow</span>
+                      </button>
 
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      if (onOpenHelp) onOpenHelp();
-                      else navigate('/dashboard?tab=help');
-                    }}
-                  >
-                    <HelpCircle size={14} color="var(--primary)" />
-                    <span>Help & Support</span>
-                  </button>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/technician?tab=messages');
+                        }}
+                      >
+                        <MessageSquare size={14} color="var(--primary)" />
+                        <span>Customer Chat</span>
+                      </button>
 
-                  <button
-                    className="silicone-dropdown-item"
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      if (onOpenEditProfile) onOpenEditProfile();
-                    }}
-                  >
-                    <Edit size={14} color="var(--primary)" />
-                    <span>Edit Profile</span>
-                  </button>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/technician?tab=settings');
+                        }}
+                      >
+                        <Settings size={14} color="var(--primary)" />
+                        <span>Station Settings</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenMessages) onOpenMessages();
+                          else navigate('/dashboard?tab=messages');
+                        }}
+                      >
+                        <MessageSquare size={14} color="var(--primary)" />
+                        <span>Messages</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenHelp) onOpenHelp();
+                          else navigate('/dashboard?tab=help');
+                        }}
+                      >
+                        <HelpCircle size={14} color="var(--primary)" />
+                        <span>Help & Support</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenEditProfile) onOpenEditProfile();
+                        }}
+                      >
+                        <Edit size={14} color="var(--primary)" />
+                        <span>Edit Profile</span>
+                      </button>
+                    </>
+                  )}
 
                   <button
                     className="silicone-dropdown-item silicone-dropdown-logout"
@@ -488,43 +526,83 @@ export default function Navbar({
                 flexDirection: 'column',
                 gap: '6px'
               }}>
-                <button
-                  className="silicone-mobile-nav-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenMessages) onOpenMessages();
-                    else navigate('/dashboard?tab=messages');
-                  }}
-                  style={{ fontSize: '0.84rem' }}
-                >
-                  <MessageSquare size={15} color="#93c5fd" />
-                  <span>Messages</span>
-                </button>
+                {(isTech || user?.role === 'technician') ? (
+                  <>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/technician?tab=earnings');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <DollarSign size={15} color="#93c5fd" />
+                      <span>Earnings & Escrow</span>
+                    </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/technician?tab=messages');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <MessageSquare size={15} color="#93c5fd" />
+                      <span>Customer Chat</span>
+                    </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/technician?tab=settings');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <Settings size={15} color="#93c5fd" />
+                      <span>Station Settings</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onOpenMessages) onOpenMessages();
+                        else navigate('/dashboard?tab=messages');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <MessageSquare size={15} color="#93c5fd" />
+                      <span>Messages</span>
+                    </button>
 
-                <button
-                  className="silicone-mobile-nav-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenHelp) onOpenHelp();
-                    else navigate('/dashboard?tab=help');
-                  }}
-                  style={{ fontSize: '0.84rem' }}
-                >
-                  <HelpCircle size={15} color="#93c5fd" />
-                  <span>Help & Support</span>
-                </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onOpenHelp) onOpenHelp();
+                        else navigate('/dashboard?tab=help');
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <HelpCircle size={15} color="#93c5fd" />
+                      <span>Help & Support</span>
+                    </button>
 
-                <button
-                  className="silicone-mobile-nav-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenEditProfile) onOpenEditProfile();
-                  }}
-                  style={{ fontSize: '0.84rem' }}
-                >
-                  <Edit size={15} color="#93c5fd" />
-                  <span>Edit Profile</span>
-                </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onOpenEditProfile) onOpenEditProfile();
+                      }}
+                      style={{ fontSize: '0.84rem' }}
+                    >
+                      <Edit size={15} color="#93c5fd" />
+                      <span>Edit Profile</span>
+                    </button>
+                  </>
+                )}
 
                 {isAdmin && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', margin: '4px 0' }}>
