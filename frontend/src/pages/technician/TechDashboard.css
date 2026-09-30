@@ -5,82 +5,27 @@
 
 .tech-dashboard-root {
   display: flex;
+  flex-direction: column;
   min-height: calc(100vh - 72px);
   background: var(--bg-deep);
   color: var(--text-main);
-}
-
-/* Sidebar */
-.tech-sidebar {
-  width: 250px;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-light);
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
-  transition: width 0.2s ease;
-}
-
-.tech-sidebar-title {
-  padding: 0 12px 14px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.tech-sidebar-btn {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.tech-sidebar-btn:hover {
-  background: var(--bg-card-subtle);
-  color: var(--text-main);
-}
-
-.tech-sidebar-btn.active {
-  background: var(--primary-subtle);
-  color: var(--primary);
-  font-weight: 800;
-}
-
-.tech-sidebar-footer {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-light);
-}
-
-.tech-station-badge {
-  padding: 0 12px 10px;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-}
-
-/* Main Content Area */
+/* Main Content Area - Full-Width Cleanroom Layout */
 .tech-main-content {
   flex: 1;
-  padding: 32px 28px;
+  padding: 32px 32px 60px;
   overflow-y: auto;
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .tech-content-container {
-  max-width: 1180px;
+  width: 100%;
+  max-width: 1380px;
   margin: 0 auto;
 }
 

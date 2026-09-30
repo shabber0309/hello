@@ -94,7 +94,8 @@ export default function Navbar({
         { name: 'My Jobs', path: '/technician?tab=my-jobs', basePath: '/technician', tab: 'my-jobs' },
         { name: 'Earnings', path: '/technician?tab=earnings', basePath: '/technician', tab: 'earnings' },
         { name: 'Customer Chat', path: '/technician?tab=messages', basePath: '/technician', tab: 'messages' },
-        { name: 'ESD Certs', path: '/technician?tab=verification', basePath: '/technician', tab: 'verification' }
+        { name: 'ESD Certs', path: '/technician?tab=verification', basePath: '/technician', tab: 'verification' },
+        { name: 'Station Settings', path: '/technician?tab=settings', basePath: '/technician', tab: 'settings' }
       ];
     }
     if (isCustomer || (user && user.role === 'customer')) {
