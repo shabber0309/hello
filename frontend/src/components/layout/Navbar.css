@@ -175,28 +175,69 @@
   text-shadow: 0 1px 0 #022c1d, 0 2px 2px rgba(0, 0, 0, 0.8), 0 0 6px rgba(52, 211, 153, 0.6);
 }
 
-/* Bay 3: Wide Center Navigation Links */
-.silicone-bay-center {
+/* Center Navigation Bays Group - Transparent Container for Individual Bays */
+.silicone-nav-group {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  gap: 6px;
-  padding: 0 8px;
+  gap: 8px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-.silicone-bay-center::-webkit-scrollbar {
+.silicone-nav-group::-webkit-scrollbar {
   display: none;
 }
 
-/* Free-Standing Navigation Links (No keycap/box containers around the text) */
+/* Individual Separate Box for Each Navbar Item (Matching Login Bay Box) */
+.silicone-bay-item {
+  width: auto;
+  padding: 0 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 100%);
+  border: 1px solid #cce0f7;
+  border-top-color: #e2eefb;
+  border-bottom-color: #bad6f5;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(30, 64, 175, 0.05);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.silicone-bay-item:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #ffffff 0%, #e8f2fe 100%);
+  border-color: #93c5fd;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.silicone-bay-item:active {
+  transform: translateY(1px);
+}
+
+.silicone-bay-item--active {
+  border-color: #93c5fd !important;
+  border-top-color: #bfdbfe !important;
+  border-bottom-color: #60a5fa !important;
+  background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%) !important;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.15), inset 0 1px 2px #ffffff !important;
+}
+
+/* Inner Navigation Button inside the Individual Bay */
 .silicone-nav-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 9999px;
   font-size: 0.84rem;
   font-weight: 700;
@@ -208,7 +249,6 @@
   transition: all 0.18s ease;
   white-space: nowrap;
   letter-spacing: 0.015em;
-  text-shadow: none;
   flex-shrink: 0;
 }
 
@@ -219,32 +259,27 @@
   flex-shrink: 0;
 }
 
-.silicone-nav-link:hover {
+.silicone-bay-item:hover .silicone-nav-link {
   color: #1d4ed8;
-  background: rgba(37, 99, 235, 0.09);
-  transform: translateY(-1px);
-  text-shadow: none;
 }
 
-.silicone-nav-link:active {
-  transform: translateY(1px);
-}
-
-/* Active Nav Pill */
+/* Active Nav Pill Button (Identical to Login Blue Pill in user's image!) */
 .silicone-nav-link--active {
-  padding: 6px 16px !important;
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #38bdf8 100%) !important;
+  padding: 8px 18px !important;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1e40af !important;
+  border-top-color: #60a5fa !important;
+  border-bottom-color: #1e3a8a !important;
   color: #ffffff !important;
   font-weight: 800 !important;
   border-radius: 9999px !important;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
-  transform: translateY(0);
+  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3) !important;
 }
 
-.silicone-nav-link--active:hover {
+.silicone-bay-item:hover .silicone-nav-link--active {
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
-  box-shadow: 0 5px 18px rgba(37, 99, 235, 0.45), inset 0 1.5px 1px rgba(255, 255, 255, 0.7) !important;
+  box-shadow: 0 4px 0 #1e3a8a, 0 7px 14px rgba(37, 99, 235, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Bay 4: Theme Toggle Bay */
@@ -553,19 +588,24 @@
 
 /* Responsive Media Queries */
 @media (max-width: 1024px) {
-  .silicone-bay-center {
-    gap: 8px !important;
-    padding: 0 8px !important;
+  .silicone-nav-group {
+    gap: 6px !important;
+  }
+  .silicone-bay-item {
+    padding: 0 5px !important;
   }
   .silicone-nav-link {
     padding: 6px 10px !important;
-    font-size: 0.82rem !important;
+    font-size: 0.8rem !important;
   }
 }
 
 @media (max-width: 860px) {
   .silicone-header {
     padding: 8px 10px 6px !important;
+  }
+  .silicone-nav-group {
+    display: none !important;
   }
   .silicone-bay-center {
     display: none !important;
@@ -661,3 +701,31 @@
     height: 18px !important;
   }
 }
+
+/* Dark Theme Silicone Bays & Items */
+[data-theme="dark"] .silicone-bay-item {
+  background: linear-gradient(180deg, #15203b 0%, #0c1424 100%);
+  border-color: rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.18);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .silicone-bay-item:hover {
+  background: linear-gradient(180deg, #1a294d 0%, #0f1a30 100%);
+  border-color: #38bdf8;
+}
+
+[data-theme="dark"] .silicone-bay-item--active {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3), inset 0 1px 2px rgba(56, 189, 248, 0.2) !important;
+}
+
+[data-theme="dark"] .silicone-bay-item .silicone-nav-link {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .silicone-bay-item .silicone-nav-link--active {
+  color: #ffffff !important;
+}
+

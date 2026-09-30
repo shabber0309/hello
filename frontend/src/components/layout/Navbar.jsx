@@ -238,20 +238,25 @@ export default function Navbar({
             />
           </div>
 
-          {/* BAY 3: Wide Center Bay - Navigation Links */}
-          <div className="silicone-bay silicone-bay-center">
+          {/* Center Navigation Links - Each link as an individual separate silicone bay box */}
+          <div className="silicone-nav-group">
             {navLinks.map((link, idx) => {
               const isActive = isLinkActive(link);
               const Icon = link.icon;
               return (
-                <button
+                <div 
                   key={idx}
+                  className={`silicone-bay silicone-bay-item ${isActive ? 'silicone-bay-item--active' : ''}`}
                   onClick={() => handleNavLinkClick(link)}
-                  className={`silicone-nav-link ${isActive ? 'silicone-nav-link--active' : ''}`}
                 >
-                  {Icon && <Icon size={15} className="silicone-nav-link-icon" />}
-                  <span>{link.name}</span>
-                </button>
+                  <button
+                    type="button"
+                    className={`silicone-nav-link ${isActive ? 'silicone-nav-link--active' : ''}`}
+                  >
+                    {Icon && <Icon size={15} className="silicone-nav-link-icon" />}
+                    <span>{link.name}</span>
+                  </button>
+                </div>
               );
             })}
           </div>
