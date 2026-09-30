@@ -100,11 +100,50 @@ export const AuthProvider = ({ children }) => {
       });
       const data = await res.json();
       if (res.ok) {
-        return { success: true, message: data.message };
+        return { success: true, message: data.message, user: data.user };
       }
       return { success: false, error: data.error || 'Failed to reset password' };
     } catch (err) {
       return { success: false, error: 'Network error during password reset' };
+    }
+  };
+
+  const sendOtp = async (email, role = 'customer') => {
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        return { success: true, data };
+      }
+      return { success: false, error: data.error || 'Failed to send OTP code' };
+    } catch (err) {
+      return { success: false, error: 'Network error. Could not send verification code.' };
+    }
+  };
+
+  const loginWithOtp = async (email, otp, role = 'customer') => {
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, role })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        setToken(data.token);
+        localStorage.setItem('fixconnect_user', JSON.stringify(data.user));
+        localStorage.setItem('fixconnect_token', data.token);
+        localStorage.setItem('token', data.token);
+        return { success: true, user: data.user };
+      }
+      return { success: false, error: data.error || 'Invalid or expired verification code' };
+    } catch (err) {
+      return { success: false, error: 'Network error during code verification' };
     }
   };
 
@@ -146,6 +185,8 @@ export const AuthProvider = ({ children }) => {
       register,
       forgotPassword,
       resetPassword,
+      sendOtp,
+      loginWithOtp,
       logout, 
       switchRole, 
       verifyOtp, 

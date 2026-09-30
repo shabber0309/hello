@@ -24,19 +24,36 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
   const [regRole, setRegRole] = useState('customer');
 
   // Forgot Password state
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [forgotOtp, setForgotOtp] = useState('');
   const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
+  const [showForgotConfirmPassword, setShowForgotConfirmPassword] = useState(false);
   const [forgotStep, setForgotStep] = useState(1); // 1 = request otp, 2 = enter otp & new pass
   const [forgotDevOtp, setForgotDevOtp] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Status & feedback
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  React.useEffect(() => {
+    let interval = null;
+    if (resendCooldown > 0) {
+      interval = setInterval(() => {
+        setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   if (!isOpen) return null;
 
@@ -110,6 +127,18 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
       setError('Name, email, and password are required');
       return;
     }
+    if (regPassword.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+    if (!regConfirmPassword) {
+      setError('Please confirm your password');
+      return;
+    }
+    if (regPassword !== regConfirmPassword) {
+      setError('Passwords do not match. Please verify your confirm password.');
+      return;
+    }
     setLoading(true);
     setError('');
     setSuccessMsg('');
@@ -140,12 +169,14 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
     }
     setLoading(true);
     setError('');
+    setSuccessMsg('');
 
     const res = await forgotPassword(forgotIdentifier.trim());
     setLoading(false);
     if (res.success) {
       setForgotStep(2);
-      setSuccessMsg(`Verification OTP dispatched to ${res.data?.email || forgotIdentifier}`);
+      setResendCooldown(60);
+      setSuccessMsg(`Verification code sent to ${res.data?.email || forgotIdentifier}`);
       if (res.data?.dev_otp) {
         setForgotDevOtp(res.data.dev_otp);
       }
@@ -154,14 +185,48 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
     }
   };
 
+  const handleResendForgotOtp = async () => {
+    if (resendCooldown > 0) return;
+    setLoading(true);
+    setError('');
+    const res = await forgotPassword(forgotIdentifier.trim());
+    setLoading(false);
+    if (res.success) {
+      setResendCooldown(60);
+      setSuccessMsg(`New verification code sent to ${res.data?.email || forgotIdentifier}`);
+      if (res.data?.dev_otp) {
+        setForgotDevOtp(res.data.dev_otp);
+      }
+    } else {
+      setError(res.error || 'Failed to resend code');
+    }
+  };
+
   const handleResetSubmit = async (e) => {
     e?.preventDefault();
-    if (!forgotOtp.trim() || !forgotNewPassword) {
-      setError('OTP code and new password are required');
+    if (!forgotOtp.trim()) {
+      setError('6-digit OTP code is required');
+      return;
+    }
+    if (!forgotNewPassword) {
+      setError('New password is required');
+      return;
+    }
+    if (forgotNewPassword.length < 6) {
+      setError('New password must be at least 6 characters long');
+      return;
+    }
+    if (!forgotConfirmPassword) {
+      setError('Please confirm your new password');
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setError('New password and confirmation do not match');
       return;
     }
     setLoading(true);
     setError('');
+    setSuccessMsg('');
 
     const res = await resetPassword(forgotIdentifier.trim(), forgotOtp.trim(), forgotNewPassword);
     setLoading(false);
@@ -170,6 +235,10 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
       setMode('login');
       setPassword(forgotNewPassword);
       setIdentifier(forgotIdentifier);
+      setForgotStep(1);
+      setForgotOtp('');
+      setForgotNewPassword('');
+      setForgotConfirmPassword('');
     } else {
       setError(res.error || 'Invalid or expired OTP code');
     }
@@ -603,12 +672,17 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
             </div>
 
             <div>
-              <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                Choose Password
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
+                  Choose Password
+                </label>
+                {regPassword && regPassword.length < 6 && (
+                  <span style={{ fontSize: '0.72rem', color: '#f87171' }}>Minimum 6 characters</span>
+                )}
+              </div>
               <div style={{ position: 'relative' }}>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showRegPassword ? 'text' : 'password'}
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
                   placeholder="Create strong password"
@@ -618,10 +692,66 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                 <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowRegPassword(!showRegPassword)}
                   style={{ position: 'absolute', right: '10px', top: '11px', background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showRegPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
+                  Confirm Password
+                </label>
+                {regConfirmPassword && (
+                  <span style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    color: regPassword === regConfirmPassword ? '#10b981' : '#f87171'
+                  }}>
+                    {regPassword === regConfirmPassword ? (
+                      <>
+                        <CheckCircle2 size={12} /> Passwords match
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle size={12} /> Passwords do not match
+                      </>
+                    )}
+                  </span>
+                )}
+              </div>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showRegConfirmPassword ? 'text' : 'password'}
+                  value={regConfirmPassword}
+                  onChange={(e) => setRegConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password to confirm"
+                  style={{
+                    width: '100%',
+                    paddingLeft: '36px',
+                    paddingRight: '36px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: `1px solid ${regConfirmPassword ? (regPassword === regConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'}`,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
+                  required
+                />
+                <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                <button
+                  type="button"
+                  onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                  style={{ position: 'absolute', right: '10px', top: '11px', background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
+                >
+                  {showRegConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
@@ -719,47 +849,162 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleResetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <form onSubmit={handleResetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
                 {forgotDevOtp && (
                   <div style={{ background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.78rem', color: '#60a5fa' }}>
-                    Development Mode OTP: <strong>{forgotDevOtp}</strong> (or master <strong>123456</strong>)
+                    Security Code: <strong>{forgotDevOtp}</strong> (or master <strong>123456</strong>)
                   </div>
                 )}
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                    6-Digit OTP Code
-                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
+                      6-Digit OTP Code
+                    </label>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>
+                      Valid for 15 mins
+                    </span>
+                  </div>
                   <input
                     type="text"
                     maxLength={6}
                     value={forgotOtp}
                     onChange={(e) => setForgotOtp(e.target.value)}
-                    placeholder="e.g. 123456"
-                    style={{ width: '100%', padding: '0 14px', height: '42px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '1rem', letterSpacing: '4px', textAlign: 'center' }}
+                    placeholder="••••••"
+                    style={{
+                      width: '100%',
+                      padding: '0 14px',
+                      height: '42px',
+                      borderRadius: '10px',
+                      background: 'var(--bg-input)',
+                      border: '1px solid var(--border-light)',
+                      color: '#38bdf8',
+                      fontSize: '1.2rem',
+                      letterSpacing: '6px',
+                      textAlign: 'center',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 700
+                    }}
                     required
+                    autoFocus
                   />
                 </div>
 
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => { setForgotStep(1); setError(''); }}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.76rem', cursor: 'pointer', padding: 0 }}
+                  >
+                    &larr; Change Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResendForgotOtp}
+                    disabled={resendCooldown > 0 || loading}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: resendCooldown > 0 ? 'var(--text-muted)' : 'var(--primary)',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      cursor: resendCooldown > 0 ? 'default' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: 0
+                    }}
+                  >
+                    <RotateCcw size={12} />
+                    {resendCooldown > 0 ? `Resend Code (${resendCooldown}s)` : 'Resend Code'}
+                  </button>
+                </div>
+
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                     New Password
                   </label>
-                  <input
-                    type="password"
-                    value={forgotNewPassword}
-                    onChange={(e) => setForgotNewPassword(e.target.value)}
-                    placeholder="Enter new account password"
-                    style={{ width: '100%', padding: '0 14px', height: '42px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.88rem' }}
-                    required
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showForgotNewPassword ? 'text' : 'password'}
+                      value={forgotNewPassword}
+                      onChange={(e) => setForgotNewPassword(e.target.value)}
+                      placeholder="Enter new password (min 6 characters)"
+                      style={{ width: '100%', paddingLeft: '36px', paddingRight: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
+                      required
+                    />
+                    <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}
+                      style={{ position: 'absolute', right: '10px', top: '11px', background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
+                    >
+                      {showForgotNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
+                      Confirm New Password
+                    </label>
+                    {forgotConfirmPassword && (
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: forgotNewPassword === forgotConfirmPassword ? '#10b981' : '#f87171'
+                      }}>
+                        {forgotNewPassword === forgotConfirmPassword ? (
+                          <>
+                            <CheckCircle2 size={12} /> Match
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle size={12} /> Mismatch
+                          </>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showForgotConfirmPassword ? 'text' : 'password'}
+                      value={forgotConfirmPassword}
+                      onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '36px',
+                        paddingRight: '36px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: 'var(--bg-input)',
+                        border: `1px solid ${forgotConfirmPassword ? (forgotNewPassword === forgotConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'}`,
+                        color: 'var(--text-main)',
+                        fontSize: '0.85rem'
+                      }}
+                      required
+                    />
+                    <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)}
+                      style={{ position: 'absolute', right: '10px', top: '11px', background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
+                    >
+                      {showForgotConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
                   className="btn-cta"
-                  style={{ width: '100%', justifyContent: 'center', padding: '12px', borderRadius: '10px', fontWeight: 700 }}
+                  style={{ width: '100%', justifyContent: 'center', padding: '12px', borderRadius: '10px', fontWeight: 700, marginTop: '4px' }}
                 >
                   {loading ? 'Updating Password...' : 'Save New Password & Sign In'}
                 </button>

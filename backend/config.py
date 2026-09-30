@@ -51,11 +51,12 @@ class Config:
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'support@livefix.com')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'shabber12396@gmail.com')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', 'wkwzifnnfzfjxrdp')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'shabber12396@gmail.com')
 
     # Razorpay & Store UPI Configuration
+    RAZORPAY_MID = os.environ.get('RAZORPAY_MID', 'Tfw8efs0GjjqBQ')
     RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_TgJilFyDTJEMzP')
     RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'eaZjzBw6hEyEckgKRLde6tKP')
-    STORE_UPI_ID = os.environ.get('STORE_UPI_ID', 'support@upi')
+    STORE_UPI_ID = os.environ.get('STORE_UPI_ID', '9704039617@fam')
