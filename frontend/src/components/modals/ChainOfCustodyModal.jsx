@@ -51,7 +51,7 @@ export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS
       icon: Package,
       image: '/tech_bench_live.jpg',
       details: {
-        facility: 'TechServe ISO-7 Certified Cleanroom Station #4',
+        facility: 'Live Fix ISO-7 Certified Cleanroom Station #4',
         inspector: 'Vikram Verma (Intake Lead)',
         tamperIntegrity: '100% Unbroken Seal (Hologram matched)',
         externalCondition: 'Minor liquid stain on lower case; no chassis denting.',

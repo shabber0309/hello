@@ -1,4 +1,4 @@
-# Deploying FixConnect to Render
+# Deploying Live Fix to Render
 
 This project is configured to deploy as a **single, unified service** on Render's Free tier (serving both the React Vite frontend and the Flask Python API on one domain with zero CORS complications).
 
@@ -18,7 +18,7 @@ This project is configured to deploy as a **single, unified service** on Render'
    - **Build Command**: `chmod +x ./build.sh && ./build.sh`
    - **Start Command**: `gunicorn --chdir backend app:app --workers 2 --threads 4 --timeout 120`
    - **Health Check**: `/api/health`
-6. Click **Apply**. Render will build the frontend, install backend dependencies, initialize the clean administrator account, and give you a live URL (e.g. `https://fixconnect-live-hardware.onrender.com`).
+6. Click **Apply**. Render will build the frontend, install backend dependencies, initialize the clean administrator account, and give you a live URL (e.g. `https://livefix-hardware.onrender.com`).
 
 ---
 
@@ -29,7 +29,7 @@ If you prefer to configure it manually on Render:
 1. Go to [Render Dashboard](https://dashboard.render.com/) ➔ **New +** ➔ **Web Service**.
 2. Select your repository: `Live-camera-monitored-hardware-and-software-service`.
 3. Configure the following settings:
-   - **Name**: `fixconnect-app` (or any name you prefer)
+   - **Name**: `livefix-app` (or any name you prefer)
    - **Region**: Closest to you (e.g., *Singapore* or *Oregon*)
    - **Branch**: `main`
    - **Root Directory**: *(Leave empty)*

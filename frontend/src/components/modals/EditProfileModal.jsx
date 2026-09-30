@@ -33,7 +33,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
     setSuccess('');
 
     try {
-      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('fixconnect_token') || 'demo-jwt-token';
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || 'demo-jwt-token';
       const res = await fetch('/api/auth/profile', {
         method: 'PUT',
         headers: {

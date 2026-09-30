@@ -1,5 +1,5 @@
 /**
- * FixConnect Component Library Architecture
+ * Live Fix Component Library Architecture
  * 
  * Organized modular component structure:
  * - /layout: Shell, navigation, workbench frame, and global banners

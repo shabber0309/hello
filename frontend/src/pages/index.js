@@ -1,5 +1,5 @@
 /**
- * FixConnect Pages Module Architecture
+ * Live Fix Pages Module Architecture
  * 
  * Organized by role and domain:
  * - Admin (/pages/admin)

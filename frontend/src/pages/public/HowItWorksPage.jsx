@@ -99,27 +99,27 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo, onOpen
     {
       aspect: 'Camera Monitoring',
       traditional: 'Closed backrooms; no visibility into what is done',
-      fixconnect: 'Live 1080p cleanroom stream directly to your phone/PC'
+      livefix: 'Live 1080p cleanroom stream directly to your phone/PC'
     },
     {
       aspect: 'Component Security',
       traditional: 'Frequent risk of working parts swapped for used ones',
-      fixconnect: 'Serialized tamper-evident seal verified live on video'
+      livefix: 'Serialized tamper-evident seal verified live on video'
     },
     {
       aspect: 'Pricing Transparency',
       traditional: 'Hidden fees, surprise diagnostic charges, unexpected hikes',
-      fixconnect: 'Itemized quotes upfront with payment held in escrow'
+      livefix: 'Itemized quotes upfront with payment held in escrow'
     },
     {
       aspect: 'Payment Safety',
       traditional: 'Full payment demanded before you can inspect the laptop',
-      fixconnect: 'Funds released only after you test the laptop via OTP'
+      livefix: 'Funds released only after you test the laptop via OTP'
     },
     {
       aspect: 'Warranty',
       traditional: 'Verbal assurances or 7-day limited warranties',
-      fixconnect: 'Official 6-month platform warranty backed by Live Fix'
+      livefix: 'Official 6-month platform warranty backed by Live Fix'
     }
   ];
 
@@ -289,7 +289,7 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo, onOpen
                     <td className="how-td-fix">
                       <div className="how-row-content">
                         <CheckCircle2 size={16} color="#10b981" />
-                        {c.fixconnect}
+                        {c.livefix}
                       </div>
                     </td>
                   </tr>

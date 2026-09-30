@@ -19,9 +19,9 @@ if os.path.exists(_env_path):
         print(f"Notice: Could not load .env file: {_env_err}")
 
 class Config:
-    """System configuration for EyeOnFix API."""
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'eyeonfix-super-secret-jwt-key-2026')
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'eyeonfix-jwt-access-secret-token-camfix')
+    """System configuration for Live Fix API."""
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'livefix-super-secret-jwt-key-2026')
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'livefix-jwt-access-secret-token')
     JWT_EXPIRATION_HOURS = int(os.environ.get('JWT_EXPIRATION_HOURS', 24))
 
     # MySQL connection configuration (can be overridden with DATABASE_URL env)
@@ -29,7 +29,7 @@ class Config:
     MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', 'livefix_db')
     MYSQL_HOST = os.environ.get('MYSQL_HOST', 'localhost')
     MYSQL_PORT = os.environ.get('MYSQL_PORT', '3306')
-    MYSQL_DB = os.environ.get('MYSQL_DB', 'eyeonfix_db')
+    MYSQL_DB = os.environ.get('MYSQL_DB', 'livefix_db')
 
     # If DATABASE_URL is set, use it; otherwise check USE_MYSQL flag
     USE_MYSQL = os.environ.get('USE_MYSQL', 'false').lower() == 'true'
@@ -37,7 +37,7 @@ class Config:
         SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"
     else:
         # Default zero-friction local SQLite file database
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(BASE_DIR, 'eyeonfix.db')}")
+        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(BASE_DIR, 'livefix.db')}")
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

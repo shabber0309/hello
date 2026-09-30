@@ -56,7 +56,7 @@ export default function CustomerDashboard({ onNewBooking }) {
   useEffect(() => {
     const fetchRepairs = async () => {
       try {
-        const activeToken = token || localStorage.getItem('token') || localStorage.getItem('fixconnect_token');
+        const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
         if (!activeToken) {
           setLoading(false);
           return;

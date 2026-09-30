@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('fixconnect_user');
+      const saved = localStorage.getItem('livefix_user') || localStorage.getItem('fixconnect_user');
       if (!saved) return null;
       const parsed = JSON.parse(saved);
       const dummyCheck = `${parsed.username || ''} ${parsed.email || ''} ${parsed.name || ''}`.toLowerCase();
@@ -16,6 +16,8 @@ export const AuthProvider = ({ children }) => {
         dummyCheck.includes('eyeonfix.com') ||
         dummyCheck.includes('fixconnect.in')
       ) {
+        localStorage.removeItem('livefix_user');
+        localStorage.removeItem('livefix_token');
         localStorage.removeItem('fixconnect_user');
         localStorage.removeItem('fixconnect_token');
         localStorage.removeItem('token');
@@ -27,7 +29,7 @@ export const AuthProvider = ({ children }) => {
     }
   });
   const [token, setToken] = useState(() => {
-    return localStorage.getItem('fixconnect_token') || localStorage.getItem('token') || '';
+    return localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || localStorage.getItem('token') || '';
   });
 
   const login = async (identifier, password) => {
@@ -41,8 +43,8 @@ export const AuthProvider = ({ children }) => {
       if (res.ok && data.user) {
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('fixconnect_user', JSON.stringify(data.user));
-        localStorage.setItem('fixconnect_token', data.token);
+        localStorage.setItem('livefix_user', JSON.stringify(data.user));
+        localStorage.setItem('livefix_token', data.token);
         localStorage.setItem('token', data.token);
         return { success: true, user: data.user };
       }
@@ -63,8 +65,8 @@ export const AuthProvider = ({ children }) => {
       if (res.ok && data.user) {
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('fixconnect_user', JSON.stringify(data.user));
-        localStorage.setItem('fixconnect_token', data.token);
+        localStorage.setItem('livefix_user', JSON.stringify(data.user));
+        localStorage.setItem('livefix_token', data.token);
         localStorage.setItem('token', data.token);
         return { success: true, user: data.user };
       }
@@ -136,8 +138,8 @@ export const AuthProvider = ({ children }) => {
       if (res.ok && data.user) {
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('fixconnect_user', JSON.stringify(data.user));
-        localStorage.setItem('fixconnect_token', data.token);
+        localStorage.setItem('livefix_user', JSON.stringify(data.user));
+        localStorage.setItem('livefix_token', data.token);
         localStorage.setItem('token', data.token);
         return { success: true, user: data.user };
       }
@@ -150,6 +152,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken('');
+    localStorage.removeItem('livefix_user');
+    localStorage.removeItem('livefix_token');
     localStorage.removeItem('fixconnect_user');
     localStorage.removeItem('fixconnect_token');
     localStorage.removeItem('token');
@@ -169,7 +173,7 @@ export const AuthProvider = ({ children }) => {
     setUser(prev => {
       const merged = { ...prev, ...updatedUser };
       try {
-        localStorage.setItem('fixconnect_user', JSON.stringify(merged));
+        localStorage.setItem('livefix_user', JSON.stringify(merged));
       } catch (e) {
         console.error('Error saving user to localStorage:', e);
       }

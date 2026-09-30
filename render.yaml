@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: fixconnect-live-hardware
+    name: livefix-app
     runtime: python
     region: oregon
     plan: free

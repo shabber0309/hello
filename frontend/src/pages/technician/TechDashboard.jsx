@@ -87,7 +87,7 @@ export default function TechDashboard() {
 
   const fetchTechJobs = async () => {
     try {
-      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('fixconnect_token');
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
       const headers = activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {};
       
       const res = await fetch('/api/repairs', { headers });
@@ -116,7 +116,7 @@ export default function TechDashboard() {
   // Accept a repair request
   const handleAcceptRequest = async (orderId, targetQuote = 0) => {
     try {
-      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('fixconnect_token');
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
       const res = await fetch(`/api/repairs/${orderId}/accept`, {
         method: 'POST',
         headers: {
@@ -145,7 +145,7 @@ export default function TechDashboard() {
   // Update order milestone status
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
-      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('fixconnect_token');
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
       const res = await fetch(`/api/repairs/${orderId}/status`, {
         method: 'PATCH',
         headers: {
@@ -176,7 +176,7 @@ export default function TechDashboard() {
     if (!selectedOrderForAction) return;
 
     try {
-      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('fixconnect_token');
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
       const res = await fetch(`/api/repairs/${selectedOrderForAction.id}/quote`, {
         method: 'POST',
         headers: {
@@ -208,7 +208,7 @@ export default function TechDashboard() {
     if (!selectedOrderForAction) return;
 
     try {
-      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('fixconnect_token');
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
       const res = await fetch(`/api/repairs/${selectedOrderForAction.id}/parts`, {
         method: 'POST',
         headers: {
