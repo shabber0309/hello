@@ -8,6 +8,68 @@ import { useAuth } from '../../context/AuthContext';
 import { TamperSealBadge } from '../../components/common';
 import './BookRepair.css';
 
+// Authentic Brand Vector Logos
+function AppleLogo({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.63 1.34-.56.64-1.05 1.71-.92 2.74 1.01.08 2.02-.48 2.63-1.23z" />
+    </svg>
+  );
+}
+
+function DellLogo({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke={color} strokeWidth="1.8" />
+      <text x="12" y="15.5" fill={color} fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="system-ui, sans-serif" letterSpacing="0.8">
+        DELL
+      </text>
+    </svg>
+  );
+}
+
+function LenovoLogo({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size * 1.4} height={size * 0.72} viewBox="0 0 46 22" fill="none">
+      <rect width="46" height="22" rx="4" fill={color === '#1d4ed8' ? '#2563eb' : '#e2231a'} />
+      <text x="23" y="15" fill="#ffffff" fontSize="9.5" fontWeight="900" textAnchor="middle" fontFamily="system-ui, sans-serif" letterSpacing="0.4">
+        lenovo
+      </text>
+    </svg>
+  );
+}
+
+function HPLogo({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10.5" fill={color === '#1d4ed8' ? '#2563eb' : '#0096d6'} />
+      <text x="12" y="16" fill="#ffffff" fontSize="11" fontWeight="900" fontStyle="italic" textAnchor="middle" fontFamily="system-ui, sans-serif">
+        hp
+      </text>
+    </svg>
+  );
+}
+
+function AsusLogo({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size * 1.5} height={size * 0.72} viewBox="0 0 48 22" fill="none">
+      <text x="24" y="16" fill={color} fontSize="13" fontWeight="900" fontStyle="italic" textAnchor="middle" fontFamily="system-ui, sans-serif" letterSpacing="1.2">
+        ASUS
+      </text>
+    </svg>
+  );
+}
+
+function AcerLogo({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size * 1.4} height={size * 0.72} viewBox="0 0 46 22" fill="none">
+      <text x="23" y="16" fill={color === '#1d4ed8' ? '#2563eb' : '#83b817'} fontSize="13" fontWeight="800" textAnchor="middle" fontFamily="system-ui, sans-serif" letterSpacing="0.5">
+        acer
+      </text>
+    </svg>
+  );
+}
+
 export default function BookRepair({ onBookingSuccess, onCancel }) {
   const { token } = useAuth();
   const location = useLocation();
@@ -29,7 +91,14 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     pickup_slot: 'Today, 2:00 PM - 4:00 PM'
   });
 
-  const popularBrands = ['Apple', 'Dell', 'Lenovo', 'HP', 'Asus', 'Acer'];
+  const popularBrands = [
+    { name: 'Apple', logo: AppleLogo },
+    { name: 'Dell', logo: DellLogo },
+    { name: 'Lenovo', logo: LenovoLogo },
+    { name: 'HP', logo: HPLogo },
+    { name: 'Asus', logo: AsusLogo },
+    { name: 'Acer', logo: AcerLogo }
+  ];
 
   const issuesList = [
     { title: 'Motherboard / No Power', desc: 'No LED, dead after surge or sleep', icon: Cpu },
@@ -139,16 +208,23 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
             <div>
               <label className="form-label">Brand</label>
               <div className="book-brands-grid">
-                {popularBrands.map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, laptop_brand: b })}
-                    className={`book-brand-btn ${formData.laptop_brand === b ? 'book-brand-btn-active' : ''}`}
-                  >
-                    {b}
-                  </button>
-                ))}
+                {popularBrands.map((b) => {
+                  const isSelected = formData.laptop_brand === b.name;
+                  const Logo = b.logo;
+                  return (
+                    <button
+                      key={b.name}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, laptop_brand: b.name })}
+                      className={`book-brand-btn ${isSelected ? 'book-brand-btn-active' : ''}`}
+                    >
+                      <span className="book-brand-logo">
+                        <Logo size={18} color={isSelected ? '#1d4ed8' : '#334155'} />
+                      </span>
+                      <span className="book-brand-name">{b.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

@@ -125,10 +125,11 @@
 }
 
 .book-brand-btn {
-  height: 48px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   border-radius: 10px;
   background: var(--bg-surface-elevated, #ffffff);
   border: 1.5px solid var(--border-medium, #cbd5e1);
@@ -139,6 +140,18 @@
   transition: all 0.18s ease;
   width: 100%;
   box-sizing: border-box;
+}
+
+.book-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.book-brand-name {
+  font-weight: 700;
+  font-size: 0.92rem;
 }
 
 .book-brand-btn:hover {
@@ -169,7 +182,7 @@
   }
 }
 
-/* Form Controls - Standard 48px Height */
+/* Form Controls - Standard 50px Height */
 .form-label {
   display: block;
   font-size: 0.86rem;
@@ -181,7 +194,7 @@
 .form-input {
   display: block;
   width: 100%;
-  height: 48px;
+  height: 50px;
   padding: 0 16px;
   border-radius: 10px;
   border: 1.5px solid var(--border-medium, #cbd5e1);
@@ -243,13 +256,13 @@ textarea.form-input {
   border-color: #2563eb !important;
 }
 
-/* Action Buttons - Standard 48px Height */
+/* Action Buttons - Standard 50px Height */
 .btn-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 48px;
+  height: 50px;
   padding: 0 24px;
   border-radius: 10px;
   background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
@@ -273,7 +286,7 @@ textarea.form-input {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 48px;
+  height: 50px;
   padding: 0 20px;
   border-radius: 10px;
   background: #f1f5f9;
@@ -295,7 +308,7 @@ textarea.form-input {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 48px;
+  height: 50px;
   padding: 0 28px;
   border-radius: 10px;
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
