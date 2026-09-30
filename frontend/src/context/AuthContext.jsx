@@ -8,28 +8,17 @@ export const AuthProvider = ({ children }) => {
       const saved = localStorage.getItem('livefix_user') || localStorage.getItem('fixconnect_user');
       if (!saved) return null;
       const parsed = JSON.parse(saved);
-      const dummyCheck = `${parsed.username || ''} ${parsed.email || ''} ${parsed.name || ''}`.toLowerCase();
-      if (
-        dummyCheck.includes('shabber') ||
-        dummyCheck.includes('ananya') ||
-        dummyCheck.includes('ravi') ||
-        dummyCheck.includes('eyeonfix.com') ||
-        dummyCheck.includes('fixconnect.in')
-      ) {
-        localStorage.removeItem('livefix_user');
-        localStorage.removeItem('livefix_token');
-        localStorage.removeItem('fixconnect_user');
-        localStorage.removeItem('fixconnect_token');
-        localStorage.removeItem('token');
-        return null;
-      }
-      return parsed;
+      return parsed && typeof parsed === 'object' && (parsed.id || parsed.email || parsed.username || parsed.name) ? parsed : null;
     } catch {
       return null;
     }
   });
   const [token, setToken] = useState(() => {
-    return localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || localStorage.getItem('token') || '';
+    try {
+      return localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || localStorage.getItem('token') || '';
+    } catch {
+      return '';
+    }
   });
 
   const login = async (identifier, password) => {
