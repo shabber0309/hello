@@ -2,16 +2,20 @@
    Live Fix Engineering Navbar Stylesheet
    ========================================================================== */
 
-/* Main Sticky Header: Bright Luminous Cleanroom Navbar */
+/* Main Fixed Header: Bright Luminous Translucent Navbar (Opacity 0.5) */
 .silicone-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(180deg, #ffffff 0%, #f4f8fe 60%, #eaf2fc 100%);
-  border-bottom: 2px solid #bcd5f2;
-  box-shadow: 0 4px 20px rgba(29, 78, 216, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1.5px solid rgba(188, 213, 242, 0.65);
+  box-shadow: 0 4px 20px rgba(29, 78, 216, 0.06);
   padding: 8px 16px 6px;
   transition: all 0.25s ease;
   overflow: visible;
@@ -786,11 +790,13 @@
    Dark Theme Silicone Header & 3D Items Adaptation
    ========================================================================== */
 
-/* Dark Navbar Container */
+/* Dark Navbar Container (Opacity 0.5) */
 [data-theme="dark"] .silicone-header {
-  background: linear-gradient(180deg, #0d1527 0%, #090e1a 100%) !important;
-  border-bottom: 2px solid rgba(56, 189, 248, 0.22) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  background: rgba(13, 21, 39, 0.5) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1.5px solid rgba(56, 189, 248, 0.22) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Dark Engineering Ruler Track */
