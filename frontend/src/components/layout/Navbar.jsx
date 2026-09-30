@@ -225,14 +225,17 @@ export default function Navbar({
           {/* BAY 1: Far Left - Icon + HOME Label */}
          
 
-          {/* Brand Bay - Live fix (Exact 3D text styling, free-floating) */}
+          {/* Brand Bay - Live Fix (Official 3D Gemstone Logo) */}
           <div 
             className="silicone-bay-brand"
             onClick={() => navigate(isCustomer ? '/dashboard' : (isTech ? '/technician' : (isAdmin ? '/admin' : '/')))}
-            title="Live fix - Home"
+            title="Live Fix - Home"
           >
-            <span className="livefix-3d-text">Live fix</span>
-            
+            <img 
+              src="/livefix-logo.png" 
+              alt="Live Fix" 
+              className="livefix-navbar-logo" 
+            />
           </div>
 
           {/* BAY 3: Wide Center Bay - Navigation Links */}
