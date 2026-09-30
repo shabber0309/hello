@@ -106,54 +106,6 @@ export default function CustomerDashboard({ onNewBooking }) {
 
   return (
     <div className="customer-dashboard-root">
-      {/* Customer Sidebar (Section 9 Specification) */}
-      <aside className="customer-sidebar">
-        <div className="customer-sidebar-title">
-          Customer Portal
-        </div>
-
-        {[
-          { id: 'dashboard', label: 'Dashboard', icon: Home, action: () => { setActiveSidebarNav('dashboard'); navigate('/dashboard'); } },
-          { id: 'new', label: 'New Repair', icon: PlusCircle, action: onNewBooking },
-          { id: 'my-repairs', label: 'My Repairs', icon: Laptop, action: () => { 
-            setActiveSidebarNav('my-repairs');
-            navigate('/dashboard?tab=repairs');
-            const el = document.getElementById('customer-active-repairs');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          } },
-          { id: 'track-pickup', label: 'Track Pickup', icon: Package, action: () => navigate('/track-repair') },
-          { id: 'messages', label: 'Messages', icon: MessageSquare, action: () => setIsStreamOpen(true) },
-          { id: 'payments', label: 'Payments', icon: CreditCard, action: () => setIsPaymentsOpen(true) },
-          { id: 'notifications', label: 'Notifications', icon: Bell, action: () => setIsNotificationsOpen(true) },
-          { id: 'help', label: 'Help & Support', icon: HelpCircle, action: () => setIsHelpOpen(true) }
-        ].map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSidebarNav === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={item.action}
-              className={`customer-sidebar-btn ${isActive ? 'customer-sidebar-btn-active' : ''}`}
-            >
-              <Icon size={16} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-
-        <div className="customer-sidebar-footer">
-          <button
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
-            className="customer-logout-btn"
-          >
-            <LogOut size={16} /> Logout
-          </button>
-        </div>
-      </aside>
-
       {/* Main Content Area */}
       <main className="customer-main-content">
         <div className="customer-content-container">

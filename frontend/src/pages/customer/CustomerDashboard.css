@@ -5,100 +5,26 @@
 
 .customer-dashboard-root {
   display: flex;
+  flex-direction: column;
   min-height: calc(100vh - 72px);
   background: var(--bg-deep);
   color: var(--text-main);
-}
-
-/* Sidebar */
-.customer-sidebar {
-  width: 240px;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-light);
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.customer-sidebar-title {
-  padding: 0 12px 14px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.customer-sidebar-btn {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.customer-sidebar-btn:hover {
-  background: var(--primary-subtle);
-  color: var(--primary);
-}
-
-.customer-sidebar-btn:hover svg {
-  color: var(--primary);
-}
-
-.customer-sidebar-btn-active {
-  background: var(--primary-subtle) !important;
-  color: var(--primary) !important;
-  font-weight: 800 !important;
-}
-
-.customer-sidebar-footer {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-light);
-}
-
-.customer-logout-btn {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: transparent;
-  color: #ef4444;
-  font-size: 0.85rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.customer-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
-
-/* Main Content */
+/* Main Content Area */
 .customer-main-content {
   flex: 1;
-  padding: 36px 40px;
+  padding: 36px 24px 64px;
   overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .customer-content-container {
-  max-width: 1020px;
+  max-width: 1100px;
   margin: 0 auto;
+  width: 100%;
 }
 
 /* Greeting Section */
