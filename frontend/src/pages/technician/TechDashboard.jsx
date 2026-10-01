@@ -29,7 +29,8 @@ import {
   Package,
   Lock,
   ChevronRight,
-  Info
+  Info,
+  Key
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -85,6 +86,10 @@ export default function TechDashboard() {
   // Filter states
   const [requestSearch, setRequestSearch] = useState('');
   const [myJobsFilter, setMyJobsFilter] = useState('all');
+
+  // On-demand credential request state
+  const [isCredentialReqModalOpen, setIsCredentialReqModalOpen] = useState(false);
+  const [credentialReqNote, setCredentialReqNote] = useState('Technician requires temporary OS login PIN or guest account access to test audio, Wi-Fi, and graphics drivers under live cleanroom camera.');
 
   const fetchTechJobs = async () => {
     try {
@@ -247,6 +252,41 @@ export default function TechDashboard() {
       issue_category: 'Live Motherboard Micro-soldering'
     });
     setIsLiveStreamOpen(true);
+  };
+
+  // Open & send on-demand credential request
+  const handleOpenRequestCredentials = (ord) => {
+    setSelectedOrderForAction(ord);
+    setCredentialReqNote('Technician requires temporary OS login PIN or guest account access to test audio, Wi-Fi, and graphics drivers under live cleanroom camera.');
+    setIsCredentialReqModalOpen(true);
+  };
+
+  const handleSendCredentialRequest = async (e) => {
+    e.preventDefault();
+    if (!selectedOrderForAction) return;
+
+    try {
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
+      const res = await fetch(`/api/repairs/${selectedOrderForAction.id}/request-credentials`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({ note: credentialReqNote })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setFeedbackMsg(`Diagnostic credential request dispatched to customer for order #${selectedOrderForAction.order_number}!`);
+        setIsCredentialReqModalOpen(false);
+        fetchTechJobs();
+      } else {
+        setErrorMsg(data.error || 'Failed to request credentials');
+      }
+    } catch (err) {
+      setErrorMsg('Network error requesting credentials');
+    }
   };
 
   // Send Chat message
@@ -605,9 +645,14 @@ export default function TechDashboard() {
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', padding: '12px 14px', background: 'var(--bg-main)', borderRadius: '10px', marginBottom: '14px', fontSize: '0.82rem' }}>
-                          <div><strong>Pickup Location:</strong> {req.pickup_address}, {req.pickup_city}</div>
+                          <div><strong>Pickup Location:</strong> {req.pickup_address}, {req.pickup_city} ({req.pickup_landmark || 'No landmark'})</div>
                           <div><strong>Preferred Slot:</strong> {req.pickup_slot || 'ASAP'}</div>
                           <div><strong>Serial No:</strong> {req.serial_number || 'To Be Verified on Bench'}</div>
+                          <div><strong>OS Access / PIN:</strong> <span style={{ color: 'var(--text-dim)' }}>On-Demand (Requested if needed)</span></div>
+                          <div><strong>Part Preference:</strong> {req.part_preference || 'OEM Original'}</div>
+                          <div><strong>Charger Intake:</strong> {req.charger_included ? (req.charger_details || 'Yes (Charger Included)') : 'No Charger Handed Over'}</div>
+                          <div><strong>Accessories:</strong> {Array.isArray(req.included_accessories) ? req.included_accessories.join(', ') : (req.included_accessories || 'None')}</div>
+                          <div><strong>Pre-existing Flaws:</strong> <span style={{ color: '#d97706' }}>{Array.isArray(req.pre_existing_damage) ? req.pre_existing_damage.join(', ') : (req.pre_existing_damage || 'None')}</span></div>
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -712,6 +757,20 @@ export default function TechDashboard() {
                           >
                             <DollarSign size={14} /> Update Quote
                           </button>
+
+                          <button
+                            className="btn-secondary"
+                            onClick={() => handleOpenRequestCredentials(ord)}
+                            style={{
+                              padding: '7px 14px',
+                              fontSize: '0.82rem',
+                              border: ord.credentials_requested && !ord.credentials_provided ? '1px solid #d97706' : '1px solid var(--border-light)'
+                            }}
+                            title="Request temporary OS PIN or guest account access from customer for hardware testing"
+                          >
+                            <Key size={14} color={ord.credentials_provided ? '#16a34a' : (ord.credentials_requested ? '#d97706' : 'currentColor')} />
+                            {ord.credentials_provided ? 'PIN Verified' : (ord.credentials_requested ? 'Re-request PIN' : 'Request OS PIN')}
+                          </button>
                         </div>
                       </div>
 
@@ -754,6 +813,33 @@ export default function TechDashboard() {
                             );
                           })}
                         </div>
+                      </div>
+
+                      {/* Hardware Intake & Security Credentials Details */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', padding: '12px 14px', background: 'var(--bg-main)', borderRadius: '10px', marginBottom: '14px', fontSize: '0.82rem' }}>
+                        <div>
+                          <strong>Device PIN / Access:</strong>{' '}
+                          {ord.credentials_provided ? (
+                            <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#16a34a' }}>
+                              🔑 {ord.device_pin} {ord.bitlocker_status ? `(BitLocker: ${ord.bitlocker_status})` : ''}
+                            </span>
+                          ) : ord.credentials_requested ? (
+                            <span style={{ color: '#d97706', fontWeight: 700 }}>
+                              ⏳ PIN Requested from Customer
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--text-dim)' }}>
+                              Not Requested (On-Demand)
+                            </span>
+                          )}
+                        </div>
+                        <div><strong>BitLocker Status:</strong> {ord.bitlocker_status || 'Disabled'}</div>
+                        <div><strong>Charger Intake:</strong> {ord.charger_included ? (ord.charger_details || 'Yes (Charger Included)') : 'No Charger Handed Over'}</div>
+                        <div><strong>Accessories:</strong> {Array.isArray(ord.included_accessories) ? ord.included_accessories.join(', ') : (ord.included_accessories || 'None')}</div>
+                        <div><strong>Pre-Existing Flaws:</strong> <span style={{ color: '#d97706', fontWeight: 600 }}>{Array.isArray(ord.pre_existing_damage) ? ord.pre_existing_damage.join(', ') : (ord.pre_existing_damage || 'None')}</span></div>
+                        <div><strong>Part Preference:</strong> {ord.part_preference || 'OEM Original'}</div>
+                        <div><strong>Customer WhatsApp:</strong> {ord.customer_whatsapp || ord.customer_phone || 'N/A'}</div>
+                        <div><strong>Data Backup Status:</strong> <span style={{ color: '#059669' }}>{ord.data_backup_status || 'Customer Confirmed'}</span></div>
                       </div>
 
                       {/* Notes & details */}
@@ -1407,6 +1493,63 @@ export default function TechDashboard() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Technician On-Demand Credential Request Modal */}
+      {isCredentialReqModalOpen && selectedOrderForAction && (
+        <div className="tech-modal-overlay">
+          <div className="tech-modal-content" style={{ maxWidth: '500px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Key size={20} color="var(--primary)" />
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Request Diagnostic OS PIN</h3>
+              </div>
+              <button 
+                onClick={() => setIsCredentialReqModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: '0 0 16px' }}>
+              Only request access if required to test hardware drivers, sound cards, displays, or thermal load. This will send a secure authorization request to <strong>{selectedOrderForAction.customer_name || 'the customer'}</strong> on Order <strong>#{selectedOrderForAction.order_number}</strong>.
+            </p>
+
+            <form onSubmit={handleSendCredentialRequest} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>
+                  REASON / BENCH TESTING NOTE
+                </label>
+                <textarea
+                  rows="3"
+                  required
+                  value={credentialReqNote}
+                  onChange={(e) => setCredentialReqNote(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
+                  placeholder="e.g. Technician needs temporary PIN or guest login to test audio output and Wi-Fi drivers..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button 
+                  type="button" 
+                  className="btn-secondary" 
+                  onClick={() => setIsCredentialReqModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn-primary" 
+                  style={{ padding: '8px 20px', fontWeight: 800 }}
+                >
+                  Dispatch Request to Customer
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

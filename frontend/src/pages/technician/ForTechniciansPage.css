@@ -66,10 +66,35 @@
   padding: 12px 24px;
   font-size: 0.96rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card-subtle);
+  color: var(--text-main);
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Earnings Calculator Card */
+.for-tech-btn-secondary:hover {
+  background: var(--border-light);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .for-tech-btn-secondary {
+  background: rgba(30, 41, 59, 0.85);
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .for-tech-btn-secondary:hover {
+  background: rgba(51, 65, 85, 0.95);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff !important;
+}
+
 .for-tech-calc-wrapper {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.95) 100%);
   border-radius: 24px;
@@ -81,6 +106,16 @@
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 32px;
   align-items: center;
+}
+
+[data-theme="dark"] .for-tech-calc-wrapper {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .for-tech-calc-tag {
+  color: #38bdf8;
 }
 
 .for-tech-calc-tag {

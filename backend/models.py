@@ -1,3 +1,4 @@
+import json
 import datetime
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -15,6 +16,21 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='customer')  # 'customer', 'technician', 'admin'
     avatar = db.Column(db.Text, nullable=True)
+    whatsapp = db.Column(db.String(30), nullable=True)
+    address = db.Column(db.Text, nullable=True)
+    city = db.Column(db.String(60), default='Hyderabad')
+    landmark = db.Column(db.String(150), nullable=True)
+    pincode = db.Column(db.String(20), nullable=True)
+
+    # Technician Professional Profile Attributes
+    bench_station = db.Column(db.String(80), nullable=True)
+    specialization = db.Column(db.String(255), nullable=True)
+    certifications = db.Column(db.String(255), nullable=True)
+    payout_upi = db.Column(db.String(100), nullable=True)
+    experience_years = db.Column(db.Integer, default=5)
+    rating = db.Column(db.Float, default=4.9)
+    is_verified = db.Column(db.Boolean, default=True)
+
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     # Relationships
@@ -28,15 +44,68 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
+        # Aggregate customer stats
+        cust_orders = self.orders or []
+        cust_total_orders = len(cust_orders)
+        cust_active_orders = len([o for o in cust_orders if o.status not in ['Delivered', 'Cancelled']])
+        cust_completed_orders = len([o for o in cust_orders if o.status == 'Delivered'])
+        cust_total_spend = sum([
+            float(o.final_agreed_price or o.customer_selected_price or o.quote_amount or 0.0)
+            for o in cust_orders
+        ])
+        cust_order_numbers = [o.order_number for o in cust_orders]
+        last_order = cust_orders[-1] if cust_orders else None
+
+        # Aggregate technician stats
+        tech_jobs = self.assigned_repairs or []
+        tech_assigned_count = len(tech_jobs)
+        tech_active_count = len([o for o in tech_jobs if o.status not in ['Delivered', 'Cancelled']])
+        tech_completed_count = len([o for o in tech_jobs if o.status == 'Delivered'])
+        tech_gross_volume = sum([
+            float(o.final_agreed_price or o.customer_selected_price or o.quote_amount or 0.0)
+            for o in tech_jobs
+        ])
+        tech_net_earnings = round(tech_gross_volume * 0.90, 2)
+        tech_order_numbers = [o.order_number for o in tech_jobs]
+        is_live_bench = any(o.stream_session and o.stream_session.is_live for o in tech_jobs)
+
         return {
             'id': self.id,
             'username': self.username or self.email.split('@')[0],
             'name': self.name,
             'email': self.email,
             'phone': self.phone,
+            'whatsapp': self.whatsapp or self.phone,
             'role': self.role,
             'avatar': self.avatar,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'address': self.address,
+            'city': self.city or 'Hyderabad',
+            'landmark': self.landmark,
+            'pincode': self.pincode,
+            'is_verified': self.is_verified if self.is_verified is not None else True,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+
+            # Technician specific data
+            'bench_station': self.bench_station or ('Bench #3 - Cleanroom ISO-5' if self.role == 'technician' else None),
+            'specialization': self.specialization or ('Motherboard Chip-Level, BGA Micro-Soldering, Display Rework' if self.role == 'technician' else None),
+            'certifications': self.certifications or ('IPC-7711/7721 Certified Rework Specialist, ACMT' if self.role == 'technician' else None),
+            'payout_upi': self.payout_upi or (f"tech.{self.username or 'payout'}@okaxis" if self.role == 'technician' else None),
+            'experience_years': self.experience_years or (6 if self.role == 'technician' else None),
+            'rating': self.rating or (4.9 if self.role == 'technician' else None),
+            'is_live_streaming': is_live_bench,
+            'tech_assigned_jobs': tech_assigned_count,
+            'tech_active_jobs': tech_active_count,
+            'tech_completed_jobs': tech_completed_count,
+            'tech_total_earnings': tech_net_earnings,
+            'tech_assigned_orders': tech_order_numbers,
+
+            # Customer specific data
+            'customer_total_orders': cust_total_orders,
+            'customer_active_orders': cust_active_orders,
+            'customer_completed_orders': cust_completed_orders,
+            'customer_total_spend': round(cust_total_spend, 2),
+            'customer_orders_list': cust_order_numbers,
+            'last_order_date': last_order.created_at.isoformat() if last_order and last_order.created_at else None
         }
 
 
@@ -61,6 +130,25 @@ class LaptopRepairOrder(db.Model):
     pickup_slot = db.Column(db.String(100), nullable=False)
     tamper_seal_code = db.Column(db.String(50), nullable=True)
     problem_photos = db.Column(db.Text, nullable=True)  # JSON-encoded array of base64 photo proofs
+    charger_photos = db.Column(db.Text, nullable=True)  # JSON-encoded array of base64 charger photos
+    accessory_photos = db.Column(db.Text, nullable=True)  # JSON-encoded array of base64 accessory photos
+
+    # Essential Hardware & Diagnostic Intake Fields
+    device_pin = db.Column(db.String(100), nullable=True)  # Login PIN / Password or None
+    power_state = db.Column(db.String(100), default='Turns On & Boots into OS')
+    bitlocker_status = db.Column(db.String(100), nullable=True)
+    credentials_requested = db.Column(db.Boolean, default=False)
+    credentials_request_note = db.Column(db.String(255), nullable=True)
+    credentials_provided = db.Column(db.Boolean, default=False)
+    charger_included = db.Column(db.Boolean, default=False)
+    charger_details = db.Column(db.String(150), nullable=True)
+    included_accessories = db.Column(db.Text, nullable=True)  # JSON or comma string
+    pre_existing_damage = db.Column(db.Text, nullable=True)  # Scratches, cracks, liquid history
+    data_backup_status = db.Column(db.String(100), default='Customer Confirmed Backup (Diagnostic Waiver Signed)')
+    chassis_open_consent = db.Column(db.Boolean, default=True)
+    part_preference = db.Column(db.String(100), default='OEM Original (100% Genuine with Brand Warranty)')
+    whatsapp_number = db.Column(db.String(30), nullable=True)
+    pickup_landmark = db.Column(db.String(200), nullable=True)
 
     # Status milestones:
     # 1. 'Order Placed'
@@ -82,18 +170,17 @@ class LaptopRepairOrder(db.Model):
     price_status = db.Column(db.String(30), default='pending')  # 'pending', 'customer_proposed', 'price_agreed'
 
     # Transparent Chain-of-Custody milestones:
-    # 1. Pickup stage: 'not_requested' -> 'pickup_raised' -> 'pickup_accepted' -> 'collected'
     pickup_status = db.Column(db.String(30), default='not_requested')
     pickup_scheduled_time = db.Column(db.String(100), nullable=True)
 
-    # 2. Tamper seal & unsealing authorization: 'sealed' -> 'unseal_requested' -> 'unseal_approved' -> 'unsealed'
+    # Tamper seal & unsealing authorization
     unseal_status = db.Column(db.String(30), default='sealed')
 
-    # 3. Resealing notification & return dispatch: 'not_resealed' -> 'reseal_notified' -> 'resealed' -> 'dispatched'
+    # Resealing notification & return dispatch
     reseal_status = db.Column(db.String(30), default='not_resealed')
     reseal_tamper_code = db.Column(db.String(50), nullable=True)
 
-    # 4. Final Customer Review & Google Meet Recording Delivery
+    # Final Customer Review & Google Meet Recording Delivery
     final_rating = db.Column(db.Integer, nullable=True)
     final_review = db.Column(db.Text, nullable=True)
     meet_recording_url = db.Column(db.String(255), nullable=True)
@@ -109,6 +196,21 @@ class LaptopRepairOrder(db.Model):
     messages = db.relationship('OrderMessage', backref='order', lazy=True, cascade='all, delete-orphan', order_by='OrderMessage.id.asc()')
 
     def to_dict(self):
+        def parse_json_or_list(val):
+            if not val:
+                return []
+            if isinstance(val, list):
+                return val
+            if isinstance(val, str):
+                val_stripped = val.strip()
+                if val_stripped.startswith('[') and val_stripped.endswith(']'):
+                    try:
+                        return json.loads(val_stripped)
+                    except Exception:
+                        pass
+                return [item.strip() for item in val_stripped.split(',') if item.strip()]
+            return [str(val)]
+
         return {
             'id': self.id,
             'order_number': self.order_number,
@@ -116,8 +218,11 @@ class LaptopRepairOrder(db.Model):
             'customer_name': self.customer.name if self.customer else None,
             'customer_email': self.customer.email if self.customer else None,
             'customer_phone': self.customer.phone if self.customer else None,
+            'customer_whatsapp': self.whatsapp_number or (self.customer.whatsapp if self.customer else None) or (self.customer.phone if self.customer else None),
             'technician_id': self.technician_id,
             'technician_name': self.technician.name if self.technician else 'Awaiting Assignment',
+            'technician_bench': self.technician.bench_station if self.technician else 'Cleanroom Bench Unassigned',
+            'technician_phone': self.technician.phone if self.technician else None,
             'laptop_brand': self.laptop_brand,
             'laptop_model': self.laptop_model,
             'serial_number': self.serial_number,
@@ -127,9 +232,35 @@ class LaptopRepairOrder(db.Model):
             'pickup_area': self.pickup_area,
             'pickup_city': self.pickup_city,
             'pickup_pincode': self.pickup_pincode,
+            'pickup_landmark': self.pickup_landmark,
             'pickup_slot': self.pickup_slot,
             'tamper_seal_code': self.tamper_seal_code,
-            'problem_photos': json.loads(self.problem_photos) if self.problem_photos else [],
+            'problem_photos': (
+                json.loads(self.problem_photos) if (self.problem_photos and isinstance(self.problem_photos, str) and (self.problem_photos.startswith('[') or self.problem_photos.startswith('{')))
+                else (self.problem_photos if isinstance(self.problem_photos, list) else ([self.problem_photos] if self.problem_photos else []))
+            ),
+            'charger_photos': (
+                json.loads(self.charger_photos) if (self.charger_photos and isinstance(self.charger_photos, str) and (self.charger_photos.startswith('[') or self.charger_photos.startswith('{')))
+                else (self.charger_photos if isinstance(self.charger_photos, list) else ([self.charger_photos] if self.charger_photos else []))
+            ),
+            'accessory_photos': (
+                json.loads(self.accessory_photos) if (self.accessory_photos and isinstance(self.accessory_photos, str) and (self.accessory_photos.startswith('[') or self.accessory_photos.startswith('{')))
+                else (self.accessory_photos if isinstance(self.accessory_photos, list) else ([self.accessory_photos] if self.accessory_photos else []))
+            ),
+            # Hardware intake and security details
+            'device_pin': self.device_pin,
+            'bitlocker_status': self.bitlocker_status,
+            'credentials_requested': bool(self.credentials_requested),
+            'credentials_request_note': self.credentials_request_note,
+            'credentials_provided': bool(self.credentials_provided or bool(self.device_pin)),
+            'power_state': self.power_state or 'Turns On & Boots into OS',
+            'charger_included': bool(self.charger_included),
+            'charger_details': self.charger_details or ('No Charger Handed Over' if not self.charger_included else 'Original Charger Included'),
+            'included_accessories': parse_json_or_list(self.included_accessories),
+            'pre_existing_damage': parse_json_or_list(self.pre_existing_damage),
+            'data_backup_status': self.data_backup_status or 'Customer Confirmed Backup (Diagnostic Waiver Signed)',
+            'chassis_open_consent': bool(self.chassis_open_consent),
+            'part_preference': self.part_preference or 'OEM Original (100% Genuine with Brand Warranty)',
             'status': self.status,
             'quote_amount': self.quote_amount,
             'quote_approved': self.quote_approved,

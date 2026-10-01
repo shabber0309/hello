@@ -15,7 +15,8 @@ import {
   AlertCircle,
   ArrowRight,
   Sparkles,
-  Loader2
+  Loader2,
+  Key
 } from 'lucide-react';
 import './TrackRepairPage.css';
 
@@ -24,6 +25,47 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
   const [searchedOrder, setSearchedOrder] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // On-demand credentials state
+  const [providedPin, setProvidedPin] = useState('');
+  const [providedBitlocker, setProvidedBitlocker] = useState('Disabled / Not Applicable');
+  const [submittingCreds, setSubmittingCreds] = useState(false);
+  const [credsSuccessMsg, setCredsSuccessMsg] = useState('');
+
+  const handleProvideCredentials = async (e) => {
+    e.preventDefault();
+    if (!searchedOrder || !providedPin) return;
+
+    setSubmittingCreds(true);
+    try {
+      const activeToken = localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
+      const res = await fetch(`/api/repairs/${searchedOrder.id}/provide-credentials`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({
+          device_pin: providedPin,
+          bitlocker_status: providedBitlocker,
+          tamper_seal_code: searchedOrder.tamper_seal_code,
+          order_number: searchedOrder.order_number
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setCredsSuccessMsg('Credentials submitted securely to technician!');
+        setSearchedOrder(data.order);
+      } else {
+        alert(data.error || 'Failed to submit credentials');
+      }
+    } catch (err) {
+      alert('Network error submitting credentials');
+    } finally {
+      setSubmittingCreds(false);
+    }
+  };
 
   const getStagesForStatus = (status = 'Order Placed') => {
     const statusMap = {
@@ -191,6 +233,92 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
                   </div>
                 </div>
 
+                {/* On-Demand Diagnostic Credentials Request Alert */}
+                {searchedOrder.credentials_requested && !searchedOrder.credentials_provided && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.08) 0%, rgba(249, 115, 22, 0.04) 100%)',
+                    border: '1.5px solid #ea580c',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    marginBottom: '16px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <Key size={18} color="#ea580c" />
+                      <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                        Technician Diagnostic Access Requested
+                      </strong>
+                      <span className="badge badge-orange" style={{ fontSize: '0.7rem' }}>ACTION REQUIRED</span>
+                    </div>
+
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 10px', lineHeight: 1.4 }}>
+                      {searchedOrder.credentials_request_note || 'The technician is ready to test components on the workbench and requires temporary OS PIN or guest login.'}
+                    </p>
+
+                    <form onSubmit={handleProvideCredentials} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-dim)', display: 'block', marginBottom: '3px' }}>
+                            OS LOGIN PIN / PASSWORD
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. 1234 or 'Guest user created'"
+                            value={providedPin}
+                            onChange={(e) => setProvidedPin(e.target.value)}
+                            style={{ width: '100%', height: '36px', borderRadius: '8px', padding: '0 10px', border: '1px solid var(--border-light)' }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-dim)', display: 'block', marginBottom: '3px' }}>
+                            BITLOCKER STATUS
+                          </label>
+                          <select
+                            value={providedBitlocker}
+                            onChange={(e) => setProvidedBitlocker(e.target.value)}
+                            style={{ width: '100%', height: '36px', borderRadius: '8px', padding: '0 8px', border: '1px solid var(--border-light)' }}
+                          >
+                            <option value="Disabled / Not Applicable">Disabled / Not Applicable</option>
+                            <option value="BitLocker Active (Key Shared in Chat)">BitLocker Active (Key Shared in Chat)</option>
+                            <option value="Apple FileVault">Apple FileVault</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                        <button
+                          type="submit"
+                          disabled={submittingCreds}
+                          className="btn-primary"
+                          style={{ padding: '7px 16px', fontSize: '0.82rem', fontWeight: 700 }}
+                        >
+                          {submittingCreds ? 'Submitting...' : '🔒 Submit Diagnostic Access Securely'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* Credentials Successfully Provided Confirmation */}
+                {searchedOrder.credentials_provided && (
+                  <div style={{
+                    background: 'rgba(16, 185, 129, 0.08)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    marginBottom: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <CheckCircle2 size={16} color="#10b981" />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: 600 }}>
+                      Diagnostic access securely shared with workbench technician under active camera recording.
+                    </span>
+                  </div>
+                )}
+
                 <div style={{ background: 'var(--bg-main)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>
                     Issue Reported
@@ -203,6 +331,13 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
                       {searchedOrder.issue_description}
                     </div>
                   )}
+
+                  {/* Intake & Custody Specifications */}
+                  <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-light)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '6px', fontSize: '0.78rem' }}>
+                    <div><span style={{ color: 'var(--text-dim)' }}>Charger:</span> <strong>{searchedOrder.charger_included ? (searchedOrder.charger_details || 'Included') : 'Not Included'}</strong></div>
+                    <div><span style={{ color: 'var(--text-dim)' }}>Accessories:</span> <strong>{Array.isArray(searchedOrder.included_accessories) ? searchedOrder.included_accessories.join(', ') : (searchedOrder.included_accessories || 'None')}</strong></div>
+                    <div><span style={{ color: 'var(--text-dim)' }}>Part Tier:</span> <strong>{searchedOrder.part_preference || 'OEM Original'}</strong></div>
+                  </div>
                 </div>
 
                 {searchedOrder.tamper_seal_code && (

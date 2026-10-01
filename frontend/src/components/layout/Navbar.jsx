@@ -84,7 +84,8 @@ export default function Navbar({
   const getNavLinks = () => {
     if (isAdmin && location.pathname.startsWith('/admin')) {
       return [
-        { name: 'Console', path: '/admin?tab=users', basePath: '/admin', tab: 'users' },
+        { name: 'Overview', path: '/admin?tab=overview', basePath: '/admin', tab: 'overview' },
+        { name: 'All Users', path: '/admin?tab=users', basePath: '/admin', tab: 'users' },
         { name: 'Repair Orders', path: '/admin?tab=orders', basePath: '/admin', tab: 'orders' },
         { name: 'Cleanrooms', path: '/admin?tab=streams', basePath: '/admin', tab: 'streams' },
         { name: 'Tamper Seals', path: '/admin?tab=custody', basePath: '/admin', tab: 'custody' },
@@ -197,7 +198,7 @@ export default function Navbar({
       const params = new URLSearchParams(location.search);
       const currentTab = params.get('tab');
       if (!currentTab) {
-        if (link.basePath === '/admin' && link.tab === 'users') return true;
+        if (link.basePath === '/admin' && link.tab === 'overview') return true;
         if (link.basePath === '/technician' && link.tab === 'dashboard') return true;
         return false;
       }
@@ -257,7 +258,7 @@ export default function Navbar({
                     type="button"
                     className={`silicone-nav-link ${isActive ? 'silicone-nav-link--active' : ''}`}
                   >
-                    {Icon && <Icon size={17} className="silicone-nav-link-icon" />}
+                    {Icon && <Icon size={16} className="silicone-nav-link-icon" />}
                     <span>{link.name}</span>
                   </button>
                 </div>
@@ -265,7 +266,9 @@ export default function Navbar({
             })}
           </div>
 
-          {/* BAY 7: Theme Toggle Bay */}
+          {/* RIGHT ACTION BAYS: Theme, Profile, Mobile Toggle */}
+          <div className="silicone-actions-bay-group">
+            {/* BAY 7: Theme Toggle Bay */}
           <div className="silicone-bay silicone-bay-theme">
             <button
               className="silicone-theme-btn"
@@ -362,8 +365,8 @@ export default function Navbar({
                   </div>
                 </div>
 
-                {/* Role Switchers - Only visible to Admins */}
-                {isAdmin && (
+                {/* Role Switchers - Quick Portal Access */}
+                {user && (
                   <div className="silicone-dropdown-section">
                     <button
                       className="silicone-dropdown-item"
@@ -496,20 +499,23 @@ export default function Navbar({
           </div>
 
           {/* MOBILE HAMBURGER TOGGLE BAY */}
-          <div 
+          <button 
+            type="button"
             className="silicone-bay silicone-mobile-toggle-bay"
             onClick={() => setMobileMenuOpen(prev => !prev)}
             title="Menu"
+            aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X size={22} color="#1e293b" strokeWidth={2.4} /> : <Menu size={22} color="#1e293b" strokeWidth={2.4} />}
-          </div>
+            {mobileMenuOpen ? <X size={20} strokeWidth={2.4} /> : <Menu size={20} strokeWidth={2.4} />}
+          </button>
         </div>
+      </div>
 
         {/* MOBILE SLIDE-DOWN DRAWER */}
         {mobileMenuOpen && (
           <div className="silicone-mobile-drawer">
             {user && (
-              <div className="silicone-mobile-user-card" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="silicone-mobile-user-card">
                 <div 
                   style={{ 
                     width: '38px', 
@@ -523,7 +529,7 @@ export default function Navbar({
                     justifyContent: 'center',
                     color: '#ffffff',
                     fontWeight: 800,
-                    border: '1.5px solid rgba(255, 255, 255, 0.3)'
+                    border: '1.5px solid rgba(255, 255, 255, 0.4)'
                   }}
                 >
                   {(user.avatar || user.photo || user.photo_url) ? (
@@ -536,19 +542,11 @@ export default function Navbar({
                     user.name?.charAt(0) || 'U'
                   )}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: '0.9rem' }}>{user.name}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem' }}>{user.email}</div>
+                <div className="silicone-mobile-user-info">
+                  <div className="silicone-mobile-user-name">{user.name}</div>
+                  <div className="silicone-mobile-user-email">{user.email}</div>
                 </div>
-                <span 
-                  className="badge" 
-                  style={{
-                    fontSize: '0.65rem',
-                    background: 'rgba(56, 189, 248, 0.2)',
-                    color: '#93c5fd',
-                    border: '1px solid rgba(147, 197, 253, 0.3)'
-                  }}
-                >
+                <span className="silicone-mobile-role-badge">
                   {user.role?.toUpperCase()}
                 </span>
               </div>
@@ -566,7 +564,7 @@ export default function Navbar({
                   }}
                   className={`silicone-mobile-nav-btn ${isActive ? 'silicone-mobile-nav-btn--active' : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     {Icon && <Icon size={16} />}
                     <span>{link.name}</span>
                   </div>
@@ -590,7 +588,7 @@ export default function Navbar({
               <div style={{
                 marginTop: '10px',
                 paddingTop: '10px',
-                borderTop: '1px solid rgba(255,255,255,0.15)',
+                borderTop: '1px solid var(--border-light)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '6px'
@@ -603,10 +601,11 @@ export default function Navbar({
                         setMobileMenuOpen(false);
                         navigate('/technician?tab=earnings');
                       }}
-                      style={{ fontSize: '0.84rem' }}
                     >
-                      <DollarSign size={15} color="#93c5fd" />
-                      <span>Earnings & Escrow</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <DollarSign size={16} color="var(--primary)" />
+                        <span>Earnings & Escrow</span>
+                      </div>
                     </button>
                     <button
                       className="silicone-mobile-nav-btn"
@@ -614,10 +613,11 @@ export default function Navbar({
                         setMobileMenuOpen(false);
                         navigate('/technician?tab=messages');
                       }}
-                      style={{ fontSize: '0.84rem' }}
                     >
-                      <MessageSquare size={15} color="#93c5fd" />
-                      <span>Customer Chat</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <MessageSquare size={16} color="var(--primary)" />
+                        <span>Customer Chat</span>
+                      </div>
                     </button>
                     <button
                       className="silicone-mobile-nav-btn"
@@ -625,10 +625,11 @@ export default function Navbar({
                         setMobileMenuOpen(false);
                         navigate('/technician?tab=settings');
                       }}
-                      style={{ fontSize: '0.84rem' }}
                     >
-                      <Settings size={15} color="#93c5fd" />
-                      <span>Station Settings</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Settings size={16} color="var(--primary)" />
+                        <span>Station Settings</span>
+                      </div>
                     </button>
                   </>
                 ) : (
@@ -640,10 +641,11 @@ export default function Navbar({
                         if (onOpenMessages) onOpenMessages();
                         else navigate('/dashboard?tab=messages');
                       }}
-                      style={{ fontSize: '0.84rem' }}
                     >
-                      <MessageSquare size={15} color="#93c5fd" />
-                      <span>Messages</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <MessageSquare size={16} color="var(--primary)" />
+                        <span>Messages</span>
+                      </div>
                     </button>
 
                     <button
@@ -653,10 +655,11 @@ export default function Navbar({
                         if (onOpenHelp) onOpenHelp();
                         else navigate('/dashboard?tab=help');
                       }}
-                      style={{ fontSize: '0.84rem' }}
                     >
-                      <HelpCircle size={15} color="#93c5fd" />
-                      <span>Help & Support</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <HelpCircle size={16} color="var(--primary)" />
+                        <span>Help & Support</span>
+                      </div>
                     </button>
 
                     <button
@@ -665,10 +668,11 @@ export default function Navbar({
                         setMobileMenuOpen(false);
                         if (onOpenEditProfile) onOpenEditProfile();
                       }}
-                      style={{ fontSize: '0.84rem' }}
                     >
-                      <Edit size={15} color="#93c5fd" />
-                      <span>Edit Profile</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Edit size={16} color="var(--primary)" />
+                        <span>Edit Profile</span>
+                      </div>
                     </button>
                   </>
                 )}
@@ -682,9 +686,9 @@ export default function Navbar({
                         navigate('/dashboard');
                       }}
                       style={{
-                        background: 'rgba(37, 99, 235, 0.25)',
-                        border: '1px solid rgba(147, 197, 253, 0.4)',
-                        color: '#ffffff',
+                        background: 'rgba(37, 99, 235, 0.15)',
+                        border: '1px solid rgba(37, 99, 235, 0.35)',
+                        color: 'var(--primary)',
                         padding: '8px 4px',
                         borderRadius: '8px',
                         fontSize: '0.72rem',
@@ -701,9 +705,9 @@ export default function Navbar({
                         navigate('/technician');
                       }}
                       style={{
-                        background: 'rgba(234, 88, 12, 0.25)',
-                        border: '1px solid rgba(251, 146, 60, 0.4)',
-                        color: '#ffffff',
+                        background: 'rgba(234, 88, 12, 0.15)',
+                        border: '1px solid rgba(234, 88, 12, 0.35)',
+                        color: '#ea580c',
                         padding: '8px 4px',
                         borderRadius: '8px',
                         fontSize: '0.72rem',
@@ -720,9 +724,9 @@ export default function Navbar({
                         navigate('/admin');
                       }}
                       style={{
-                        background: 'rgba(16, 185, 129, 0.25)',
-                        border: '1px solid rgba(52, 211, 153, 0.4)',
-                        color: '#ffffff',
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                        color: '#059669',
                         padding: '8px 4px',
                         borderRadius: '8px',
                         fontSize: '0.72rem',
@@ -739,15 +743,17 @@ export default function Navbar({
 
             {user ? (
               <button
-                className="silicone-dropdown-item silicone-dropdown-logout"
-                style={{ padding: '10px 16px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.18)', border: '1px solid rgba(239, 68, 68, 0.4)', marginTop: '6px' }}
+                className="silicone-mobile-nav-btn silicone-mobile-logout-btn"
                 onClick={() => {
                   logout();
                   setMobileMenuOpen(false);
                   navigate('/');
                 }}
               >
-                <LogOut size={16} /> Sign Out
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <LogOut size={16} />
+                  <span>Sign Out</span>
+                </div>
               </button>
             ) : (
               <button

@@ -157,6 +157,24 @@ export const AuthProvider = ({ children }) => {
     role: 'technician'
   };
 
+  const defaultAdminUser = {
+    id: 1,
+    name: 'Administrator',
+    username: 'admin',
+    email: 'admin@livefix.com',
+    phone: '+91 90000 00000',
+    role: 'admin'
+  };
+
+  const defaultCustomerUser = {
+    id: 9,
+    name: 'shabber',
+    username: 'shabber0',
+    email: 'shabber0@gmail.com',
+    phone: '1231231231223123',
+    role: 'customer'
+  };
+
   const loginAsTechnician = () => {
     setUser(defaultTechnicianUser);
     setToken('demo-tech-token');
@@ -166,9 +184,35 @@ export const AuthProvider = ({ children }) => {
     return defaultTechnicianUser;
   };
 
+  const loginAsAdmin = () => {
+    setUser(defaultAdminUser);
+    setToken('demo-admin-token');
+    localStorage.setItem('livefix_user', JSON.stringify(defaultAdminUser));
+    localStorage.setItem('livefix_token', 'demo-admin-token');
+    localStorage.setItem('token', 'demo-admin-token');
+    return defaultAdminUser;
+  };
+
+  const loginAsCustomer = () => {
+    setUser(defaultCustomerUser);
+    setToken('demo-customer-token');
+    localStorage.setItem('livefix_user', JSON.stringify(defaultCustomerUser));
+    localStorage.setItem('livefix_token', 'demo-customer-token');
+    localStorage.setItem('token', 'demo-customer-token');
+    return defaultCustomerUser;
+  };
+
   const switchRole = async (newRole) => {
     if (newRole === 'technician') {
       loginAsTechnician();
+      return true;
+    }
+    if (newRole === 'admin') {
+      loginAsAdmin();
+      return true;
+    }
+    if (newRole === 'customer') {
+      loginAsCustomer();
       return true;
     }
     return false;
@@ -202,6 +246,8 @@ export const AuthProvider = ({ children }) => {
       sendOtp,
       loginWithOtp,
       loginAsTechnician,
+      loginAsAdmin,
+      loginAsCustomer,
       logout, 
       switchRole, 
       verifyOtp, 
