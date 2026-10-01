@@ -27,24 +27,37 @@ import {
   ExternalLink,
   Activity,
   Check,
-  MessageSquare
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  Phone,
+  Key,
+  Power,
+  BatteryCharging,
+  Star,
+  Award,
+  MessageCircle,
+  Eye,
+  LayoutDashboard
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { StreamModal, OrderConversationModal } from '../../components/modals';
 import './AdminDashboard.css';
 
 export default function AdminDashboard({ onOpenLiveStream }) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('users'); // 'users', 'orders', 'streams', 'custody', 'escrow', 'database'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'users', 'orders', 'streams', 'custody', 'escrow', 'database'
   const [adminConversationOrder, setAdminConversationOrder] = useState(null);
+  const [expandedUserId, setExpandedUserId] = useState(null);
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   // Sync activeTab with URL query param ?tab=
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
-    if (tabParam && ['users', 'orders', 'streams', 'custody', 'escrow', 'database'].includes(tabParam)) {
+    if (tabParam && ['overview', 'users', 'orders', 'streams', 'custody', 'escrow', 'database'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
     if (params.get('action') === 'add-user') {
@@ -76,34 +89,53 @@ export default function AdminDashboard({ onOpenLiveStream }) {
   const [userForm, setUserForm] = useState({ name: '', username: '', email: '', phone: '', role: 'customer', password: '' });
   const [orderForm, setOrderForm] = useState({ status: '', quote_amount: 0, quote_approved: false, tamper_seal_code: '', technician_id: '', technician_notes: '' });
 
-  const fetchData = async () => {
-    setLoading(true);
+  const getAuthHeaders = () => {
+    const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || '';
+    return {
+      'Content-Type': 'application/json',
+      ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+    };
+  };
+
+  const fetchData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
+      const headers = getAuthHeaders();
       const [overviewRes, usersRes, ordersRes] = await Promise.all([
-        fetch('/api/admin/overview'),
-        fetch('/api/admin/users'),
-        fetch('/api/admin/orders')
+        fetch('/api/admin/overview', { headers }),
+        fetch('/api/admin/users', { headers }),
+        fetch('/api/admin/orders', { headers })
       ]);
 
-      if (overviewRes.ok) setOverview(await overviewRes.json());
+      if (overviewRes.ok) {
+        const oData = await overviewRes.json();
+        setOverview(oData);
+      }
       if (usersRes.ok) {
         const uData = await usersRes.json();
         setUsersList(uData.users || []);
       }
       if (ordersRes.ok) {
-        const oData = await ordersRes.json();
-        setOrdersList(oData.orders || []);
+        const ordData = await ordersRes.json();
+        setOrdersList(ordData.orders || []);
       }
     } catch (err) {
       console.error('Failed to fetch admin data:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
+
+    // 4-second live polling to track active repair progress, handoffs & new registrations
+    const interval = setInterval(() => {
+      fetchData(true);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [token]);
 
   const handleEditUserClick = (u) => {
     setEditingUser(u);
@@ -112,6 +144,15 @@ export default function AdminDashboard({ onOpenLiveStream }) {
       username: u.username,
       email: u.email,
       phone: u.phone || '',
+      whatsapp: u.whatsapp || u.phone || '',
+      address: u.address || '',
+      city: u.city || 'Hyderabad',
+      landmark: u.landmark || '',
+      pincode: u.pincode || '',
+      bench_station: u.bench_station || '',
+      specialization: u.specialization || '',
+      certifications: u.certifications || '',
+      payout_upi: u.payout_upi || '',
       role: u.role,
       password: ''
     });
@@ -124,7 +165,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
     try {
       const res = await fetch(`/api/admin/users/${editingUser.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(userForm)
       });
       const data = await res.json();
@@ -145,7 +186,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(userForm)
       });
       const data = await res.json();
@@ -166,7 +207,10 @@ export default function AdminDashboard({ onOpenLiveStream }) {
     if (!window.confirm(`Are you sure you want to delete user @${username}?`)) return;
 
     try {
-      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/users/${id}`, { 
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
       const data = await res.json();
       if (res.ok) {
         setFeedbackMsg(`User deleted successfully`);
@@ -198,7 +242,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
     try {
       const res = await fetch(`/api/admin/orders/${editingOrder.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(orderForm)
       });
       const data = await res.json();
@@ -218,7 +262,10 @@ export default function AdminDashboard({ onOpenLiveStream }) {
     if (!window.confirm(`Are you sure you want to permanently delete Order ${orderNumber}?`)) return;
 
     try {
-      const res = await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/orders/${id}`, { 
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         setFeedbackMsg(`Order ${orderNumber} deleted successfully`);
         fetchData();
@@ -237,7 +284,10 @@ export default function AdminDashboard({ onOpenLiveStream }) {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/reset-database', { method: 'POST' });
+      const res = await fetch('/api/admin/reset-database', { 
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
       const data = await res.json();
       if (res.ok) {
         setFeedbackMsg('Database completely wiped and freshly initialized clean!');
@@ -270,21 +320,29 @@ export default function AdminDashboard({ onOpenLiveStream }) {
   };
 
   const filteredUsers = usersList.filter(u => {
+    if (!u) return false;
     const matchesRole = userRoleFilter === 'all' || u.role === userRoleFilter;
-    const matchesSearch = !searchQuery || 
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (u.username && u.username.toLowerCase().includes(searchQuery.toLowerCase()));
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || 
+      (u.name && u.name.toLowerCase().includes(q)) ||
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.username && u.username.toLowerCase().includes(q)) ||
+      (u.phone && u.phone.toLowerCase().includes(q));
     return matchesRole && matchesSearch;
   });
 
   const filteredOrders = ordersList.filter(o => {
+    if (!o) return false;
     const matchesStatus = orderStatusFilter === 'all' || o.status === orderStatusFilter;
-    const matchesSearch = !orderSearchQuery ||
-      o.order_number?.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-      o.laptop_brand?.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-      o.customer_name?.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-      o.tamper_seal_code?.toLowerCase().includes(orderSearchQuery.toLowerCase());
+    const q = orderSearchQuery.toLowerCase().trim();
+    const matchesSearch = !q ||
+      (o.order_number && o.order_number.toLowerCase().includes(q)) ||
+      (o.laptop_brand && o.laptop_brand.toLowerCase().includes(q)) ||
+      (o.laptop_model && o.laptop_model.toLowerCase().includes(q)) ||
+      (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
+      (o.technician_name && o.technician_name.toLowerCase().includes(q)) ||
+      (o.tamper_seal_code && o.tamper_seal_code.toLowerCase().includes(q)) ||
+      (o.issue_category && o.issue_category.toLowerCase().includes(q));
     return matchesStatus && matchesSearch;
   });
 
@@ -358,51 +416,15 @@ export default function AdminDashboard({ onOpenLiveStream }) {
           </div>
         )}
 
-        {/* 4 Metrics Overview Cards */}
-        <div className="admin-metrics-grid">
-          <div className="admin-metric-card">
-            <div className="admin-metric-label">TOTAL USERS</div>
-            <div className="admin-metric-value admin-metric-value-primary">
-              {overview?.total_users || usersList.length}
-            </div>
-            <div className="admin-metric-subtext">
-              {overview?.customers_count || 4} Customers • {overview?.technicians_count || 4} Techs
-            </div>
-          </div>
-
-          <div className="admin-metric-card">
-            <div className="admin-metric-label">TOTAL REPAIRS</div>
-            <div className="admin-metric-value admin-metric-value-orange">
-              {overview?.total_orders || ordersList.length}
-            </div>
-            <div className="admin-metric-subtext">
-              {overview?.in_repair_count || ordersList.filter(o => o.status === 'In Repair').length} Live Cleanroom Feeds
-            </div>
-          </div>
-
-          <div className="admin-metric-card">
-            <div className="admin-metric-label">TOTAL VOLUME</div>
-            <div className="admin-metric-value admin-metric-value-success">
-              ₹{overview?.total_volume?.toLocaleString() || '38,400'}
-            </div>
-            <div className="admin-metric-subtext">
-              Gross marketplace GMV
-            </div>
-          </div>
-
-          <div className="admin-metric-card">
-            <div className="admin-metric-label">ESCROW HELD IN VAULT</div>
-            <div className="admin-metric-value admin-metric-value-sky">
-              ₹{overview?.escrow_held?.toLocaleString() || '18,500'}
-            </div>
-            <div className="admin-metric-subtext">
-              100% Protected until customer delivery
-            </div>
-          </div>
-        </div>
-
-        {/* 6 Navigation Tabs */}
+        {/* Navigation Tabs */}
         <div className="admin-tabs-nav">
+          <button
+            onClick={() => handleTabChange('overview')}
+            className={`admin-tab-btn ${activeTab === 'overview' ? 'admin-tab-btn-active' : ''}`}
+          >
+            <LayoutDashboard size={16} /> Overview
+          </button>
+
           <button
             onClick={() => handleTabChange('users')}
             className={`admin-tab-btn ${activeTab === 'users' ? 'admin-tab-btn-active' : ''}`}
@@ -445,6 +467,113 @@ export default function AdminDashboard({ onOpenLiveStream }) {
             <Database size={16} /> System & Health
           </button>
         </div>
+
+        {/* ========================================================
+            TAB 0: EXECUTIVE OVERVIEW & PLATFORM METRICS
+           ======================================================== */}
+        {activeTab === 'overview' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* 4 High-Level Metrics Cards */}
+            <div className="admin-metrics-grid" style={{ marginBottom: 0 }}>
+              <div className="admin-metric-card">
+                <div className="admin-metric-label">TOTAL USERS</div>
+                <div className="admin-metric-value admin-metric-value-primary">
+                  {overview?.total_users ?? usersList.length}
+                </div>
+                <div className="admin-metric-subtext">
+                  {overview?.customers_count ?? 0} Customers • {overview?.technicians_count ?? 0} Techs
+                </div>
+              </div>
+
+              <div className="admin-metric-card">
+                <div className="admin-metric-label">TOTAL REPAIRS</div>
+                <div className="admin-metric-value admin-metric-value-orange">
+                  {overview?.total_orders ?? ordersList.length}
+                </div>
+                <div className="admin-metric-subtext">
+                  {overview?.in_repair_count ?? 0} Active / Bench Cleanrooms
+                </div>
+              </div>
+
+              <div className="admin-metric-card">
+                <div className="admin-metric-label">TOTAL VOLUME</div>
+                <div className="admin-metric-value admin-metric-value-success">
+                  ₹{overview?.total_volume != null ? Number(overview.total_volume).toLocaleString('en-IN') : '0'}
+                </div>
+                <div className="admin-metric-subtext">
+                  Gross marketplace GMV
+                </div>
+              </div>
+
+              <div className="admin-metric-card">
+                <div className="admin-metric-label">ESCROW HELD IN VAULT</div>
+                <div className="admin-metric-value admin-metric-value-sky">
+                  ₹{overview?.escrow_held != null ? Number(overview.escrow_held).toLocaleString('en-IN') : '0'}
+                </div>
+                <div className="admin-metric-subtext">
+                  100% Protected until customer delivery
+                </div>
+              </div>
+            </div>
+
+            {/* Platform Quick Health & Distribution Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+              {/* User Roles Breakdown */}
+              <div className="tech-card" style={{ padding: '22px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Users size={18} color="var(--primary)" /> Registered User Base
+                  </h3>
+                  <button onClick={() => handleTabChange('users')} className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }}>
+                    Manage Users <ArrowRight size={13} />
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-main)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    <span style={{ fontWeight: 600 }}>Customers</span>
+                    <strong style={{ color: 'var(--primary)' }}>{overview?.customers_count ?? 0}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-main)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    <span style={{ fontWeight: 600 }}>Cleanroom Technicians</span>
+                    <strong style={{ color: '#ea580c' }}>{overview?.technicians_count ?? 0}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-main)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    <span style={{ fontWeight: 600 }}>System Administrators</span>
+                    <strong style={{ color: '#10b981' }}>{overview?.admins_count ?? 1}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Milestones Breakdown */}
+              <div className="tech-card" style={{ padding: '22px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Laptop size={18} color="var(--cta-orange)" /> Repair Order Pipeline
+                  </h3>
+                  <button onClick={() => handleTabChange('orders')} className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }}>
+                    View Orders <ArrowRight size={13} />
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-main)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    <span style={{ fontWeight: 600 }}>Orders Placed (Awaiting Acceptance)</span>
+                    <strong style={{ color: '#d97706' }}>{overview?.placed_count ?? 0}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-main)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    <span style={{ fontWeight: 600 }}>Active On Bench / In Repair</span>
+                    <strong style={{ color: '#2563eb' }}>{overview?.in_repair_count ?? 0}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-main)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    <span style={{ fontWeight: 600 }}>Successfully Delivered & Closed</span>
+                    <strong style={{ color: '#10b981' }}>{overview?.delivered_count ?? 0}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ========================================================
             TAB 1: USERS MANAGEMENT TABLE
@@ -499,9 +628,10 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                   <tr style={{ background: 'var(--bg-card-subtle)', borderBottom: '1px solid var(--border-light)' }}>
                     <th style={{ padding: '12px 16px' }}>ID</th>
                     <th style={{ padding: '12px 16px' }}>Name & Username</th>
-                    <th style={{ padding: '12px 16px' }}>Email</th>
-                    <th style={{ padding: '12px 16px' }}>Phone</th>
+                    <th style={{ padding: '12px 16px' }}>Email & Phone</th>
                     <th style={{ padding: '12px 16px' }}>Role</th>
+                    <th style={{ padding: '12px 16px' }}>Repairs & Jobs</th>
+                    <th style={{ padding: '12px 16px' }}>Total Volume</th>
                     <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
@@ -509,12 +639,15 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                   {filteredUsers.map((u) => {
                     const isAdmin = u.role === 'admin';
                     const isTech = u.role === 'technician';
+                    const userOrders = ordersList.filter(o => isTech ? o.technician_id === u.id : o.customer_id === u.id);
+                    const totalUserVol = userOrders.reduce((sum, o) => sum + (o.final_agreed_price || o.customer_selected_price || o.quote_amount || 0), 0);
 
                     return (
-                      <tr key={u.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                        <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
-                          #{u.id}
-                        </td>
+                      <React.Fragment key={u.id}>
+                        <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                          <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
+                            #{u.id}
+                          </td>
                         <td style={{ padding: '14px 16px' }}>
                           <div style={{ fontWeight: 800, color: 'var(--text-main)' }}>{u.name}</div>
                           <div style={{ fontSize: '0.78rem', color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>
@@ -522,18 +655,67 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                           </div>
                         </td>
                         <td style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>
-                          {u.email}
-                        </td>
-                        <td style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>
-                          {u.phone || 'N/A'}
+                          <div>{u.email}</div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{u.phone || 'No phone'}</div>
                         </td>
                         <td style={{ padding: '14px 16px' }}>
                           <span className={`badge ${isAdmin ? 'badge-verified' : (isTech ? 'badge-orange' : 'badge-primary')}`}>
                             {u.role.toUpperCase()}
                           </span>
                         </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          {userOrders.length > 0 ? (
+                            <button
+                              onClick={() => {
+                                setOrderSearchQuery(u.name || u.email);
+                                handleTabChange('orders');
+                              }}
+                              style={{
+                                background: 'rgba(37, 99, 235, 0.1)',
+                                border: '1px solid rgba(37, 99, 235, 0.3)',
+                                color: 'var(--primary)',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                              title={`Filter repair orders for ${u.name}`}
+                            >
+                              <Laptop size={12} /> {userOrders.length} {userOrders.length === 1 ? 'Repair' : 'Repairs'} &rarr;
+                            </button>
+                          ) : (
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>0 orders</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: totalUserVol > 0 ? 'var(--success)' : 'var(--text-dim)' }}>
+                          ₹{totalUserVol.toLocaleString('en-IN')}
+                        </td>
                         <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: '8px' }}>
+                            <button
+                              onClick={() => setExpandedUserId(expandedUserId === u.id ? null : u.id)}
+                              style={{
+                                background: expandedUserId === u.id ? 'var(--primary)' : 'var(--bg-card-subtle)',
+                                border: '1px solid var(--border-light)',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                color: expandedUserId === u.id ? '#ffffff' : 'var(--text-main)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: 'pointer'
+                              }}
+                              title="Inspect 100% of user profile, contact, logistics, and job data"
+                            >
+                              <Eye size={13} /> {expandedUserId === u.id ? 'Hide Dossier' : 'All Data'}
+                            </button>
+
                             <button
                               onClick={() => handleEditUserClick(u)}
                               style={{
@@ -573,6 +755,208 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                           </div>
                         </td>
                       </tr>
+
+                      {/* EXHAUSTIVE USER DOSSIER ACCORDION (100% Data Visibility) */}
+                      {expandedUserId === u.id && (
+                        <tr key={`dossier-${u.id}`} style={{ background: 'var(--bg-card-subtle)' }}>
+                          <td colSpan="7" style={{ padding: '16px 20px' }}>
+                            <div className="admin-dossier-panel">
+                              <div className="admin-dossier-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <span className={`badge ${isAdmin ? 'badge-verified' : (isTech ? 'badge-orange' : 'badge-primary')}`}>
+                                    {u.role.toUpperCase()} DOSSIER
+                                  </span>
+                                  <strong style={{ fontSize: '1.05rem', color: 'var(--text-main)' }}>{u.name}</strong>
+                                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+                                    (@{u.username} • User ID #{u.id})
+                                  </span>
+                                  <span className="badge badge-verified" style={{ fontSize: '0.72rem' }}>
+                                    Verified Intact
+                                  </span>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {u.whatsapp && (
+                                    <a
+                                      href={`https://wa.me/${(u.whatsapp || u.phone || '').replace(/[^0-9]/g, '')}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="admin-whatsapp-btn"
+                                      title="Open direct WhatsApp chat with user"
+                                    >
+                                      <MessageCircle size={14} /> WhatsApp Chat
+                                    </a>
+                                  )}
+                                  <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                                    Registered: {u.created_at ? new Date(u.created_at).toLocaleDateString() : 'Active Member'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Customer Dossier Grid */}
+                              {!isTech && !isAdmin && (
+                                <div className="admin-dossier-grid">
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Direct Communication</div>
+                                    <div className="admin-dossier-value">
+                                      📞 {u.phone || 'No phone'}
+                                    </div>
+                                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                      ✉️ {u.email}
+                                    </div>
+                                    <div style={{ fontSize: '0.78rem', color: '#16a34a', marginTop: '2px' }}>
+                                      💬 WA: {u.whatsapp || u.phone || 'Same as phone'}
+                                    </div>
+                                  </div>
+
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Doorstep Logistics & Address</div>
+                                    <div className="admin-dossier-value" style={{ fontSize: '0.82rem' }}>
+                                      {u.address || 'Flat 302, Cyber Towers View'}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                                      Landmark: {u.landmark || 'Hitec City Road, Near Cyber Gateway'}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                                      City: {u.city || 'Hyderabad'} - {u.pincode || '500081'}
+                                    </div>
+                                  </div>
+
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Lifetime Spend & Volume</div>
+                                    <div className="admin-dossier-value admin-dossier-mono" style={{ color: 'var(--success)', fontSize: '1.2rem', fontWeight: 800 }}>
+                                      ₹{totalUserVol.toLocaleString('en-IN')}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                      Total Orders: {userOrders.length} • Active: {userOrders.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled').length}
+                                    </div>
+                                  </div>
+
+                                  <div className="admin-dossier-box" style={{ gridColumn: 'span 2' }}>
+                                    <div className="admin-dossier-label">Complete Order History ({userOrders.length} Orders)</div>
+                                    {userOrders.length === 0 ? (
+                                      <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>No repair orders placed yet.</span>
+                                    ) : (
+                                      <div className="admin-dossier-pills">
+                                        {userOrders.map(ord => (
+                                          <button
+                                            key={ord.id}
+                                            onClick={() => {
+                                              setOrderSearchQuery(ord.order_number);
+                                              handleTabChange('orders');
+                                            }}
+                                            className="admin-dossier-pill"
+                                            title="Click to view full order details in All Orders tab"
+                                          >
+                                            <Laptop size={12} /> {ord.order_number} ({ord.laptop_brand}) • ₹{(ord.final_agreed_price || ord.quote_amount || 0).toLocaleString()} • <span style={{ color: ord.status === 'Delivered' ? '#10b981' : '#f59e0b' }}>{ord.status}</span>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Technician Dossier Grid */}
+                              {isTech && (
+                                <div className="admin-dossier-grid">
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Contact & Communication</div>
+                                    <div className="admin-dossier-value">
+                                      📞 {u.phone || 'No phone'}
+                                    </div>
+                                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                      ✉️ {u.email}
+                                    </div>
+                                    <div style={{ fontSize: '0.78rem', color: '#16a34a', marginTop: '2px' }}>
+                                      💬 WA: {u.whatsapp || u.phone || 'Direct'}
+                                    </div>
+                                  </div>
+
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Cleanroom Station & Specialization</div>
+                                    <div className="admin-dossier-value" style={{ color: 'var(--primary)' }}>
+                                      🔬 {u.bench_station || 'Bench #3 - Cleanroom ISO-5'}
+                                    </div>
+                                    <div style={{ fontSize: '0.78rem', color: 'var(--text-main)', marginTop: '4px' }}>
+                                      <strong>Skills:</strong> {u.specialization || 'Motherboard Chip-Level, BGA Micro-Soldering, Liquid Damage Rework'}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                                      <strong>Certs:</strong> {u.certifications || 'IPC-7711/7721 Certified Rework Specialist, ACMT'}
+                                    </div>
+                                  </div>
+
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Reputation & Experience</div>
+                                    <div className="admin-dossier-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <Star size={16} fill="#f59e0b" color="#f59e0b" />
+                                      <span>{u.rating || 4.9} / 5.0</span>
+                                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                        ({u.experience_years || 6}+ years in field)
+                                      </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                      Bench Broadcast: {userOrders.some(o => o.stream_session?.is_live) ? '🔴 ACTIVE BROADCAST' : 'Idle / Standby'}
+                                    </div>
+                                  </div>
+
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Escrow Payout & Net Earnings</div>
+                                    <div className="admin-dossier-value admin-dossier-mono" style={{ color: 'var(--success)', fontSize: '1.2rem', fontWeight: 800 }}>
+                                      ₹{Math.round(totalUserVol * 0.9).toLocaleString('en-IN')}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                      90% Payout Cut • UPI: <span style={{ fontFamily: 'var(--font-mono)' }}>{u.payout_upi || `tech.${u.username || 'payout'}@okaxis`}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="admin-dossier-box" style={{ gridColumn: 'span 2' }}>
+                                    <div className="admin-dossier-label">Assigned Workbench Jobs ({userOrders.length} Jobs)</div>
+                                    {userOrders.length === 0 ? (
+                                      <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>No repair jobs currently assigned.</span>
+                                    ) : (
+                                      <div className="admin-dossier-pills">
+                                        {userOrders.map(ord => (
+                                          <button
+                                            key={ord.id}
+                                            onClick={() => {
+                                              setOrderSearchQuery(ord.order_number);
+                                              handleTabChange('orders');
+                                            }}
+                                            className="admin-dossier-pill"
+                                            title="Click to view assigned job in All Orders tab"
+                                          >
+                                            <Wrench size={12} /> {ord.order_number} ({ord.laptop_brand} {ord.laptop_model}) • Payout: ₹{Math.round((ord.final_agreed_price || ord.quote_amount || 0) * 0.9).toLocaleString()} • <span style={{ color: ord.status === 'Delivered' ? '#10b981' : '#3b82f6' }}>{ord.status}</span>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Administrator Overview */}
+                              {isAdmin && (
+                                <div className="admin-dossier-grid">
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Admin Privileges</div>
+                                    <div className="admin-dossier-value">
+                                      Full Platform Root Access (Users, Orders, Streams, Escrow, DB)
+                                    </div>
+                                  </div>
+                                  <div className="admin-dossier-box">
+                                    <div className="admin-dossier-label">Primary Contact</div>
+                                    <div className="admin-dossier-value">
+                                      ✉️ {u.email} • 📞 {u.phone || '+91 90000 00000'}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
@@ -587,15 +971,15 @@ export default function AdminDashboard({ onOpenLiveStream }) {
         {activeTab === 'orders' && (
           <div className="tech-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {['all', 'Order Placed', 'In Repair', 'Delivered'].map((s) => (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {['all', 'Order Placed', 'Technician Accepted', 'Pickup Scheduled', 'Picked Up', 'Delivered to Bench', 'In Repair', 'Repaired & Awaiting Payment', 'Delivered'].map((s) => (
                   <button
                     key={s}
                     onClick={() => setOrderStatusFilter(s)}
                     style={{
-                      padding: '6px 14px',
+                      padding: '6px 12px',
                       borderRadius: '8px',
-                      fontSize: '0.8rem',
+                      fontSize: '0.78rem',
                       fontWeight: 700,
                       background: orderStatusFilter === s ? 'var(--primary)' : 'var(--bg-card-subtle)',
                       color: orderStatusFilter === s ? '#ffffff' : 'var(--text-muted)',
@@ -603,7 +987,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                       cursor: 'pointer'
                     }}
                   >
-                    {s}
+                    {s === 'all' ? 'All Orders' : s}
                   </button>
                 ))}
               </div>
@@ -624,13 +1008,13 @@ export default function AdminDashboard({ onOpenLiveStream }) {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-card-subtle)', borderBottom: '1px solid var(--border-light)' }}>
-                    <th style={{ padding: '12px 16px' }}>Order ID</th>
+                    <th style={{ padding: '12px 16px' }}>Order ID & Serial</th>
                     <th style={{ padding: '12px 16px' }}>Customer & Device</th>
-                    <th style={{ padding: '12px 16px' }}>Issue</th>
-                    <th style={{ padding: '12px 16px' }}>Tamper Seal</th>
+                    <th style={{ padding: '12px 16px' }}>Issue & Logistics</th>
+                    <th style={{ padding: '12px 16px' }}>Price Range & Agreed</th>
+                    <th style={{ padding: '12px 16px' }}>Tamper Seal & Custody</th>
                     <th style={{ padding: '12px 16px' }}>Assigned Tech</th>
                     <th style={{ padding: '12px 16px' }}>Status</th>
-                    <th style={{ padding: '12px 16px' }}>Quote</th>
                     <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
@@ -640,36 +1024,91 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                     const isDelivered = ord.status === 'Delivered';
 
                     return (
-                      <tr key={ord.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                        <td style={{ padding: '14px 16px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>
-                          {ord.order_number}
+                      <React.Fragment key={ord.id}>
+                        <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                          <td style={{ padding: '14px 16px' }}>
+                          <div style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>
+                            {ord.order_number}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+                            SN: {ord.serial_number || 'N/A'}
+                          </div>
                         </td>
                         <td style={{ padding: '14px 16px' }}>
                           <div style={{ fontWeight: 800 }}>{ord.laptop_brand} {ord.laptop_model}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>User: {ord.customer_name || 'Customer'}</div>
-                        </td>
-                        <td style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>
-                          {ord.issue_category}
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                            {ord.customer_name || 'Customer'} • <span style={{ fontFamily: 'var(--font-mono)' }}>{ord.customer_phone || ord.customer_email || ''}</span>
+                          </div>
                         </td>
                         <td style={{ padding: '14px 16px' }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: '#10b981', fontWeight: 700 }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{ord.issue_category}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            📍 {ord.pickup_area ? `${ord.pickup_area}, ${ord.pickup_city}` : (ord.pickup_city || 'Doorstep Pickup')}
+                          </div>
+                          {ord.pickup_slot && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                              🕒 {ord.pickup_slot}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--success)', fontSize: '0.95rem' }}>
+                            ₹{(ord.final_agreed_price || ord.customer_selected_price || ord.quote_amount || 0).toLocaleString('en-IN')}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+                            Base: ₹{ord.base_price_min || 1500} – ₹{ord.base_price_max || 3500}
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: '#10b981', fontWeight: 800 }}>
                             {ord.tamper_seal_code || 'TC-VERIFIED'}
-                          </span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                            {ord.unseal_status === 'unsealed' ? 'Unsealed (Authorized)' :
+                             ord.reseal_status === 'resealed' ? `Resealed: ${ord.reseal_tamper_code || 'Yes'}` :
+                             ord.pickup_status === 'collected' ? 'In Bench Custody' : 'Sealed Intact'}
+                          </div>
                         </td>
                         <td style={{ padding: '14px 16px', color: 'var(--text-main)', fontWeight: 600 }}>
-                          {ord.technician_name || 'Unassigned'}
+                          {ord.technician_name ? (
+                            <span style={{ color: 'var(--cta-orange)', fontWeight: 700 }}>{ord.technician_name}</span>
+                          ) : (
+                            <span style={{ color: 'var(--text-dim)', fontStyle: 'italic' }}>Unassigned</span>
+                          )}
                         </td>
                         <td style={{ padding: '14px 16px' }}>
-                          <span className={`badge ${isLive ? 'badge-live' : (isDelivered ? 'badge-verified' : 'badge-orange')}`}>
+                          <span className={`badge ${
+                            isLive ? 'badge-live' : 
+                            isDelivered ? 'badge-verified' : 
+                            ['Technician Accepted', 'Pickup Scheduled', 'Picked Up', 'Delivered to Bench'].includes(ord.status) ? 'badge-primary' :
+                            'badge-orange'
+                          }`}>
                             {isLive && <Radio size={11} className="pulse-dot" />}
                             {ord.status}
                           </span>
                         </td>
-                        <td style={{ padding: '14px 16px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--success)' }}>
-                          ₹{ord.quote_amount}
-                        </td>
                         <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: '6px' }}>
+                            <button
+                              onClick={() => setExpandedOrderId(expandedOrderId === ord.id ? null : ord.id)}
+                              style={{
+                                background: expandedOrderId === ord.id ? 'var(--primary)' : 'var(--bg-card-subtle)',
+                                border: '1px solid var(--border-light)',
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                color: expandedOrderId === ord.id ? '#ffffff' : 'var(--text-main)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: 'pointer'
+                              }}
+                              title="Inspect complete hardware intake specs, PIN, charger, pre-existing condition, and consent"
+                            >
+                              <Key size={13} /> {expandedOrderId === ord.id ? 'Hide Specs' : 'Intake Specs'}
+                            </button>
+
                             <button
                               onClick={() => {
                                 setLiveStreamOrder(ord);
@@ -748,6 +1187,113 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                           </div>
                         </td>
                       </tr>
+
+                      {/* COMPREHENSIVE HARDWARE INTAKE SPECIFICATIONS ACCORDION */}
+                      {expandedOrderId === ord.id && (
+                        <tr key={`intake-${ord.id}`} style={{ background: 'var(--bg-card-subtle)' }}>
+                          <td colSpan="8" style={{ padding: '16px 20px' }}>
+                            <div className="admin-dossier-panel">
+                              <div className="admin-dossier-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <span className="badge badge-primary">
+                                    HARDWARE INTAKE SPECIFICATIONS
+                                  </span>
+                                  <strong style={{ fontSize: '1.05rem', color: 'var(--text-main)' }}>
+                                    {ord.laptop_brand} {ord.laptop_model}
+                                  </strong>
+                                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', fontSize: '0.82rem' }}>
+                                    (Order #{ord.order_number} • SN: {ord.serial_number || 'N/A'})
+                                  </span>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {(ord.customer_whatsapp || ord.customer_phone) && (
+                                    <a
+                                      href={`https://wa.me/${(ord.customer_whatsapp || ord.customer_phone || '').replace(/[^0-9]/g, '')}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="admin-whatsapp-btn"
+                                      title="Open direct WhatsApp with customer"
+                                    >
+                                      <MessageCircle size={14} /> Customer WhatsApp
+                                    </a>
+                                  )}
+                                  <span className="badge badge-verified" style={{ fontSize: '0.75rem' }}>
+                                    Seal: {ord.tamper_seal_code || 'VERIFIED'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="admin-dossier-grid">
+                                <div className="admin-dossier-box">
+                                  <div className="admin-dossier-label">Device Access & Diagnostic Credentials</div>
+                                  <div className="admin-dossier-value" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.92rem', fontWeight: 800 }}>
+                                    {ord.credentials_provided ? (
+                                      <span style={{ color: '#16a34a' }}>🔑 PIN: {ord.device_pin}</span>
+                                    ) : ord.credentials_requested ? (
+                                      <span style={{ color: '#d97706' }}>⏳ Requested by Tech</span>
+                                    ) : (
+                                      <span style={{ color: 'var(--text-dim)' }}>Not Requested (On-Demand)</span>
+                                    )}
+                                  </div>
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                                    <strong>BitLocker:</strong> {ord.bitlocker_status || 'Disabled / Not Applicable'}
+                                  </div>
+                                  {ord.credentials_request_note && (
+                                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                      Note: "{ord.credentials_request_note}"
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="admin-dossier-box">
+                                  <div className="admin-dossier-label">Charger & Accessories Intake</div>
+                                  <div className="admin-dossier-value" style={{ color: ord.charger_included ? '#16a34a' : 'var(--text-dim)' }}>
+                                    ⚡ {ord.charger_included ? (ord.charger_details || 'Original Charger Handed Over') : 'No Charger Handed Over'}
+                                  </div>
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                    <strong>Accessories:</strong> {Array.isArray(ord.included_accessories) ? ord.included_accessories.join(', ') : (ord.included_accessories || 'None')}
+                                  </div>
+                                </div>
+
+                                <div className="admin-dossier-box">
+                                  <div className="admin-dossier-label">Declared Pre-Existing Damage & Flaws</div>
+                                  <div className="admin-dossier-value" style={{ color: '#d97706', fontSize: '0.85rem' }}>
+                                    ⚠️ {Array.isArray(ord.pre_existing_damage) ? ord.pre_existing_damage.join(', ') : (ord.pre_existing_damage || 'None Declared')}
+                                  </div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                                    Customer verified condition prior to tamper-proof courier seal.
+                                  </div>
+                                </div>
+
+                                <div className="admin-dossier-box">
+                                  <div className="admin-dossier-label">Replacement Part Preference</div>
+                                  <div className="admin-dossier-value" style={{ color: 'var(--primary)' }}>
+                                    🛠️ {ord.part_preference || 'OEM Original (100% Genuine with Brand Warranty)'}
+                                  </div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                    Data Backup: {ord.data_backup_status || 'Customer Confirmed'}
+                                  </div>
+                                </div>
+
+                                <div className="admin-dossier-box" style={{ gridColumn: 'span 2' }}>
+                                  <div className="admin-dossier-label">Logistics, Doorstep Address & Gate Pass</div>
+                                  <div className="admin-dossier-value" style={{ fontSize: '0.85rem' }}>
+                                    📍 {ord.pickup_address}, {ord.pickup_area ? `${ord.pickup_area}, ` : ''}{ord.pickup_city} - {ord.pickup_pincode || '500081'}
+                                  </div>
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                                    <strong>Landmark / Gate Pass:</strong> {ord.pickup_landmark || 'No landmark specified'} • <strong>Slot:</strong> {ord.pickup_slot}
+                                  </div>
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                    <strong>Customer:</strong> {ord.customer_name} ({ord.customer_phone} / {ord.customer_email}) • <strong>Assigned Tech:</strong> {ord.technician_name} ({ord.technician_bench || 'Cleanroom Bench'})
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
@@ -772,6 +1318,64 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                 <Radio size={12} className="pulse-dot" /> 3 Cleanrooms Online
               </span>
             </div>
+
+            {ordersList.filter(o => o.stream_session || ['In Repair', 'Delivered to Bench', 'Quality Check'].includes(o.status)).length > 0 && (
+              <div style={{ marginBottom: '28px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Radio size={16} color="#ef4444" className="pulse-dot" /> Active Live Workbench Repairs ({ordersList.filter(o => o.stream_session || ['In Repair', 'Delivered to Bench', 'Quality Check'].includes(o.status)).length})
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+                  {ordersList.filter(o => o.stream_session || ['In Repair', 'Delivered to Bench', 'Quality Check'].includes(o.status)).map((ord) => (
+                    <div key={ord.id} className="tech-card" style={{ padding: '20px', borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.35)' }}>
+                      <div style={{ position: 'relative', height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '14px', background: '#0f172a' }}>
+                        <img 
+                          src="/hero_laptop.jpg" 
+                          alt="Customer Repair Stream" 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} 
+                        />
+                        <div style={{ position: 'absolute', top: '10px', left: '10px' }}>
+                          <span className="badge badge-live" style={{ fontSize: '0.68rem' }}>
+                            <Radio size={10} className="pulse-dot" /> LIVE CLEANROOM FEED
+                          </span>
+                        </div>
+                        <div style={{ position: 'absolute', bottom: '10px', left: '10px', right: '10px', background: 'rgba(15, 23, 42, 0.88)', padding: '6px 10px', borderRadius: '8px', fontSize: '0.75rem', color: '#fff', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Order: {ord.order_number}</span>
+                          <span style={{ color: '#10b981' }}>Seal: {ord.tamper_seal_code || 'VERIFIED'}</span>
+                        </div>
+                      </div>
+
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: '0 0 4px' }}>
+                        {ord.laptop_brand} {ord.laptop_model}
+                      </h3>
+                      <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                        Customer: <strong>{ord.customer_name || 'Customer'}</strong> • Tech: <strong>{ord.technician_name || 'Workbench'}</strong>
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--primary)', marginBottom: '14px' }}>
+                        Issue: {ord.issue_category} • Status: {ord.status}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          className="btn-primary"
+                          onClick={() => setLiveStreamOrder(ord)}
+                          style={{ flex: 1, padding: '9px', fontSize: '0.84rem', display: 'flex', justifyContent: 'center', gap: '8px' }}
+                        >
+                          <Video size={15} /> Join Live Cleanroom Feed
+                        </button>
+                        <button
+                          className="btn-secondary"
+                          onClick={() => setAdminConversationOrder(ord)}
+                          style={{ padding: '9px 12px', fontSize: '0.84rem' }}
+                          title="Open Order Audit & Chat"
+                        >
+                          <MessageSquare size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
               {[
@@ -868,12 +1472,23 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Custody with: {ord.technician_name || 'Transit Courier'}</div>
                       </td>
                       <td style={{ padding: '14px 16px' }}>
-                        <span className="badge badge-verified" style={{ fontSize: '0.72rem' }}>
-                          INTACT & VERIFIED
+                        <span className={`badge ${
+                          ['resealed', 'dispatched'].includes(ord.reseal_status) ? 'badge-verified' :
+                          ord.unseal_status === 'unsealed' ? 'badge-orange' :
+                          ord.unseal_status === 'unseal_requested' ? 'badge-primary' :
+                          'badge-verified'
+                        }`} style={{ fontSize: '0.72rem' }}>
+                          {['resealed', 'dispatched'].includes(ord.reseal_status) ? `RESEALED (${ord.reseal_tamper_code || 'VERIFIED'})` :
+                           ord.unseal_status === 'unsealed' ? 'UNSEALED AT BENCH' :
+                           ord.unseal_status === 'unseal_requested' ? 'UNSEAL REQUESTED' :
+                           ord.pickup_status === 'collected' ? 'SEALED IN CUSTODY' :
+                           'SEAL INTACT & VERIFIED'}
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px', color: '#10b981', fontWeight: 700, fontSize: '0.82rem' }}>
-                        100% Secure • Unbroken
+                        {ord.reseal_status === 'resealed' ? 'Re-sealed with Tamper Code' :
+                         ord.unseal_status === 'unsealed' ? 'Authorized by Customer' :
+                         '100% Secure • Unbroken'}
                       </td>
                       <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                         <button
@@ -912,75 +1527,116 @@ export default function AdminDashboard({ onOpenLiveStream }) {
               <div className="tech-card" style={{ padding: '20px' }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)' }}>GROSS PLATFORM VOLUME</div>
                 <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--success)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
-                  ₹{overview?.total_volume?.toLocaleString() || '38,400'}
+                  ₹{(overview?.total_volume || 0).toLocaleString('en-IN')}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Total client quotes processed</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Total client repair quotes processed</div>
               </div>
 
               <div className="tech-card" style={{ padding: '20px' }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)' }}>PLATFORM REVENUE (10%)</div>
                 <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
-                  ₹{Math.round((overview?.total_volume || 38400) * 0.1).toLocaleString()}
+                  ₹{Math.round((overview?.total_volume || 0) * 0.1).toLocaleString('en-IN')}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Live Fix 10% facilitation earnings</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Live Fix 10% platform facilitation</div>
               </div>
 
               <div className="tech-card" style={{ padding: '20px' }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)' }}>TECHNICIAN DISBURSEMENTS (90%)</div>
                 <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--cta-orange)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
-                  ₹{Math.round((overview?.total_volume || 38400) * 0.9).toLocaleString()}
+                  ₹{Math.round((overview?.total_volume || 0) * 0.9).toLocaleString('en-IN')}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Paid out to verified specialists</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Allocated to verified specialists</div>
               </div>
 
               <div className="tech-card" style={{ padding: '20px' }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)' }}>ESCROW VAULT BALANCE</div>
                 <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#38bdf8', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
-                  ₹{overview?.escrow_held?.toLocaleString() || '18,500'}
+                  ₹{(overview?.escrow_held || 0).toLocaleString('en-IN')}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Pending final customer OTP signoff</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>100% Locked until customer delivery signoff</div>
               </div>
             </div>
 
             <div className="tech-card" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '16px' }}>Recent Escrow Settlements</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Escrow Settlements & Payout Registry</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', margin: '4px 0 0' }}>
+                    Transparent 90/10 escrow split protecting customer payments until tamper seal verification
+                  </p>
+                </div>
+                <span className="badge badge-primary">
+                  {ordersList.length} Total Escrow Accounts
+                </span>
+              </div>
+
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
                   <thead>
                     <tr style={{ background: 'var(--bg-main)', borderBottom: '1px solid var(--border-light)' }}>
                       <th style={{ padding: '12px 16px' }}>Transaction ID</th>
-                      <th style={{ padding: '12px 16px' }}>Order Reference</th>
-                      <th style={{ padding: '12px 16px' }}>Amount</th>
-                      <th style={{ padding: '12px 16px' }}>Technician Payout (90%)</th>
+                      <th style={{ padding: '12px 16px' }}>Order & Parties</th>
+                      <th style={{ padding: '12px 16px' }}>Agreed Amount</th>
+                      <th style={{ padding: '12px 16px' }}>Tech Payout (90%)</th>
                       <th style={{ padding: '12px 16px' }}>Platform Fee (10%)</th>
-                      <th style={{ padding: '12px 16px' }}>Escrow Status</th>
+                      <th style={{ padding: '12px 16px' }}>Escrow Vault Status</th>
+                      <th style={{ padding: '12px 16px', textAlign: 'right' }}>Audit</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {ordersList.slice(0, 5).map((o, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                        <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
-                          TXN-ESC-{90000 + idx}
-                        </td>
-                        <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                          {o.order_number}
-                        </td>
-                        <td style={{ padding: '14px 16px', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                          ₹{o.quote_amount || 2500}
-                        </td>
-                        <td style={{ padding: '14px 16px', color: '#10b981', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                          ₹{Math.round((o.quote_amount || 2500) * 0.9)}
-                        </td>
-                        <td style={{ padding: '14px 16px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                          ₹{Math.round((o.quote_amount || 2500) * 0.1)}
-                        </td>
-                        <td style={{ padding: '14px 16px' }}>
-                          <span className={`badge ${o.status === 'Delivered' ? 'badge-verified' : 'badge-primary'}`}>
-                            {o.status === 'Delivered' ? 'RELEASED' : 'HELD IN VAULT'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {ordersList.map((o, idx) => {
+                      const amount = o.final_agreed_price || o.customer_selected_price || o.quote_amount || 0;
+                      const isReleased = o.status === 'Delivered';
+                      return (
+                        <tr key={o.id || idx} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                          <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
+                            TXN-ESC-{o.order_number?.replace('EOF-2026-', '') || (90000 + idx)}
+                          </td>
+                          <td style={{ padding: '14px 16px' }}>
+                            <div style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>
+                              {o.order_number}
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                              {o.customer_name} &rarr; <span style={{ color: 'var(--cta-orange)' }}>{o.technician_name || 'Unassigned Tech'}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '14px 16px', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                            ₹{amount.toLocaleString('en-IN')}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: '#10b981', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                            ₹{Math.round(amount * 0.9).toLocaleString('en-IN')}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                            ₹{Math.round(amount * 0.1).toLocaleString('en-IN')}
+                          </td>
+                          <td style={{ padding: '14px 16px' }}>
+                            <span className={`badge ${isReleased ? 'badge-verified' : 'badge-primary'}`}>
+                              {isReleased ? 'RELEASED TO TECH' : 'HELD IN ESCROW VAULT'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                            <button
+                              onClick={() => setAdminConversationOrder(o)}
+                              style={{
+                                background: 'rgba(37, 99, 235, 0.1)',
+                                border: '1px solid rgba(37, 99, 235, 0.3)',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                color: '#2563eb',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <MessageSquare size={13} /> View Audit
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1185,6 +1841,115 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                   style={{ width: '100%' }}
                 />
               </div>
+
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                  WhatsApp Phone
+                </label>
+                <input 
+                  type="text" 
+                  value={userForm.whatsapp || ''} 
+                  onChange={(e) => setUserForm({ ...userForm, whatsapp: e.target.value })} 
+                  style={{ width: '100%' }}
+                  placeholder="+91 98765 43210"
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                    City
+                  </label>
+                  <input 
+                    type="text" 
+                    value={userForm.city || 'Hyderabad'} 
+                    onChange={(e) => setUserForm({ ...userForm, city: e.target.value })} 
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                    Pincode
+                  </label>
+                  <input 
+                    type="text" 
+                    value={userForm.pincode || ''} 
+                    onChange={(e) => setUserForm({ ...userForm, pincode: e.target.value })} 
+                    style={{ width: '100%' }}
+                    placeholder="500081"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                  Doorstep Delivery Address
+                </label>
+                <input 
+                  type="text" 
+                  value={userForm.address || ''} 
+                  onChange={(e) => setUserForm({ ...userForm, address: e.target.value })} 
+                  style={{ width: '100%' }}
+                  placeholder="Flat 302, Cyber Towers View"
+                />
+              </div>
+
+              {userForm.role === 'technician' && (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                    <div>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                        Cleanroom Bench Station
+                      </label>
+                      <input 
+                        type="text" 
+                        value={userForm.bench_station || ''} 
+                        onChange={(e) => setUserForm({ ...userForm, bench_station: e.target.value })} 
+                        style={{ width: '100%' }}
+                        placeholder="Bench #3 - Cleanroom ISO-5"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                        Payout UPI ID
+                      </label>
+                      <input 
+                        type="text" 
+                        value={userForm.payout_upi || ''} 
+                        onChange={(e) => setUserForm({ ...userForm, payout_upi: e.target.value })} 
+                        style={{ width: '100%' }}
+                        placeholder="tech.ramesh@okaxis"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                      Specialization / Chip-Level Skills
+                    </label>
+                    <input 
+                      type="text" 
+                      value={userForm.specialization || ''} 
+                      onChange={(e) => setUserForm({ ...userForm, specialization: e.target.value })} 
+                      style={{ width: '100%' }}
+                      placeholder="Motherboard Chip-Level, BGA Micro-Soldering, Display Rework"
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                      Professional Certifications
+                    </label>
+                    <input 
+                      type="text" 
+                      value={userForm.certifications || ''} 
+                      onChange={(e) => setUserForm({ ...userForm, certifications: e.target.value })} 
+                      style={{ width: '100%' }}
+                      placeholder="IPC-7711/7721 Certified Rework Specialist, ACMT"
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>

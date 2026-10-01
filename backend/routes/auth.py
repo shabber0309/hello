@@ -27,7 +27,13 @@ def token_required(f):
 
         # Fallback for instant demo sessions
         if token == 'demo-jwt-token' or token.startswith('demo-'):
-            current_user = User.query.filter_by(role='customer').first()
+            token_lower = token.lower()
+            if 'admin' in token_lower:
+                current_user = User.query.filter_by(role='admin').first()
+            elif 'tech' in token_lower:
+                current_user = User.query.filter_by(role='technician').first()
+            else:
+                current_user = User.query.filter_by(role='customer').first()
             if not current_user:
                 current_user = User.query.first()
             return f(current_user, *args, **kwargs)
@@ -353,16 +359,45 @@ def update_profile(current_user):
     name = data.get('name', '').strip()
     username = data.get('username', '').strip().lower()
     phone = data.get('phone', '').strip()
+    whatsapp = data.get('whatsapp', '').strip()
+    address = data.get('address')
+    city = data.get('city')
+    landmark = data.get('landmark')
+    pincode = data.get('pincode')
+    bench_station = data.get('bench_station')
+    specialization = data.get('specialization')
+    certifications = data.get('certifications')
+    payout_upi = data.get('payout_upi')
     password = data.get('password', '')
 
     if name:
         current_user.name = name
     if phone:
         current_user.phone = phone
+    if whatsapp:
+        current_user.whatsapp = whatsapp
+    if address is not None:
+        current_user.address = address.strip()
+    if city is not None:
+        current_user.city = city.strip()
+    if landmark is not None:
+        current_user.landmark = landmark.strip()
+    if pincode is not None:
+        current_user.pincode = pincode.strip()
+    if bench_station is not None:
+        current_user.bench_station = bench_station.strip()
+    if specialization is not None:
+        current_user.specialization = specialization.strip()
+    if certifications is not None:
+        current_user.certifications = certifications.strip()
+    if payout_upi is not None:
+        current_user.payout_upi = payout_upi.strip()
+
     if username and username != current_user.username:
         existing = User.query.filter_by(username=username).first()
         if existing and existing.id != current_user.id:
             return jsonify({'error': 'Username already taken by another user'}), 400
+        current_user.username = username
     avatar = data.get('avatar') or data.get('photo')
     if avatar is not None:
         current_user.avatar = avatar

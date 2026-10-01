@@ -11,14 +11,19 @@
   z-index: 1000;
   width: 100%;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1.5px solid rgba(188, 213, 242, 0.65);
-  box-shadow: 0 4px 20px rgba(29, 78, 216, 0.06);
-  padding: 8px 16px 6px;
+  box-shadow: 0 4px 20px rgba(29, 78, 216, 0.05);
+  padding: 6px 18px;
   transition: all 0.25s ease;
   overflow: visible;
+}
+
+[data-theme="dark"] .silicone-header {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border-bottom-color: rgba(56, 189, 248, 0.2);
 }
 
 .silicone-navbar-container {
@@ -34,11 +39,21 @@
 /* ROW 1: Molded Precision Silicone Bays */
 .silicone-row-bays {
   display: flex;
-  align-items: stretch;
-  gap: 10px;
-  height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 56px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Grouped Action Bays: Theme, Profile / Login, Mobile Drawer Toggle */
+.silicone-actions-bay-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* Base Inset Molded Silicone Bay: Cleanroom Precision Tray */
@@ -119,32 +134,31 @@
 }
 
 /* Bay 2: Live Fix Brand + LIVE VERIFIED Badge */
-/* Bay 1: Brand - Live fix (Exact 3D text, free-floating without box/div) */
+/* Bay 1: Brand - Live fix (Official 3D Logo) */
 .silicone-bay-brand {
   width: auto;
-  min-width: 150px;
-  padding: 0 8px;
+  min-width: 120px;
+  padding: 0 4px;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
+  justify-content: flex-start;
   cursor: pointer;
   flex-shrink: 0;
   transition: transform 0.2s ease;
+  height: 100%;
 }
 
 .silicone-bay-brand:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1.5px);
 }
 
 .livefix-navbar-logo {
-  height: 100px;
+  height: 44px;
   width: auto;
-  max-width: 175px;
+  max-width: 155px;
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.3));
@@ -152,14 +166,14 @@
 }
 
 .silicone-bay-brand:hover .livefix-navbar-logo {
-  transform: scale(1.05);
+  transform: scale(1.04);
   filter: drop-shadow(0 4px 14px rgba(16, 185, 129, 0.55));
 }
 
 @media (max-width: 768px) {
   .livefix-navbar-logo {
-    height: 40px;
-    max-width: 135px;
+    height: 38px;
+    max-width: 130px;
   }
 }
 
@@ -179,18 +193,22 @@
   text-shadow: 0 1px 0 #022c1d, 0 2px 2px rgba(0, 0, 0, 0.8), 0 0 6px rgba(52, 211, 153, 0.6);
 }
 
-/* Center Navigation Bays Group - Transparent Container for Individual Bays */
-/* Center Navigation Bays Group - Transparent Container for 3D Pill Buttons */
+/* Center Navigation Bays Group - Modern Glassmorphic Segmented Control */
 .silicone-nav-group {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0;
+  gap: 5px;
+  background: rgba(241, 245, 249, 0.8) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(203, 213, 225, 0.8) !important;
+  border-radius: 9999px !important;
+  padding: 4px 6px;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+  max-width: fit-content;
+  margin: 0 auto;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -199,7 +217,7 @@
   display: none;
 }
 
-/* Individual Transparent Wrapper for Each 3D Pill Button */
+/* Individual Transparent Wrapper for Each Segmented Item */
 .silicone-bay-item {
   width: auto;
   padding: 0 !important;
@@ -212,101 +230,93 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.18s ease;
   user-select: none;
 }
 
-.silicone-bay-item:hover {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.silicone-bay-item:active {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.silicone-bay-item--active {
+.silicone-bay-item:hover,
+.silicone-bay-item:active,
+.silicone-bay-item--active,
+.silicone-bay-item--active:hover {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
 }
 
-.silicone-bay-item--active:hover {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* All Navbar Items (Inactive Links) - 3D Blue Pill Button */
+/* Inactive Nav Links - Sleek subtle glass pill */
 .silicone-nav-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  height: 50px;
-  min-height: 50px;
-  padding: 0 20px;
+  gap: 7px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 15px;
   border-radius: 9999px;
-  font-size: 0.90rem;
-  font-weight: 700;
-  color: #ffffff !important;
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
-  border: 1px solid #1e40af !important;
-  border-top-color: #60a5fa !important;
-  border-bottom-color: #1e3a8a !important;
-  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #475569 !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
-  letter-spacing: 0.015em;
+  letter-spacing: 0.01em;
   flex-shrink: 0;
   box-sizing: border-box;
 }
 
 .silicone-nav-link svg,
 .silicone-nav-link-icon {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
+  color: #64748b !important;
+  stroke: #64748b !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: color 0.18s ease, stroke 0.18s ease;
 }
 
+/* Hover state for inactive links */
 .silicone-nav-link:hover,
 .silicone-bay-item:hover .silicone-nav-link {
-  transform: translateY(-2px);
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
-  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
-  color: #ffffff !important;
+  color: #1d4ed8 !important;
+  background: #ffffff !important;
+  border-color: rgba(191, 219, 254, 0.8) !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+.silicone-nav-link:hover svg,
+.silicone-nav-link:hover .silicone-nav-link-icon,
+.silicone-bay-item:hover .silicone-nav-link svg,
+.silicone-bay-item:hover .silicone-nav-link .silicone-nav-link-icon {
+  color: #2563eb !important;
+  stroke: #2563eb !important;
 }
 
 .silicone-nav-link:active,
 .silicone-bay-item:active .silicone-nav-link {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+  transform: translateY(0);
+  background: rgba(224, 231, 255, 0.7) !important;
 }
 
-/* Active Nav Pill Button - 3D Emerald Green Pill Button */
+/* Active Nav Pill Button - Modern High-Contrast Vibrant Blue Glass Pill */
 .silicone-nav-link--active {
-  height: 50px !important;
-  min-height: 50px !important;
-  padding: 0 22px !important;
-  background: linear-gradient(180deg, #10b981 0%, #059669 100%) !important;
-  border: 1px solid #047857 !important;
-  border-top-color: #6ee7b7 !important;
-  border-bottom-color: #064e3b !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 18px !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #1d4ed8 !important;
+  border-top-color: #60a5fa !important;
   color: #ffffff !important;
-  font-size: 0.92rem !important;
-  font-weight: 800 !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
   border-radius: 9999px !important;
-  box-shadow: 0 3px 0 #064e3b, 0 6px 16px rgba(16, 185, 129, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) !important;
 }
 
 .silicone-nav-link--active svg,
@@ -317,64 +327,77 @@
 
 .silicone-nav-link--active:hover,
 .silicone-bay-item:hover .silicone-nav-link--active {
-  transform: translateY(-2px);
-  background: linear-gradient(180deg, #34d399 0%, #10b981 100%) !important;
-  box-shadow: 0 4px 0 #064e3b, 0 8px 20px rgba(16, 185, 129, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   color: #ffffff !important;
+  transform: translateY(-1px);
 }
 
 .silicone-nav-link--active:active,
 .silicone-bay-item:active .silicone-nav-link--active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #064e3b, 0 2px 4px rgba(16, 185, 129, 0.2) !important;
+  transform: translateY(0);
 }
 
-/* Bay 4: Theme Toggle Bay - Standalone 3D Button without outer box */
+/* Bay 4: Theme Toggle Bay - Standalone 3D Circular Button */
+/* Bay 4: Theme Toggle Bay - Standalone 3D Circular Button */
 .silicone-bay-theme {
-  width: auto;
-  min-width: 50px;
+  width: 38px;
+  min-width: 38px;
+  max-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-  flex-shrink: 0;
+  flex-shrink: 0 !important;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .silicone-theme-btn {
-  width: 50px;
-  height: 50px;
-  min-height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  aspect-ratio: 1 / 1 !important;
+  flex-shrink: 0 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
   border: 1.5px solid #1e40af !important;
   color: #ffffff !important;
   cursor: pointer;
-  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 2px 0 #1e3a8a, 0 4px 10px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   transition: all 0.18s ease;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
+  padding: 0 !important;
 }
 
 .silicone-theme-btn svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
+  width: 17px !important;
+  height: 17px !important;
+  flex-shrink: 0 !important;
 }
 
 .silicone-theme-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1.5px);
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
   border: 1.5px solid #2563eb !important;
-  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
   color: #ffffff !important;
 }
 
 .silicone-theme-btn:active {
-  transform: translateY(2px);
+  transform: translateY(1.5px);
   box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
@@ -395,9 +418,10 @@
 }
 
 .silicone-login-btn {
-  height: 50px;
-  min-height: 50px;
-  padding: 0 24px;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  padding: 0 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -407,10 +431,10 @@
   border-top-color: #60a5fa !important;
   border-bottom-color: #1e3a8a !important;
   color: #ffffff !important;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 2px 0 #1e3a8a, 0 4px 10px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   transition: all 0.18s ease;
   white-space: nowrap;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
@@ -419,12 +443,12 @@
 
 .silicone-login-btn:hover {
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 0 #1e3a8a, 0 8px 18px rgba(37, 99, 235, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  transform: translateY(-1.5px);
+  box-shadow: 0 3px 0 #1e3a8a, 0 6px 14px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
 }
 
 .silicone-login-btn:active {
-  transform: translateY(2px);
+  transform: translateY(1.5px);
   box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
@@ -432,19 +456,20 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 50px;
-  min-height: 50px;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
   background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
   border: 1px solid #1e40af !important;
   border-top-color: #60a5fa !important;
   border-bottom-color: #1e3a8a !important;
   border-radius: 9999px;
-  padding: 0 18px 0 10px;
+  padding: 0 14px 0 6px;
   cursor: pointer;
-  box-shadow: 0 3px 0 #1e3a8a, 0 5px 12px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 2px 0 #1e3a8a, 0 4px 10px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   color: #ffffff !important;
   font-weight: 800;
-  font-size: 0.90rem;
+  font-size: 0.88rem;
   transition: all 0.18s ease;
   white-space: nowrap;
   flex-shrink: 0;
@@ -475,18 +500,18 @@
 }
 
 .silicone-avatar-circle {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.84rem;
+  font-size: 0.80rem;
   font-weight: 800;
   flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
@@ -571,49 +596,143 @@
 
 /* Mobile Toggle Bay */
 .silicone-mobile-toggle-bay {
-  width: 52px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  max-width: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  border-radius: 9px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   display: none;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
+  box-sizing: border-box;
+  padding: 0 !important;
+}
+
+.silicone-mobile-toggle-bay:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .silicone-mobile-toggle-bay {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+[data-theme="dark"] .silicone-mobile-toggle-bay:hover {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: #3b82f6;
+}
+
+.silicone-mobile-toggle-bay svg {
+  color: var(--text-main, #0f172a);
+}
+
+[data-theme="dark"] .silicone-mobile-toggle-bay svg {
+  color: #f8fafc;
 }
 
 .silicone-mobile-drawer {
-  background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%);
-  border-radius: 10px;
-  border: 1px solid #bcd5f2;
-  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.12);
-  padding: 14px;
+  background: var(--bg-surface, #ffffff);
+  border-radius: 14px;
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
+  margin-top: 8px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn 0.18s ease-out;
+}
+
+[data-theme="dark"] .silicone-mobile-drawer {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(148, 163, 184, 0.28);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
 }
 
 .silicone-mobile-user-card {
-  background: #eaf2fc;
-  border: 1px solid #cce0f7;
+  background: #f1f6fc;
+  border: 1px solid #dbeafe;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 4px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  color: #0f172a;
+  gap: 12px;
+}
+
+[data-theme="dark"] .silicone-mobile-user-card {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.silicone-mobile-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.silicone-mobile-user-name {
+  color: var(--text-main, #0f172a) !important;
+  font-weight: 800;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.silicone-mobile-user-email {
+  color: var(--text-muted, #64748b) !important;
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .silicone-mobile-user-name {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .silicone-mobile-user-email {
+  color: #94a3b8 !important;
+}
+
+.silicone-mobile-role-badge {
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .silicone-mobile-role-badge {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+  border-color: rgba(147, 197, 253, 0.3);
 }
 
 .silicone-mobile-nav-btn {
   width: 100%;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 8px;
-  background: #f1f6fc;
-  border: 1px solid #cce0f7;
-  color: #0f172a;
-  font-size: 0.94rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: var(--text-main, #0f172a);
+  font-size: 0.9rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -621,19 +740,57 @@
   cursor: pointer;
   text-align: left;
   transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .silicone-mobile-nav-btn {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
 }
 
 .silicone-mobile-nav-btn:hover {
-  background: #e2effe;
+  background: #eff6ff;
+  border-color: #93c5fd;
   color: #1d4ed8;
+}
+
+[data-theme="dark"] .silicone-mobile-nav-btn:hover {
+  background: rgba(37, 99, 235, 0.22);
+  border-color: #3b82f6;
+  color: #93c5fd;
 }
 
 .silicone-mobile-nav-btn--active {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  border-color: rgba(110, 231, 183, 0.6) !important;
+  border-color: rgba(16, 185, 129, 0.6) !important;
   color: #ffffff !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+}
+
+.silicone-mobile-nav-btn--active svg {
+  color: #ffffff !important;
+}
+
+.silicone-mobile-logout-btn {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+  margin-top: 4px;
+}
+
+.silicone-mobile-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border-color: #ef4444 !important;
+  color: #b91c1c !important;
+}
+
+[data-theme="dark"] .silicone-mobile-logout-btn {
+  background: rgba(239, 68, 68, 0.18) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
 }
 
 /* ROW 2: Precision Engineering Micro-Calibrated Screw Wells Ruler Track */
@@ -671,22 +828,33 @@
 }
 
 /* Responsive Media Queries */
-@media (max-width: 1024px) {
-  .silicone-nav-group {
+@media (max-width: 1280px) {
+  .silicone-nav-link {
+    padding: 0 12px !important;
+    font-size: 0.82rem !important;
     gap: 6px !important;
   }
-  .silicone-bay-item {
-    padding: 0 5px !important;
+}
+
+@media (max-width: 1100px) {
+  .silicone-nav-group {
+    gap: 3px !important;
+    padding: 3px 4px !important;
   }
   .silicone-nav-link {
-    padding: 6px 10px !important;
-    font-size: 0.8rem !important;
+    padding: 0 10px !important;
+    font-size: 0.80rem !important;
+    height: 36px !important;
+    min-height: 36px !important;
   }
 }
 
 @media (max-width: 860px) {
   .silicone-header {
-    padding: 8px 10px 6px !important;
+    padding: 6px 14px !important;
+  }
+  .silicone-row-bays {
+    height: 52px !important;
   }
   .silicone-nav-group {
     display: none !important;
@@ -696,6 +864,66 @@
   }
   .silicone-mobile-toggle-bay {
     display: flex !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    border-radius: 9px !important;
+    padding: 0 !important;
+  }
+  .silicone-mobile-toggle-bay svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .silicone-bay-theme {
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    height: 38px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+  }
+  .silicone-theme-btn {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    aspect-ratio: 1 / 1 !important;
+    flex-shrink: 0 !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+  }
+  .silicone-theme-btn svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+  .silicone-bay-login {
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0 4px !important;
+    flex-shrink: 0 !important;
+  }
+  .silicone-login-btn {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    padding: 0 14px !important;
+    font-size: 0.82rem !important;
+  }
+  .silicone-profile-trigger {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    padding: 0 12px 0 6px !important;
+    font-size: 0.82rem !important;
+  }
+  .silicone-avatar-circle {
+    width: 26px !important;
+    height: 26px !important;
   }
 }
 
@@ -710,15 +938,15 @@
 
 @media (max-width: 540px) {
   .silicone-header {
-    padding: 6px 6px 4px !important;
+    padding: 6px 8px 4px !important;
   }
   .silicone-row-bays {
-    gap: 4px !important;
-    height: 56px !important;
+    gap: 6px !important;
+    height: 52px !important;
   }
   .silicone-bay-home {
-    width: 44px !important;
-    min-width: 44px !important;
+    width: 40px !important;
+    min-width: 40px !important;
     padding: 2px !important;
   }
   .silicone-home-box {
@@ -752,37 +980,64 @@
   .silicone-bay-theme {
     width: 36px !important;
     min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
     padding: 0 !important;
+    flex-shrink: 0 !important;
   }
   .silicone-theme-btn {
-    width: 30px !important;
-    height: 30px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    aspect-ratio: 1 / 1 !important;
+    flex-shrink: 0 !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
   }
   .silicone-theme-btn svg {
-    width: 15px !important;
-    height: 15px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
   .silicone-bay-login {
     width: auto !important;
     min-width: 0 !important;
-    padding: 0 6px !important;
+    padding: 0 4px !important;
+    flex-shrink: 0 !important;
   }
   .silicone-login-btn {
-    padding: 5px 12px !important;
-    font-size: 0.78rem !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 0 10px !important;
+    font-size: 0.76rem !important;
   }
   .silicone-profile-trigger {
-    padding: 4px 8px 4px 4px !important;
-    font-size: 0.78rem !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 0 8px 0 4px !important;
+    font-size: 0.76rem !important;
+  }
+  .silicone-avatar-circle {
+    width: 24px !important;
+    height: 24px !important;
   }
   .silicone-mobile-toggle-bay {
-    width: 38px !important;
-    min-width: 38px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    border-radius: 8px !important;
     padding: 0 !important;
   }
   .silicone-mobile-toggle-bay svg {
-    width: 18px !important;
-    height: 18px !important;
+    width: 17px !important;
+    height: 17px !important;
   }
 }
 
@@ -829,45 +1084,59 @@
   box-shadow: none !important;
 }
 
-/* Dark Mode Inactive Nav Items (Dark Slate/Midnight 3D Pill with High-Contrast Text) */
+/* Dark Mode Segmented Control Track */
+[data-theme="dark"] .silicone-nav-group {
+  background: rgba(15, 23, 42, 0.7) !important;
+  border-color: rgba(51, 65, 85, 0.75) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Dark Mode Inactive Nav Items */
 [data-theme="dark"] .silicone-nav-link {
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
-  border: 1px solid rgba(56, 189, 248, 0.28) !important;
-  border-top-color: rgba(255, 255, 255, 0.22) !important;
-  border-bottom-color: #020617 !important;
-  box-shadow: 0 3px 0 #020617, 0 5px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
-  color: #f1f5f9 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #94a3b8 !important;
+  text-shadow: none !important;
 }
 
 [data-theme="dark"] .silicone-nav-link svg,
 [data-theme="dark"] .silicone-nav-link-icon {
-  color: #38bdf8 !important;
-  stroke: #38bdf8 !important;
+  color: #64748b !important;
+  stroke: #64748b !important;
 }
 
 [data-theme="dark"] .silicone-nav-link:hover,
 [data-theme="dark"] .silicone-bay-item:hover .silicone-nav-link {
-  background: linear-gradient(180deg, #283750 0%, #152238 100%) !important;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 4px 0 #020617, 0 8px 20px rgba(56, 189, 248, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
-  color: #ffffff !important;
+  background: rgba(30, 41, 59, 0.85) !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  color: #38bdf8 !important;
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .silicone-nav-link:hover svg,
+[data-theme="dark"] .silicone-nav-link:hover .silicone-nav-link-icon,
+[data-theme="dark"] .silicone-bay-item:hover .silicone-nav-link svg,
+[data-theme="dark"] .silicone-bay-item:hover .silicone-nav-link .silicone-nav-link-icon {
+  color: #38bdf8 !important;
+  stroke: #38bdf8 !important;
 }
 
 [data-theme="dark"] .silicone-nav-link:active,
 [data-theme="dark"] .silicone-bay-item:active .silicone-nav-link {
-  transform: translateY(2px) !important;
-  box-shadow: 0 1px 0 #020617, 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  transform: translateY(0) !important;
+  background: rgba(15, 23, 42, 0.9) !important;
 }
 
-/* Dark Mode Active Nav Item (Glowing Emerald Green 3D Pill) */
+/* Dark Mode Active Nav Item */
 [data-theme="dark"] .silicone-nav-link--active {
-  background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
-  border: 1px solid #059669 !important;
-  border-top-color: #6ee7b7 !important;
-  border-bottom-color: #022c22 !important;
-  box-shadow: 0 3px 0 #022c22, 0 6px 22px rgba(16, 185, 129, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #3b82f6 !important;
+  border-top-color: #60a5fa !important;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
   color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
 [data-theme="dark"] .silicone-nav-link--active svg,
@@ -878,8 +1147,8 @@
 
 [data-theme="dark"] .silicone-nav-link--active:hover,
 [data-theme="dark"] .silicone-bay-item:hover .silicone-nav-link--active {
-  background: linear-gradient(180deg, #34d399 0%, #10b981 100%) !important;
-  box-shadow: 0 4px 0 #022c22, 0 8px 26px rgba(16, 185, 129, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  box-shadow: 0 3px 14px rgba(56, 189, 248, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   color: #ffffff !important;
 }
 

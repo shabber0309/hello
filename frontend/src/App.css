@@ -16,7 +16,13 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  padding-top: 84px;
+  padding-top: 70px;
+}
+
+@media (max-width: 860px) {
+  .app-main-content {
+    padding-top: 64px;
+  }
 }
 
 /* App Footer */

@@ -33,6 +33,29 @@ def create_repair(current_user):
     pickup_slot = data.get('pickup_slot', 'Today, 2:00 PM - 4:00 PM')
     problem_photos = data.get('problem_photos')
     photos_json = json.dumps(problem_photos) if problem_photos and isinstance(problem_photos, list) else None
+    charger_photos = data.get('charger_photos')
+    charger_photos_json = json.dumps(charger_photos) if charger_photos and isinstance(charger_photos, list) else None
+    accessory_photos = data.get('accessory_photos')
+    accessory_photos_json = json.dumps(accessory_photos) if accessory_photos and isinstance(accessory_photos, list) else None
+
+    # Essential Hardware & Security Intake Fields
+    device_pin = data.get('device_pin', '').strip() or 'No Password / Guest Account'
+    power_state = data.get('power_state', 'Turns On & Boots into OS')
+    bitlocker_status = data.get('bitlocker_status', 'Disabled / Recovery Key Available')
+    charger_included = bool(data.get('charger_included', False))
+    charger_details = data.get('charger_details', '').strip()
+    
+    accessories = data.get('included_accessories', [])
+    accessories_val = json.dumps(accessories) if isinstance(accessories, list) else str(accessories or '')
+    
+    damages = data.get('pre_existing_damage', [])
+    damages_val = json.dumps(damages) if isinstance(damages, list) else str(damages or '')
+
+    data_backup_status = data.get('data_backup_status', 'Customer Confirmed Backup (Diagnostic Waiver Signed)')
+    chassis_open_consent = bool(data.get('chassis_open_consent', True))
+    part_preference = data.get('part_preference', 'OEM Original (100% Genuine with Brand Warranty)')
+    whatsapp_number = data.get('whatsapp_number', '').strip() or getattr(current_user, 'whatsapp', None) or current_user.phone
+    pickup_landmark = data.get('pickup_landmark', '').strip()
 
     if not laptop_brand or not laptop_model or not pickup_address:
         return jsonify({'error': 'Brand, Model, and Pickup Address are required'}), 400
@@ -70,6 +93,20 @@ def create_repair(current_user):
         pickup_slot=pickup_slot,
         tamper_seal_code=seal_code,
         problem_photos=photos_json,
+        charger_photos=charger_photos_json,
+        accessory_photos=accessory_photos_json,
+        device_pin=device_pin,
+        power_state=power_state,
+        bitlocker_status=bitlocker_status,
+        charger_included=charger_included,
+        charger_details=charger_details,
+        included_accessories=accessories_val,
+        pre_existing_damage=damages_val,
+        data_backup_status=data_backup_status,
+        chassis_open_consent=chassis_open_consent,
+        part_preference=part_preference,
+        whatsapp_number=whatsapp_number,
+        pickup_landmark=pickup_landmark,
         status='Order Placed',
         base_price_min=base_min,
         base_price_max=base_max,
@@ -82,6 +119,19 @@ def create_repair(current_user):
         reseal_status='not_resealed'
     )
     db.session.add(order)
+
+    # Sync customer profile contact details if not set
+    if not current_user.whatsapp and whatsapp_number:
+        current_user.whatsapp = whatsapp_number
+    if not current_user.address and pickup_address:
+        current_user.address = pickup_address
+    if not current_user.landmark and pickup_landmark:
+        current_user.landmark = pickup_landmark
+    if not current_user.pincode and pickup_pincode:
+        current_user.pincode = pickup_pincode
+    if not current_user.city and pickup_city:
+        current_user.city = pickup_city
+
     db.session.flush()
 
     # Seed initial order welcome message
@@ -910,6 +960,106 @@ def deliver_recording(current_user, order_id):
         'message': f'Recording delivered to {target_email or "customer"} successfully',
         'order': order.to_dict(),
         'recording_url': recording_url,
+        'chat_message': msg.to_dict()
+    }), 200
+
+
+@repair_bp.route('/<int:order_id>/request-credentials', methods=['POST'])
+@token_required
+def request_credentials(current_user, order_id):
+    order = LaptopRepairOrder.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'Order not found'}), 404
+
+    if current_user.role not in ['technician', 'admin']:
+        return jsonify({'error': 'Only technicians or admins can request credentials'}), 403
+
+    data = request.get_json() or {}
+    note = data.get('note', 'Technician requires temporary OS login PIN or guest account access to test audio, Wi-Fi, and graphics drivers under live cleanroom camera.').strip()
+
+    order.credentials_requested = True
+    order.credentials_request_note = note
+    order.credentials_provided = False
+
+    msg = OrderMessage(
+        order_id=order.id,
+        sender_id=current_user.id,
+        sender_name=current_user.name,
+        sender_role=current_user.role,
+        message_type='credentials_requested',
+        content=f"🔑 Technician Diagnostic Access Requested: \"{note}\". Please provide a temporary OS PIN, guest password, or BitLocker key if required for hardware testing.",
+        metadata_json=json.dumps({"note": note})
+    )
+    db.session.add(msg)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Diagnostic credentials request submitted to customer successfully',
+        'order': order.to_dict(),
+        'chat_message': msg.to_dict()
+    }), 200
+
+
+@repair_bp.route('/<int:order_id>/provide-credentials', methods=['POST'])
+def provide_credentials(order_id):
+    order = LaptopRepairOrder.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'Order not found'}), 404
+
+    data = request.get_json() or {}
+    pin = data.get('device_pin', '').strip()
+    bitlocker = data.get('bitlocker_status', 'Disabled / Not Applicable').strip()
+
+    # Verify authorization: either via token or order security verification (tamper_seal_code / order_number)
+    token_str = None
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token_str = auth_header.split(' ')[1]
+
+    user = None
+    if token_str:
+        user = User.verify_token(token_str)
+
+    if user:
+        if user.role == 'customer' and order.customer_id != user.id:
+            return jsonify({'error': 'Unauthorized to provide credentials for this order'}), 403
+        sender_id = user.id
+        sender_name = user.name
+        sender_role = user.role
+    else:
+        # Check order security verification
+        provided_code = (data.get('tamper_seal_code') or data.get('order_number') or '').strip().upper()
+        if not provided_code or (provided_code != (order.tamper_seal_code or '').upper() and provided_code != (order.order_number or '').upper()):
+            return jsonify({'error': 'Authentication or valid order verification code required'}), 401
+        sender_id = order.customer_id
+        sender_name = order.customer.name if order.customer else 'Customer'
+        sender_role = 'customer'
+
+    if not pin:
+        return jsonify({'error': 'Please provide an OS PIN, guest password, or specify "No Password"'}), 400
+
+    order.device_pin = pin
+    order.bitlocker_status = bitlocker
+    order.credentials_provided = True
+
+    msg = OrderMessage(
+        order_id=order.id,
+        sender_id=sender_id,
+        sender_name=sender_name,
+        sender_role=sender_role,
+        message_type='credentials_provided',
+        content="🔒 Diagnostic credentials securely submitted by customer. Technician is authorized to log in strictly for component verification under active camera recording.",
+        metadata_json=json.dumps({
+            "credentials_provided": True,
+            "bitlocker_status": bitlocker
+        })
+    )
+    db.session.add(msg)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Credentials securely saved and dispatched to workbench',
+        'order': order.to_dict(),
         'chat_message': msg.to_dict()
     }), 200
 
