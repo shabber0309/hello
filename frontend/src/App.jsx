@@ -291,36 +291,46 @@ function MainApp() {
         }}
       />
 
-      {/* Modern Footer for Live Fix */}
+      {/* Modern Responsive Footer for Live Fix */}
       <footer className="app-footer">
         <div className="container app-footer-inner">
-          <div className="app-footer-brand-wrap">
-            <span 
-              onClick={() => navigate('/')} 
-              className="app-footer-brand-title"
-            >
-              Live<span className="app-footer-brand-accent"> Fix</span>
-            </span>
-            <span className="app-footer-tagline">— Laptop Repair, Without the Guesswork.</span>
-          </div>
-
-          <div className="app-footer-nav">
-            <span className="app-footer-nav-link" onClick={() => navigate('/how-it-works')}>How It Works</span>
-            <span className="app-footer-nav-link" onClick={() => navigate('/services')}>Services</span>
-            <span className="app-footer-nav-link" onClick={() => navigate('/for-technicians')}>For Technicians</span>
-            <span className="app-footer-nav-link" onClick={() => navigate('/pricing')}>Pricing</span>
-            <span className="app-footer-nav-link" onClick={() => navigate('/track-repair')}>Track Repair</span>
-            {user?.role === 'admin' && (
-              <span className="app-footer-nav-link admin-link" onClick={() => navigate('/admin')}>
-                Admin Console
+          <div className="app-footer-top">
+            <div className="app-footer-brand-wrap">
+              <span 
+                onClick={() => navigate('/')} 
+                className="app-footer-brand-title"
+              >
+                Live<span className="app-footer-brand-accent">Fix</span>
               </span>
-            )}
-            <span className="app-footer-nav-link" onClick={() => setIsHelpOpen(true)}>Help & Support</span>
+              <span className="app-footer-tagline">Laptop Repair, Without the Guesswork.</span>
+            </div>
+
+            <nav className="app-footer-nav" aria-label="Footer Navigation">
+              <span className="app-footer-nav-link" onClick={() => navigate('/how-it-works')}>How It Works</span>
+              <span className="app-footer-nav-link" onClick={() => navigate('/services')}>Services</span>
+              <span className="app-footer-nav-link" onClick={() => navigate('/for-technicians')}>For Technicians</span>
+              <span className="app-footer-nav-link" onClick={() => navigate('/pricing')}>Pricing</span>
+              <span className="app-footer-nav-link" onClick={() => navigate('/track-repair')}>Track Repair</span>
+              {user?.role === 'admin' && (
+                <span className="app-footer-nav-link admin-link" onClick={() => navigate('/admin')}>
+                  Admin Console
+                </span>
+              )}
+              <span className="app-footer-nav-link" onClick={() => setIsHelpOpen(true)}>Help & Support</span>
+            </nav>
           </div>
 
           <div className="app-footer-bottom">
-            <span>© 2026 Live Fix. All rights reserved.</span>
-            <span>Verified Technician ➔ Secure Pickup ➔ Live Transparent Repair ➔ Tamper-Protected Return.</span>
+            <span className="app-footer-copy">© 2026 Live Fix. All rights reserved.</span>
+            <div className="app-footer-badges">
+              <span>Verified Technician</span>
+              <span className="app-footer-arrow">➔</span>
+              <span>Secure Pickup</span>
+              <span className="app-footer-arrow">➔</span>
+              <span>Live Transparent Repair</span>
+              <span className="app-footer-arrow">➔</span>
+              <span>Tamper-Protected Return</span>
+            </div>
           </div>
         </div>
       </footer>

@@ -119,7 +119,7 @@ export default function SearchableDropdown({
   };
 
   return (
-    <div className="searchable-dropdown-root" ref={containerRef}>
+    <div className={`searchable-dropdown-root ${isOpen ? 'searchable-dropdown-open' : ''}`} ref={containerRef}>
       {label && (
         <div className="searchable-dropdown-header-row">
           <label className="searchable-dropdown-label">{label}</label>

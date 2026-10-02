@@ -9,10 +9,16 @@
   flex-direction: column;
 }
 
+.searchable-dropdown-root.searchable-dropdown-open {
+  z-index: 50;
+}
+
 .searchable-dropdown-header-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
   margin-bottom: 7px;
 }
 
