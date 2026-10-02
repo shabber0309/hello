@@ -682,27 +682,19 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                     <span>Charger Model / Wattage & Photo Proof <span style={{ color: '#ef4444' }}>*</span></span>
                   </div>
 
-                  {/* Middle: Input box + Previews */}
-                  <div className="intake-manifest-input-box" style={{ border: chargerPhotoError ? '1.5px solid #ef4444' : undefined }}>
-                    <input
-                      type="text"
-                      className="intake-manifest-input"
-                      placeholder="e.g. Original 65W USB-C or Charger Model"
-                      value={formData.charger_details}
-                      onChange={(e) => setFormData({ ...formData, charger_details: e.target.value })}
-                    />
-
-                    {/* Inline Charger Thumbnails with blue X */}
+                  {/* Middle: Inline Charger Thumbnails or 'No photos uploaded yet' */}
+                  <div className="intake-manifest-middle">
                     {chargerPhotos.map((photo) => (
                       <div
                         key={photo.id}
                         style={{
                           position: 'relative',
-                          width: '46px',
-                          height: '34px',
-                          borderRadius: '5px',
+                          width: '64px',
+                          height: '46px',
+                          borderRadius: '6px',
                           overflow: 'hidden',
                           border: '1.5px solid var(--border-medium, #cbd5e1)',
+                          background: 'var(--bg-surface, #ffffff)',
                           flexShrink: 0
                         }}
                         title={photo.name}
@@ -713,13 +705,13 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                           onClick={() => removeChargerPhoto(photo.id)}
                           style={{
                             position: 'absolute',
-                            top: '1px',
-                            right: '1px',
+                            top: '2px',
+                            right: '2px',
                             background: '#2563eb',
                             border: 'none',
                             borderRadius: '50%',
-                            width: '14px',
-                            height: '14px',
+                            width: '15px',
+                            height: '15px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -729,10 +721,15 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                           }}
                           title="Remove"
                         >
-                          <X size={9} />
+                          <X size={10} />
                         </button>
                       </div>
                     ))}
+                    {chargerPhotos.length === 0 && (
+                      <span style={{ fontSize: '0.86rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                        No photos uploaded yet
+                      </span>
+                    )}
                   </div>
 
                   {/* Right: Max (3 photos) + Upload Button */}
