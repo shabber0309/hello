@@ -80,8 +80,8 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
   const [chargerPhotos, setChargerPhotos] = useState([]);
   const [chargerPhotoError, setChargerPhotoError] = useState('');
 
-  // Optional Accessories Photos State: Max 3
-  const [accessoryPhotos, setAccessoryPhotos] = useState([]);
+  // Optional Per-Accessory Photos State: map of accessoryName -> array of photos (Max 3 per item)
+  const [accessoryPhotosMap, setAccessoryPhotosMap] = useState({});
   const [accessoryPhotoError, setAccessoryPhotoError] = useState('');
   const [customAccText, setCustomAccText] = useState('');
 
@@ -150,13 +150,14 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     setChargerPhotos(prev => prev.filter(p => p.id !== id));
   };
 
-  // Handle Accessory Photo Upload (Optional Max 3)
-  const handleAccessoryPhotoUpload = (e) => {
+  // Handle Per-Accessory Photo Upload (Max 3 per accessory)
+  const handleItemPhotoUpload = (accName, e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    if (accessoryPhotos.length + files.length > 3) {
-      setAccessoryPhotoError('Maximum 3 accessory photos allowed. Please select up to 3 images.');
+    const currentPhotos = accessoryPhotosMap[accName] || [];
+    if (currentPhotos.length + files.length > 3) {
+      setAccessoryPhotoError(`Maximum 3 photos allowed for "${accName}".`);
       return;
     }
     setAccessoryPhotoError('');
@@ -168,14 +169,21 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       }
       const reader = new FileReader();
       reader.onload = (event) => {
-        setAccessoryPhotos(prev => {
-          if (prev.length >= 3) return prev;
-          return [...prev, {
-            id: Math.random().toString(36).substring(2, 9),
-            name: file.name,
-            size: (file.size / 1024).toFixed(1) + ' KB',
-            dataUrl: event.target.result
-          }];
+        setAccessoryPhotosMap(prev => {
+          const itemPhotos = prev[accName] || [];
+          if (itemPhotos.length >= 3) return prev;
+          return {
+            ...prev,
+            [accName]: [
+              ...itemPhotos,
+              {
+                id: Math.random().toString(36).substring(2, 9),
+                name: file.name,
+                size: (file.size / 1024).toFixed(1) + ' KB',
+                dataUrl: event.target.result
+              }
+            ]
+          };
         });
       };
       reader.readAsDataURL(file);
@@ -184,8 +192,11 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     e.target.value = '';
   };
 
-  const removeAccessoryPhoto = (id) => {
-    setAccessoryPhotos(prev => prev.filter(p => p.id !== id));
+  const removeItemPhoto = (accName, photoId) => {
+    setAccessoryPhotosMap(prev => ({
+      ...prev,
+      [accName]: (prev[accName] || []).filter(p => p.id !== photoId)
+    }));
   };
 
   const submitCustomAccessory = () => {
@@ -213,6 +224,11 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     setFormData(prev => {
       const current = (prev.included_accessories || []).filter(item => item !== acc && item !== 'None');
       return { ...prev, included_accessories: current };
+    });
+    setAccessoryPhotosMap(prev => {
+      const next = { ...prev };
+      delete next[acc];
+      return next;
     });
   };
 
@@ -434,7 +450,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       customer_selected_price: formData.customer_selected_price,
       problem_photos: photos.map(p => p.dataUrl),
       charger_photos: chargerPhotos.map(p => p.dataUrl),
-      accessory_photos: accessoryPhotos.map(p => p.dataUrl)
+      accessory_photos: Object.values(accessoryPhotosMap).flat().map(p => p.dataUrl)
     };
 
     try {
@@ -751,7 +767,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               <div className="intake-manifest-divider" />
 
               {/* 3. Other Handover Accessories (Optional) */}
-              <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div className="intake-manifest-row">
                   {/* Left: Number + Label */}
                   <div className="intake-manifest-label">
@@ -759,8 +775,8 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                     <span>Other Handover Accessories (Optional)</span>
                   </div>
 
-                  {/* Middle: Input box + Tag Chips + Previews */}
-                  <div className="intake-manifest-input-box" style={{ border: accessoryPhotoError ? '1.5px solid #ef4444' : undefined }}>
+                  {/* Middle: Clean single-bordered input box */}
+                  <div className="intake-manifest-input-box">
                     <input
                       type="text"
                       className="intake-manifest-input"
@@ -792,119 +808,23 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                         <Plus size={12} /> Add
                       </button>
                     )}
-
-                    {/* Added Accessories Tag Chips */}
-                    {formData.included_accessories.filter(a => a && a !== 'None').map((acc) => (
-                      <div
-                        key={acc}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          background: 'var(--primary-subtle, rgba(37, 99, 235, 0.08))',
-                          color: 'var(--primary, #2563eb)',
-                          border: '1px solid var(--border-focus, #93c5fd)',
-                          borderRadius: '6px',
-                          padding: '3px 8px',
-                          fontSize: '0.78rem',
-                          fontWeight: 600,
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0
-                        }}
-                      >
-                        <span>{acc}</span>
-                        <button
-                          type="button"
-                          onClick={() => toggleAccessory(acc)}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            padding: 0,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: 'var(--primary, #2563eb)'
-                          }}
-                          title={`Remove ${acc}`}
-                        >
-                          <X size={11} />
-                        </button>
-                      </div>
-                    ))}
-
-                    {/* Inline Accessory Thumbnails with blue X */}
-                    {accessoryPhotos.map((photo) => (
-                      <div
-                        key={photo.id}
-                        style={{
-                          position: 'relative',
-                          width: '46px',
-                          height: '34px',
-                          borderRadius: '5px',
-                          overflow: 'hidden',
-                          border: '1.5px solid var(--border-medium, #cbd5e1)',
-                          flexShrink: 0
-                        }}
-                        title={photo.name}
-                      >
-                        <img src={photo.dataUrl} alt={photo.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <button
-                          type="button"
-                          onClick={() => removeAccessoryPhoto(photo.id)}
-                          style={{
-                            position: 'absolute',
-                            top: '1px',
-                            right: '1px',
-                            background: '#2563eb',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '14px',
-                            height: '14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#ffffff',
-                            cursor: 'pointer',
-                            padding: 0
-                          }}
-                          title="Remove"
-                        >
-                          <X size={9} />
-                        </button>
-                      </div>
-                    ))}
                   </div>
 
-                  {/* Right: Max (3 photos) + Upload Button */}
-                  <div className="intake-manifest-action-col">
-                    <span className="intake-manifest-limit-text">Max (3 photos)</span>
-                    <label
-                      htmlFor="accessory-photo-upload-input"
-                      className={`intake-manifest-upload-btn ${accessoryPhotos.length >= 3 ? 'disabled' : ''}`}
-                    >
-                      <input
-                        type="file"
-                        id="accessory-photo-upload-input"
-                        accept="image/*"
-                        multiple
-                        disabled={accessoryPhotos.length >= 3}
-                        onChange={handleAccessoryPhotoUpload}
-                        style={{ display: 'none' }}
-                      />
-                      <span>Upload</span>
-                    </label>
-                  </div>
+                  {/* Right: Empty action col to maintain uniform 3-col grid alignment */}
+                  <div className="intake-manifest-action-col" />
                 </div>
 
-                {accessoryPhotoError && (
-                  <div style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <AlertTriangle size={13} /> {accessoryPhotoError}
-                  </div>
-                )}
-
-                {/* Quick Add Pills */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', paddingLeft: '306px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>Quick add:</span>
+                {/* Quick Add Pills (Full Width Complete Line) */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  paddingTop: '8px',
+                  borderTop: '1px dashed var(--border-subtle, rgba(0, 0, 0, 0.08))',
+                  width: '100%',
+                  flexWrap: 'wrap'
+                }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Quick add:</span>
                   {['Mouse', 'Laptop Bag', 'USB Hub', 'External Drive'].map(item => {
                     const isAdded = formData.included_accessories.includes(item);
                     return (
@@ -942,6 +862,143 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                     );
                   })}
                 </div>
+
+                {accessoryPhotoError && (
+                  <div style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <AlertTriangle size={13} /> {accessoryPhotoError}
+                  </div>
+                )}
+
+                {/* Dedicated Per-Accessory Rows (Matching User Mockup) */}
+                {formData.included_accessories.filter(a => a && a !== 'None').map((acc) => {
+                  const itemPhotos = accessoryPhotosMap[acc] || [];
+                  const isMax = itemPhotos.length >= 3;
+                  const inputId = `accessory-photo-input-${acc.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+
+                  return (
+                    <div
+                      key={acc}
+                      className="intake-manifest-row"
+                      style={{
+                        paddingTop: '6px',
+                        paddingBottom: '6px',
+                        borderTop: '1px solid var(--border-subtle, rgba(0, 0, 0, 0.04))'
+                      }}
+                    >
+                      {/* Left: Pill with Remove 'X' */}
+                      <div>
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '8px',
+                            background: 'var(--primary-subtle, rgba(37, 99, 235, 0.08))',
+                            color: 'var(--primary, #2563eb)',
+                            border: '1.5px solid var(--border-focus, #93c5fd)',
+                            borderRadius: '8px',
+                            padding: '6px 12px',
+                            fontSize: '0.88rem',
+                            fontWeight: 600,
+                            maxWidth: '100%',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{acc}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleAccessory(acc)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              padding: 0,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'var(--primary, #2563eb)',
+                              marginLeft: '4px'
+                            }}
+                            title={`Remove ${acc}`}
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Middle: Inline Thumbnails or "No photos uploaded yet" */}
+                      <div className="intake-manifest-middle">
+                        {itemPhotos.length > 0 ? (
+                          itemPhotos.map((photo) => (
+                            <div
+                              key={photo.id}
+                              style={{
+                                position: 'relative',
+                                width: '64px',
+                                height: '46px',
+                                borderRadius: '6px',
+                                overflow: 'hidden',
+                                border: '1.5px solid var(--border-medium, #cbd5e1)',
+                                background: 'var(--bg-surface, #ffffff)',
+                                flexShrink: 0
+                              }}
+                              title={photo.name}
+                            >
+                              <img src={photo.dataUrl} alt={photo.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <button
+                                type="button"
+                                onClick={() => removeItemPhoto(acc, photo.id)}
+                                style={{
+                                  position: 'absolute',
+                                  top: '2px',
+                                  right: '2px',
+                                  background: '#2563eb',
+                                  border: 'none',
+                                  borderRadius: '50%',
+                                  width: '15px',
+                                  height: '15px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#ffffff',
+                                  cursor: 'pointer',
+                                  padding: 0
+                                }}
+                                title="Remove photo"
+                              >
+                                <X size={10} />
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <span style={{ fontSize: '0.86rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                            No photos uploaded yet
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Right: Max (3 photos) + Upload Button */}
+                      <div className="intake-manifest-action-col">
+                        <span className="intake-manifest-limit-text">Max (3 photos)</span>
+                        <label
+                          htmlFor={inputId}
+                          className={`intake-manifest-upload-btn ${isMax ? 'disabled' : ''}`}
+                        >
+                          <input
+                            type="file"
+                            id={inputId}
+                            accept="image/*"
+                            multiple
+                            disabled={isMax}
+                            onChange={(e) => handleItemPhotoUpload(acc, e)}
+                            style={{ display: 'none' }}
+                          />
+                          <span>Upload</span>
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

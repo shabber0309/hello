@@ -5,7 +5,7 @@
 
 .book-repair-root {
   padding: 8px 20px 48px;
-  max-width: 820px;
+  max-width: 880px;
   margin: 0 auto;
 }
 
@@ -1277,7 +1277,7 @@ input.resume-wattage-custom-input {
 
 .intake-manifest-row {
   display: grid;
-  grid-template-columns: 290px 1fr 110px;
+  grid-template-columns: 240px 1fr 110px;
   align-items: center;
   gap: 16px;
 }
@@ -1316,26 +1316,36 @@ input.resume-wattage-custom-input {
   background: var(--bg-surface, #ffffff);
   border: 1.5px solid var(--border-medium, #cbd5e1);
   border-radius: 8px;
-  padding: 5px 12px;
+  padding: 4px 10px;
   min-height: 42px;
   box-sizing: border-box;
   flex-wrap: wrap;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .intake-manifest-input-box:focus-within {
   border-color: var(--primary, #2563eb);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-.intake-manifest-input {
+.intake-manifest-input-box input,
+input.intake-manifest-input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 6px 4px !important;
+  font-size: 0.9rem !important;
+  color: var(--text-main) !important;
   flex: 1 1 auto;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 0.88rem;
-  color: var(--text-main);
-  padding: 4px 0;
-  min-width: 120px;
+  min-width: 100px;
+}
+
+.intake-manifest-input-box input:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .intake-manifest-action-col {
