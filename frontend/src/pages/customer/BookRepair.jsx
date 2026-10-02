@@ -261,8 +261,8 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    if (photos.length + files.length > 5) {
-      setPhotoError('Maximum 5 photos allowed. Please select fewer images.');
+    if (photos.length + files.length > 3) {
+      setPhotoError('Maximum 3 photos allowed. Please select up to 3 images.');
       return;
     }
     setPhotoError('');
@@ -275,7 +275,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       const reader = new FileReader();
       reader.onload = (event) => {
         setPhotos(prev => {
-          if (prev.length >= 5) return prev;
+          if (prev.length >= 3) return prev;
           return [...prev, {
             id: Math.random().toString(36).substring(2, 9),
             name: file.name,
@@ -301,7 +301,11 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       return;
     }
     if (photos.length === 0) {
-      setPhotoError('Photo proof is required (Min 1, Max 5). Please upload at least 1 photo showing the problem or device label.');
+      setPhotoError('Photo proof is required (Min 1, Max 3). Please upload at least 1 photo showing the problem or device label.');
+      return;
+    }
+    if (photos.length > 3) {
+      setPhotoError('Maximum 3 photos allowed.');
       return;
     }
     if (chargerPhotos.length < 1) {
@@ -561,362 +565,345 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
 
 
 
-            {/* Handover Custody: Charger & Other Accessories in the Same Unified Card */}
-            <div style={{
-              background: 'var(--bg-surface-elevated, #f8fafc)',
-              border: '1.5px solid var(--border-medium, #e2e8f0)',
-              borderRadius: '16px',
-              padding: '16px 18px',
-              marginBottom: '22px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-            }}>
-              {/* Row 1: Charger Model / Wattage & Photo Proof */}
+            {/* Intake Manifest Card (Matching User Layout from Image 1) */}
+            <div className="intake-manifest-card">
+              {/* 1. Upload problem photo * */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem' }}>
-                    <BatteryCharging size={16} color="var(--primary)" />
-                    Charger Model / Wattage & Photo Proof <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <span style={{ fontSize: '0.74rem', fontWeight: 700, color: chargerPhotos.length >= 1 ? '#059669' : '#ef4444' }}>
-                    {chargerPhotos.length} / 3 Photos {chargerPhotos.length >= 1 ? '✓' : '(Required)'}
-                  </span>
-                </div>
+                <div className="intake-manifest-row">
+                  {/* Left: Number + Label */}
+                  <div className="intake-manifest-label">
+                    <span className="intake-manifest-number">1.</span>
+                    <span>Upload problem photo <span style={{ color: '#ef4444' }}>*</span></span>
+                  </div>
 
-                {/* Single Line Bar: Charger Input + Upload Button + Thumbnails */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'var(--bg-surface, #ffffff)',
-                  border: chargerPhotoError ? '1.5px solid #ef4444' : '1.5px solid var(--border-medium, #cbd5e1)',
-                  borderRadius: '10px',
-                  padding: '6px 10px',
-                  minHeight: '46px',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                  flexWrap: 'wrap'
-                }}>
-                  <input
-                    type="text"
-                    placeholder="Charger Model / Wattage (e.g. Original 65W USB-C)"
-                    value={formData.charger_details}
-                    onChange={(e) => setFormData({ ...formData, charger_details: e.target.value })}
-                    style={{
-                      flex: '1 1 200px',
-                      border: 'none',
-                      outline: 'none',
-                      background: 'transparent',
-                      fontSize: '0.88rem',
-                      color: 'var(--text-main)',
-                      padding: '6px 8px',
-                      minWidth: '150px'
-                    }}
-                  />
+                  {/* Middle: Inline Thumbnails with blue X */}
+                  <div className="intake-manifest-middle">
+                    {photos.map((p, idx) => (
+                      <div
+                        key={p.id}
+                        style={{
+                          position: 'relative',
+                          width: '64px',
+                          height: '46px',
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          border: '1.5px solid var(--border-medium, #cbd5e1)',
+                          background: 'var(--bg-surface, #ffffff)',
+                          flexShrink: 0
+                        }}
+                        title={`Problem photo ${idx + 1}`}
+                      >
+                        <img src={p.dataUrl} alt={`Problem photo ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(p.id)}
+                          style={{
+                            position: 'absolute',
+                            top: '2px',
+                            right: '2px',
+                            background: '#2563eb',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '15px',
+                            height: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                          title="Remove photo"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                    {photos.length === 0 && (
+                      <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                        No photos uploaded yet
+                      </span>
+                    )}
+                  </div>
 
-                  {/* Upload Button */}
-                  {chargerPhotos.length < 3 && (
+                  {/* Right: Max (3 photos) + Upload Button */}
+                  <div className="intake-manifest-action-col">
+                    <span className="intake-manifest-limit-text">Max (3 photos)</span>
                     <label
-                      htmlFor="charger-photo-upload"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '7px 12px',
-                        background: 'var(--primary-subtle, rgba(37, 99, 235, 0.08))',
-                        border: '1px solid var(--primary, #2563eb)',
-                        color: 'var(--primary, #2563eb)',
-                        borderRadius: '8px',
-                        fontSize: '0.82rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        transition: 'all 0.15s ease',
-                        flexShrink: 0
-                      }}
-                      title="Upload charger photo (Min 1, Max 3)"
+                      htmlFor="problem-photo-input"
+                      className={`intake-manifest-upload-btn ${photos.length >= 3 ? 'disabled' : ''}`}
                     >
                       <input
                         type="file"
-                        id="charger-photo-upload"
+                        id="problem-photo-input"
                         accept="image/*"
                         multiple
-                        onChange={handleChargerPhotoUpload}
+                        disabled={photos.length >= 3}
+                        onChange={handlePhotoUpload}
                         style={{ display: 'none' }}
                       />
-                      <Camera size={15} />
-                      <span>Upload Photo ({chargerPhotos.length}/3)</span>
+                      <span>Upload</span>
                     </label>
-                  )}
-
-                  {/* Inline Thumbnail Previews */}
-                  {chargerPhotos.map((photo) => (
-                    <div
-                      key={photo.id}
-                      style={{
-                        position: 'relative',
-                        width: '34px',
-                        height: '34px',
-                        borderRadius: '7px',
-                        overflow: 'hidden',
-                        border: '1.5px solid var(--border-medium, #94a3b8)',
-                        flexShrink: 0
-                      }}
-                      title={photo.name}
-                    >
-                      <img
-                        src={photo.dataUrl}
-                        alt={photo.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeChargerPhoto(photo.id)}
-                        style={{
-                          position: 'absolute',
-                          top: '1px',
-                          right: '1px',
-                          background: 'rgba(0, 0, 0, 0.7)',
-                          border: 'none',
-                          borderRadius: '50%',
-                          width: '15px',
-                          height: '15px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#ffffff',
-                          cursor: 'pointer',
-                          padding: 0
-                        }}
-                        title="Remove"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
+                  </div>
                 </div>
 
-                {chargerPhotoError && (
-                  <div style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', fontWeight: 600 }}>
-                    {chargerPhotoError}
+                {photoError && (
+                  <div style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <AlertTriangle size={13} /> {photoError}
                   </div>
                 )}
               </div>
 
               {/* Subtle Row Divider */}
-              <div style={{ height: '1px', background: 'var(--border-subtle, rgba(0,0,0,0.06))' }} />
+              <div className="intake-manifest-divider" />
 
-              {/* Row 2: Other Handover Accessories (Optional) & Photo Proof */}
+              {/* 2. Charger Model / Wattage & Photo Proof */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem' }}>
-                    <PackageCheck size={16} color="var(--primary)" />
-                    Other Handover Accessories (Optional)
-                  </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {accessoryPhotos.length > 0 && (
-                      <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#059669' }}>
-                        {accessoryPhotos.length} / 3 Photos ✓
-                      </span>
-                    )}
-                    {formData.included_accessories.filter(a => a && a !== 'None').length > 0 && (
-                      <span style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                        {formData.included_accessories.filter(a => a && a !== 'None').length} items added
-                      </span>
-                    )}
+                <div className="intake-manifest-row">
+                  {/* Left: Number + Label */}
+                  <div className="intake-manifest-label">
+                    <span className="intake-manifest-number">2.</span>
+                    <span>Charger Model / Wattage & Photo Proof <span style={{ color: '#ef4444' }}>*</span></span>
                   </div>
-                </div>
 
-                {/* Single Line Bar: Accessories Input + Add Button + Upload Photo + Thumbnails + Tag Chips */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'var(--bg-surface, #ffffff)',
-                  border: accessoryPhotoError ? '1.5px solid #ef4444' : '1.5px solid var(--border-medium, #cbd5e1)',
-                  borderRadius: '10px',
-                  padding: '6px 10px',
-                  minHeight: '46px',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                  flexWrap: 'wrap'
-                }}>
-                  <input
-                    type="text"
-                    placeholder="Type accessory (e.g. Mouse, Bag, USB Hub, External Drive)..."
-                    value={customAccText}
-                    onChange={(e) => setCustomAccText(e.target.value)}
-                    onKeyDown={handleAddCustomAccessory}
-                    style={{
-                      flex: '1 1 200px',
-                      border: 'none',
-                      outline: 'none',
-                      background: 'transparent',
-                      fontSize: '0.88rem',
-                      color: 'var(--text-main)',
-                      padding: '6px 8px',
-                      minWidth: '150px'
-                    }}
-                  />
+                  {/* Middle: Input box + Previews */}
+                  <div className="intake-manifest-input-box" style={{ border: chargerPhotoError ? '1.5px solid #ef4444' : undefined }}>
+                    <input
+                      type="text"
+                      className="intake-manifest-input"
+                      placeholder="e.g. Original 65W USB-C or Charger Model"
+                      value={formData.charger_details}
+                      onChange={(e) => setFormData({ ...formData, charger_details: e.target.value })}
+                    />
 
-                  {/* Add Button */}
-                  {customAccText.trim() && (
-                    <button
-                      type="button"
-                      onClick={submitCustomAccessory}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '7px 12px',
-                        background: 'var(--primary, #2563eb)',
-                        border: 'none',
-                        color: '#ffffff',
-                        borderRadius: '8px',
-                        fontSize: '0.82rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        transition: 'all 0.15s ease',
-                        flexShrink: 0
-                      }}
-                      title="Add accessory"
-                    >
-                      <Plus size={14} />
-                      <span>Add</span>
-                    </button>
-                  )}
+                    {/* Inline Charger Thumbnails with blue X */}
+                    {chargerPhotos.map((photo) => (
+                      <div
+                        key={photo.id}
+                        style={{
+                          position: 'relative',
+                          width: '46px',
+                          height: '34px',
+                          borderRadius: '5px',
+                          overflow: 'hidden',
+                          border: '1.5px solid var(--border-medium, #cbd5e1)',
+                          flexShrink: 0
+                        }}
+                        title={photo.name}
+                      >
+                        <img src={photo.dataUrl} alt={photo.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button
+                          type="button"
+                          onClick={() => removeChargerPhoto(photo.id)}
+                          style={{
+                            position: 'absolute',
+                            top: '1px',
+                            right: '1px',
+                            background: '#2563eb',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '14px',
+                            height: '14px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                          title="Remove"
+                        >
+                          <X size={9} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
 
-                  {/* Accessory Photo Upload Button */}
-                  {accessoryPhotos.length < 3 && (
+                  {/* Right: Max (3 photos) + Upload Button */}
+                  <div className="intake-manifest-action-col">
+                    <span className="intake-manifest-limit-text">Max (3 photos)</span>
                     <label
-                      htmlFor="accessory-photo-upload"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '7px 12px',
-                        background: 'var(--primary-subtle, rgba(37, 99, 235, 0.08))',
-                        border: '1px solid var(--primary, #2563eb)',
-                        color: 'var(--primary, #2563eb)',
-                        borderRadius: '8px',
-                        fontSize: '0.82rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        transition: 'all 0.15s ease',
-                        flexShrink: 0
-                      }}
-                      title="Upload accessory photo proof (Optional, up to 3)"
+                      htmlFor="charger-photo-upload-input"
+                      className={`intake-manifest-upload-btn ${chargerPhotos.length >= 3 ? 'disabled' : ''}`}
                     >
                       <input
                         type="file"
-                        id="accessory-photo-upload"
+                        id="charger-photo-upload-input"
                         accept="image/*"
                         multiple
+                        disabled={chargerPhotos.length >= 3}
+                        onChange={handleChargerPhotoUpload}
+                        style={{ display: 'none' }}
+                      />
+                      <span>Upload</span>
+                    </label>
+                  </div>
+                </div>
+
+                {chargerPhotoError && (
+                  <div style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <AlertTriangle size={13} /> {chargerPhotoError}
+                  </div>
+                )}
+              </div>
+
+              {/* Subtle Row Divider */}
+              <div className="intake-manifest-divider" />
+
+              {/* 3. Other Handover Accessories (Optional) */}
+              <div>
+                <div className="intake-manifest-row">
+                  {/* Left: Number + Label */}
+                  <div className="intake-manifest-label">
+                    <span className="intake-manifest-number">3.</span>
+                    <span>Other Handover Accessories (Optional)</span>
+                  </div>
+
+                  {/* Middle: Input box + Tag Chips + Previews */}
+                  <div className="intake-manifest-input-box" style={{ border: accessoryPhotoError ? '1.5px solid #ef4444' : undefined }}>
+                    <input
+                      type="text"
+                      className="intake-manifest-input"
+                      placeholder="Type accessory (e.g. Mouse, Bag, USB Hub)..."
+                      value={customAccText}
+                      onChange={(e) => setCustomAccText(e.target.value)}
+                      onKeyDown={handleAddCustomAccessory}
+                    />
+
+                    {customAccText.trim() && (
+                      <button
+                        type="button"
+                        onClick={submitCustomAccessory}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          padding: '4px 10px',
+                          background: 'var(--primary, #2563eb)',
+                          border: 'none',
+                          color: '#ffffff',
+                          borderRadius: '6px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          flexShrink: 0
+                        }}
+                      >
+                        <Plus size={12} /> Add
+                      </button>
+                    )}
+
+                    {/* Added Accessories Tag Chips */}
+                    {formData.included_accessories.filter(a => a && a !== 'None').map((acc) => (
+                      <div
+                        key={acc}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          background: 'var(--primary-subtle, rgba(37, 99, 235, 0.08))',
+                          color: 'var(--primary, #2563eb)',
+                          border: '1px solid var(--border-focus, #93c5fd)',
+                          borderRadius: '6px',
+                          padding: '3px 8px',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0
+                        }}
+                      >
+                        <span>{acc}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleAccessory(acc)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            padding: 0,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: 'var(--primary, #2563eb)'
+                          }}
+                          title={`Remove ${acc}`}
+                        >
+                          <X size={11} />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Inline Accessory Thumbnails with blue X */}
+                    {accessoryPhotos.map((photo) => (
+                      <div
+                        key={photo.id}
+                        style={{
+                          position: 'relative',
+                          width: '46px',
+                          height: '34px',
+                          borderRadius: '5px',
+                          overflow: 'hidden',
+                          border: '1.5px solid var(--border-medium, #cbd5e1)',
+                          flexShrink: 0
+                        }}
+                        title={photo.name}
+                      >
+                        <img src={photo.dataUrl} alt={photo.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button
+                          type="button"
+                          onClick={() => removeAccessoryPhoto(photo.id)}
+                          style={{
+                            position: 'absolute',
+                            top: '1px',
+                            right: '1px',
+                            background: '#2563eb',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '14px',
+                            height: '14px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                          title="Remove"
+                        >
+                          <X size={9} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Right: Max (3 photos) + Upload Button */}
+                  <div className="intake-manifest-action-col">
+                    <span className="intake-manifest-limit-text">Max (3 photos)</span>
+                    <label
+                      htmlFor="accessory-photo-upload-input"
+                      className={`intake-manifest-upload-btn ${accessoryPhotos.length >= 3 ? 'disabled' : ''}`}
+                    >
+                      <input
+                        type="file"
+                        id="accessory-photo-upload-input"
+                        accept="image/*"
+                        multiple
+                        disabled={accessoryPhotos.length >= 3}
                         onChange={handleAccessoryPhotoUpload}
                         style={{ display: 'none' }}
                       />
-                      <Camera size={15} />
-                      <span>Photo Proof ({accessoryPhotos.length}/3)</span>
+                      <span>Upload</span>
                     </label>
-                  )}
-
-                  {/* Inline Accessory Photo Previews */}
-                  {accessoryPhotos.map((photo) => (
-                    <div
-                      key={photo.id}
-                      style={{
-                        position: 'relative',
-                        width: '34px',
-                        height: '34px',
-                        borderRadius: '7px',
-                        overflow: 'hidden',
-                        border: '1.5px solid var(--border-medium, #94a3b8)',
-                        flexShrink: 0
-                      }}
-                      title={photo.name}
-                    >
-                      <img
-                        src={photo.dataUrl}
-                        alt={photo.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeAccessoryPhoto(photo.id)}
-                        style={{
-                          position: 'absolute',
-                          top: '1px',
-                          right: '1px',
-                          background: 'rgba(0, 0, 0, 0.7)',
-                          border: 'none',
-                          borderRadius: '50%',
-                          width: '15px',
-                          height: '15px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#ffffff',
-                          cursor: 'pointer',
-                          padding: 0
-                        }}
-                        title="Remove photo"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-
-                  {/* Inline Accessory Tag Chips */}
-                  {formData.included_accessories.filter(a => a && a !== 'None').map((acc) => (
-                    <div
-                      key={acc}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        background: 'var(--primary-subtle, rgba(37, 99, 235, 0.08))',
-                        color: 'var(--primary, #2563eb)',
-                        border: '1px solid var(--border-focus, #93c5fd)',
-                        borderRadius: '7px',
-                        padding: '4px 8px',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0
-                      }}
-                    >
-                      <span>{acc}</span>
-                      <button
-                        type="button"
-                        onClick={() => toggleAccessory(acc)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          padding: '1px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          color: 'var(--primary, #2563eb)',
-                          opacity: 0.8
-                        }}
-                        title={`Remove ${acc}`}
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
+                  </div>
                 </div>
 
                 {accessoryPhotoError && (
-                  <div style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', fontWeight: 600 }}>
-                    {accessoryPhotoError}
+                  <div style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <AlertTriangle size={13} /> {accessoryPhotoError}
                   </div>
                 )}
 
-                {/* Quick-Add Chips for Common Accessories */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+                {/* Quick Add Pills */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', paddingLeft: '306px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>Quick add:</span>
                   {['Mouse', 'Laptop Bag', 'USB Hub', 'External Drive'].map(item => {
                     const isAdded = formData.included_accessories.includes(item);
@@ -940,7 +927,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                           gap: '4px',
                           padding: '3px 9px',
                           borderRadius: '6px',
-                          fontSize: '0.75rem',
+                          fontSize: '0.74rem',
                           fontWeight: 600,
                           background: isAdded ? 'var(--primary, #2563eb)' : 'var(--bg-surface, #ffffff)',
                           color: isAdded ? '#ffffff' : 'var(--text-muted)',
@@ -956,74 +943,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                   })}
                 </div>
               </div>
-            </div>
-
-            {/* Photo Proof Upload Section (Min 1, Max 5 required) */}
-            <div className="book-photo-section">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <ImageIcon size={16} color="var(--primary)" />
-                  Problem Photo Proof <span style={{ color: '#ef4444' }}>*</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-                    (Min 1 photo required, Max 5)
-                  </span>
-                </label>
-                <span className={`photo-count-badge ${photos.length >= 1 ? 'photo-count-valid' : ''}`}>
-                  {photos.length} / 5 photos uploaded {photos.length >= 1 && <Check size={12} />}
-                </span>
-              </div>
-
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 12px' }}>
-                Upload photos of the physical damage, screen defect, battery, or back label so the technician can review photo proof before doorstep pickup.
-              </p>
-
-              {/* Upload Drop Zone / Button */}
-              {photos.length < 5 && (
-                <label className="photo-upload-dropzone">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handlePhotoUpload}
-                    style={{ display: 'none' }}
-                  />
-                  <Upload size={22} color="var(--primary)" />
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>
-                    Click to browse or take photos
-                  </span>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                    PNG, JPG, WebP supported (Max 5 photos)
-                  </span>
-                </label>
-              )}
-
-              {photoError && (
-                <div style={{ color: '#ef4444', fontSize: '0.82rem', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <AlertTriangle size={14} /> {photoError}
-                </div>
-              )}
-
-              {/* Photos Previews Grid */}
-              {photos.length > 0 && (
-                <div className="photo-previews-grid">
-                  {photos.map((p, idx) => (
-                    <div key={p.id} className="photo-preview-card">
-                      <img src={p.dataUrl} alt={`Fault proof ${idx + 1}`} className="photo-thumbnail" />
-                      <div className="photo-preview-overlay">
-                        <span className="photo-tag">Photo #{idx + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => removePhoto(p.id)}
-                          className="photo-delete-btn"
-                          title="Remove photo"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div className="book-actions-footer">

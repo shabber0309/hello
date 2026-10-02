@@ -1256,3 +1256,149 @@ input.resume-wattage-custom-input {
     transform: scale(1);
   }
 }
+
+/* Numbered Intake Manifest Layout (Matching User Wireframe from Image 1) */
+.intake-manifest-card {
+  background: var(--bg-surface-elevated, #f8fafc);
+  border: 1.5px solid var(--border-medium, #e2e8f0);
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] .intake-manifest-card {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.intake-manifest-row {
+  display: grid;
+  grid-template-columns: 290px 1fr 110px;
+  align-items: center;
+  gap: 16px;
+}
+
+.intake-manifest-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.intake-manifest-number {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  flex-shrink: 0;
+}
+
+.intake-manifest-middle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.intake-manifest-input-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: var(--bg-surface, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  border-radius: 8px;
+  padding: 5px 12px;
+  min-height: 42px;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+.intake-manifest-input-box:focus-within {
+  border-color: var(--primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.intake-manifest-input {
+  flex: 1 1 auto;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  padding: 4px 0;
+  min-width: 120px;
+}
+
+.intake-manifest-action-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 120px;
+}
+
+.intake-manifest-limit-text {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.intake-manifest-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 24px;
+  background: var(--primary, #2563eb);
+  border: 1px solid var(--primary, #2563eb);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+}
+
+.intake-manifest-upload-btn:hover:not(.disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.intake-manifest-upload-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.intake-manifest-divider {
+  height: 1px;
+  background: var(--border-subtle, rgba(0, 0, 0, 0.06));
+}
+
+[data-theme="dark"] .intake-manifest-divider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+  .intake-manifest-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .intake-manifest-action-col {
+    align-items: flex-start;
+  }
+}
+
