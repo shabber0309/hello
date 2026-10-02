@@ -1316,10 +1316,10 @@ input.resume-wattage-custom-input {
   background: var(--bg-surface, #ffffff);
   border: 1.5px solid var(--border-medium, #cbd5e1);
   border-radius: 8px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   min-height: 42px;
   box-sizing: border-box;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 

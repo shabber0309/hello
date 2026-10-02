@@ -4,7 +4,7 @@ import {
   Laptop, ShieldCheck, MapPin, Calendar, Check, ArrowRight, ArrowLeft,
   Lock, AlertTriangle, Upload, Image as ImageIcon, Trash2, Info, Sliders, CheckCircle2,
   Layers, Wrench, Key, BatteryCharging, CheckSquare, MessageCircle, AlertCircle,
-  Briefcase, MousePointer, ShoppingBag, X, PackageCheck, Plus, Camera
+  Briefcase, MousePointer, ShoppingBag, X, PackageCheck, Plus, Camera, Search
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { TamperSealBadge, SearchableDropdown } from '../../components/common';
@@ -764,51 +764,48 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               <div className="intake-manifest-divider" />
 
               {/* 3. Other Handover Accessories (Optional) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div className="intake-manifest-row">
-                  {/* Left: Number + Label */}
-                  <div className="intake-manifest-label">
-                    <span className="intake-manifest-number">3.</span>
-                    <span>Other Handover Accessories (Optional)</span>
-                  </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* Section Header */}
+                <div className="intake-manifest-label">
+                  <span className="intake-manifest-number">3.</span>
+                  <span>Other Handover Accessories (Optional)</span>
+                </div>
 
-                  {/* Middle: Clean single-bordered input box */}
-                  <div className="intake-manifest-input-box">
-                    <input
-                      type="text"
-                      className="intake-manifest-input"
-                      placeholder="Type accessory (e.g. Mouse, Bag, USB Hub)..."
-                      value={customAccText}
-                      onChange={(e) => setCustomAccText(e.target.value)}
-                      onKeyDown={handleAddCustomAccessory}
-                    />
+                {/* Complete Full-Width Search Bar */}
+                <div className="intake-manifest-input-box" style={{ width: '100%', boxSizing: 'border-box' }}>
+                  <Search size={16} style={{ color: 'var(--text-muted)', marginLeft: '4px', flexShrink: 0 }} />
+                  <input
+                    type="text"
+                    className="intake-manifest-input"
+                    placeholder="Type accessory (e.g. Mouse, Bag, USB Hub)..."
+                    value={customAccText}
+                    onChange={(e) => setCustomAccText(e.target.value)}
+                    onKeyDown={handleAddCustomAccessory}
+                    style={{ width: '100%', fontSize: '0.9rem' }}
+                  />
 
-                    {customAccText.trim() && (
-                      <button
-                        type="button"
-                        onClick={submitCustomAccessory}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '3px',
-                          padding: '4px 10px',
-                          background: 'var(--primary, #2563eb)',
-                          border: 'none',
-                          color: '#ffffff',
-                          borderRadius: '6px',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          flexShrink: 0
-                        }}
-                      >
-                        <Plus size={12} /> Add
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Right: Empty action col to maintain uniform 3-col grid alignment */}
-                  <div className="intake-manifest-action-col" />
+                  {customAccText.trim() && (
+                    <button
+                      type="button"
+                      onClick={submitCustomAccessory}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        padding: '5px 12px',
+                        background: 'var(--primary, #2563eb)',
+                        border: 'none',
+                        color: '#ffffff',
+                        borderRadius: '6px',
+                        fontSize: '0.82rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        flexShrink: 0
+                      }}
+                    >
+                      <Plus size={13} /> Add
+                    </button>
+                  )}
                 </div>
 
                 {/* Quick Add Pills (Full Width Complete Line) */}
@@ -1019,10 +1016,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
               <AlertTriangle size={20} color="var(--primary)" /> Step 2: Issue Checklist & Description
             </h3>
 
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-              Select the diagnostic category and specific laptop fault from our 2026 indicative database (covering 200 services across Software, Hardware, Display, Power, Motherboard, and Recovery).
-            </p>
-
+            
             <div className="book-dropdowns-stack">
               {/* 1. Category Dropdown - Full Width */}
               <SearchableDropdown
