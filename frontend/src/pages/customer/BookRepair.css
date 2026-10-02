@@ -194,12 +194,20 @@
   }
 }
 
-/* Line-by-Line Stack for Searchable Dropdowns */
+/* 2-Column Responsive Grid for Searchable Dropdowns in Laptop View */
 .book-dropdowns-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
   width: 100%;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .book-dropdowns-stack {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
 }
 
 /* Form Controls - Standard 50px Height */
