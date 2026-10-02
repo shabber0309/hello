@@ -528,8 +528,8 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
         {/* STEP 1: DEVICE SPECS & PHOTO PROOFS */}
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', margin: '0 0 4px' }}>
-              <Laptop size={20} color="var(--primary)" /> Step 1: Laptop Brand, Model & Photo Proof
+            <h3 className="book-step-title">
+              <Laptop size={20} color="var(--primary)" className="book-step-title-icon" /> Step 1: Laptop Brand, Model & Photo Proof
             </h3>
 
             <div>
@@ -777,7 +777,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
                   <input
                     type="text"
                     className="intake-manifest-input"
-                    placeholder="Type accessory (e.g. Mouse, Bag, USB Hub)..."
+                    placeholder="Type accessory (e.g. Mouse, Bag)..."
                     value={customAccText}
                     onChange={(e) => setCustomAccText(e.target.value)}
                     onKeyDown={handleAddCustomAccessory}
@@ -997,11 +997,10 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
             </div>
 
             <div className="book-actions-footer">
-              <div />
               <button
                 type="button"
                 onClick={handleProceedToStep2}
-                className="btn-action"
+                className="btn-action btn-action-next-only"
               >
                 Next: Issue Checklist <ArrowRight size={16} />
               </button>
