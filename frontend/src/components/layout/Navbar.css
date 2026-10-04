@@ -452,6 +452,47 @@
   box-shadow: 0 1px 0 #1e3a8a, 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
+.silicone-auth-btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.silicone-register-btn {
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%) !important;
+  border: 1px solid #075985 !important;
+  border-top-color: #38bdf8 !important;
+  border-bottom-color: #0c4a6e !important;
+  color: #ffffff !important;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #075985, 0 4px 10px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
+  box-sizing: border-box;
+}
+
+.silicone-register-btn:hover {
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%) !important;
+  transform: translateY(-1.5px);
+  box-shadow: 0 3px 0 #075985, 0 6px 14px rgba(2, 132, 199, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+}
+
+.silicone-register-btn:active {
+  transform: translateY(1.5px);
+  box-shadow: 0 1px 0 #075985, 0 2px 4px rgba(2, 132, 199, 0.2) !important;
+}
+
 .silicone-profile-trigger {
   display: inline-flex;
   align-items: center;
@@ -907,11 +948,12 @@
     padding: 0 4px !important;
     flex-shrink: 0 !important;
   }
-  .silicone-login-btn {
+  .silicone-login-btn,
+  .silicone-register-btn {
     height: 38px !important;
     min-height: 38px !important;
     max-height: 38px !important;
-    padding: 0 14px !important;
+    padding: 0 13px !important;
     font-size: 0.82rem !important;
   }
   .silicone-profile-trigger {
@@ -1003,11 +1045,12 @@
     padding: 0 !important;
     flex-shrink: 0 !important;
   }
-  .silicone-login-btn {
+  .silicone-login-btn,
+  .silicone-register-btn {
     height: 34px !important;
     min-height: 34px !important;
     max-height: 34px !important;
-    padding: 0 12px !important;
+    padding: 0 11px !important;
     font-size: 0.78rem !important;
   }
   .silicone-profile-trigger {

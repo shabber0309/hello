@@ -43,14 +43,13 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     charger_details: 'Original Charger / Power Adapter',
     included_accessories: [],
     pre_existing_damage: ['None / Mint Condition'],
-    part_preference: 'OEM Original (100% Genuine with Brand Warranty)',
     whatsapp_number: '',
-    pickup_address: 'Flat 302, Cyber Towers View',
-    pickup_area: 'Madhapur',
+    pickup_address: '',
+    pickup_area: '',
     pickup_city: 'Hyderabad',
-    pickup_pincode: '500081',
-    pickup_landmark: 'Near Cyber Gateway, Hitec City',
-    pickup_slot: 'Today, 2:00 PM - 4:00 PM',
+    pickup_pincode: '',
+    pickup_landmark: '',
+    pickup_slot: 'On-Demand Dispatch',
     data_backup_status: 'Customer Confirmed Backup (Diagnostic Waiver Signed)',
     chassis_open_consent: true,
     base_price_min: 1500,
@@ -195,13 +194,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     });
   };
 
-  const timeSlots = [
-    'Today, 2:00 PM - 4:00 PM',
-    'Today, 5:00 PM - 7:00 PM',
-    'Tomorrow, 10:00 AM - 12:00 PM',
-    'Tomorrow, 2:00 PM - 4:00 PM',
-    'Tomorrow, 5:00 PM - 7:00 PM'
-  ];
+
 
   // Active Category & Problem objects
   const currentCategory = selectedCatId ? LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === selectedCatId) : null;
@@ -299,7 +292,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     value: prob.id,
     num: prob.id,
     label: prob.name,
-    priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
     basePrice: prob.basePrice,
     maxPrice: prob.maxPrice,
     categoryId: prob.categoryId,
@@ -312,7 +304,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       value: prob.id,
       num: prob.id,
       label: prob.name,
-      priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
       basePrice: prob.basePrice,
       maxPrice: prob.maxPrice,
       categoryName: currentCategory.shortName
@@ -372,7 +363,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       charger_details: formData.charger_details,
       included_accessories: formData.included_accessories,
       pre_existing_damage: formData.pre_existing_damage,
-      part_preference: formData.part_preference,
       whatsapp_number: formData.whatsapp_number,
       pickup_address: formData.pickup_address,
       pickup_area: formData.pickup_area,
@@ -497,6 +487,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
             problemOptions={problemOptions}
             allProblemsOptions={allProblemsOptions}
             currentCategory={currentCategory}
+            currentProblem={currentProblem}
             handleCategorySelect={handleCategorySelect}
             handleProblemSelect={handleProblemSelect}
             onBack={() => setStep(1)}
@@ -508,7 +499,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
           <Step3
             formData={formData}
             setFormData={setFormData}
-            timeSlots={timeSlots}
             onBack={() => setStep(2)}
             onNext={() => setStep(4)}
           />

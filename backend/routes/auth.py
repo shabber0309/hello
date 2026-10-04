@@ -220,10 +220,8 @@ def verify_otp():
         db.session.add(user)
         db.session.commit()
     else:
-        # Update role if user explicitly logged in through that portal
-        if role and role in ['customer', 'technician'] and user.role != role:
-            user.role = role
-            db.session.commit()
+        # Existing users always retain their established role
+        pass
 
     # Generate JWT Token
     exp_hours = current_app.config.get('JWT_EXPIRATION_HOURS', 24)

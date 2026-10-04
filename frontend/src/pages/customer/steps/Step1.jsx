@@ -1,6 +1,8 @@
-import React from 'react';
-import { Laptop, AlertTriangle, X, Plus, Search, Check, ArrowRight } from 'lucide-react';
-import { POPULAR_BRANDS } from './brandLogos';
+import React, { useState } from 'react';
+import { Laptop, AlertTriangle, X, Plus, Search, Check, ArrowRight, ChevronDown } from 'lucide-react';
+import { BRAND_OPTIONS } from './brandLogos';
+import LaptopVisualPreview from './LaptopVisualPreview';
+import ModelSearchDropdown from './ModelSearchDropdown';
 
 export default function Step1({
   formData,
@@ -24,57 +26,165 @@ export default function Step1({
   toggleAccessory,
   onNext
 }) {
+  const isInitialCustom = Boolean(formData.laptop_brand && !BRAND_OPTIONS.includes(formData.laptop_brand));
+  const [customBrandMode, setCustomBrandMode] = useState(isInitialCustom);
+  const [customBrandText, setCustomBrandText] = useState(
+    formData.laptop_brand && !BRAND_OPTIONS.includes(formData.laptop_brand) ? formData.laptop_brand : ''
+  );
+
+  const handleBrandSelectChange = (e) => {
+    const val = e.target.value;
+    if (val === 'OTHER') {
+      setCustomBrandMode(true);
+      setFormData(prev => ({ ...prev, laptop_brand: customBrandText || '' }));
+    } else {
+      setCustomBrandMode(false);
+      setFormData(prev => ({ ...prev, laptop_brand: val }));
+    }
+  };
+
+  const handleCustomBrandInputChange = (e) => {
+    const text = e.target.value;
+    setCustomBrandText(text);
+    setFormData(prev => ({ ...prev, laptop_brand: text }));
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <h3 className="book-step-title">
         <Laptop size={20} color="var(--primary)" className="book-step-title-icon" /> Step 1: Laptop Brand, Model & Photo Proof
       </h3>
 
-      {/* Brand Selection */}
-      <div>
-        <label className="form-label">Brand</label>
-        <div className="book-brands-grid">
-          {POPULAR_BRANDS.map((b) => {
-            const isSelected = formData.laptop_brand === b.name;
-            const Logo = b.logo;
-            return (
-              <button
-                key={b.name}
-                type="button"
-                onClick={() => setFormData({ ...formData, laptop_brand: b.name })}
-                className={`book-brand-btn ${isSelected ? 'book-brand-btn-active' : ''}`}
+      {/* Brand, Model & Online Device Visual Match Side-by-Side */}
+      <div className="book-device-identity-grid">
+        {/* Left: Input Specifications */}
+        <div className="book-device-inputs-col">
+          {/* Brand Selection Dropdown */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>
+              <label className="form-label" htmlFor="laptop-brand-select" style={{ margin: 0 }}>
+                Brand
+              </label>
+              {customBrandMode && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomBrandMode(false);
+                    setFormData(prev => ({ ...prev, laptop_brand: 'Apple' }));
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--primary)',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                >
+                  &larr; Choose from standard list
+                </button>
+              )}
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <select
+                id="laptop-brand-select"
+                className="form-input"
+                value={customBrandMode ? 'OTHER' : (BRAND_OPTIONS.includes(formData.laptop_brand) ? formData.laptop_brand : 'OTHER')}
+                onChange={handleBrandSelectChange}
+                style={{
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  paddingRight: '42px',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none'
+                }}
               >
-                <span className="book-brand-logo">
-                  <Logo color={isSelected ? '#1d4ed8' : b.color} />
+                <option value="" disabled>-- Select Laptop Brand --</option>
+                {BRAND_OPTIONS.map((brandName) => (
+                  <option key={brandName} value={brandName}>
+                    {brandName}
+                  </option>
+                ))}
+                <option value="OTHER">✍️ Other / Not Listed (Type Custom Brand...)</option>
+              </select>
+
+              <div style={{
+                position: 'absolute',
+                right: '16px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <ChevronDown size={18} strokeWidth={2.4} />
+              </div>
+            </div>
+
+            {/* Option to type if not available in the dropdown */}
+            {customBrandMode && (
+              <div style={{ marginTop: '12px' }}>
+                <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--primary)', marginBottom: '5px' }}>
+                  Type Laptop Brand Name
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Framework, Avita, Clevo, Gateway, Panasonic, etc."
+                  value={customBrandText}
+                  onChange={handleCustomBrandInputChange}
+                  style={{
+                    borderColor: 'var(--primary)',
+                    boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.12)'
+                  }}
+                  autoFocus
+                />
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                  Your custom brand will be recorded on the tamper-evident intake manifest.
                 </span>
-                <span className="book-brand-name">{b.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+              </div>
+            )}
+          </div>
 
-      {/* Model & Serial Numbers */}
-      <div className="book-form-grid-2">
-        <div>
-          <label className="form-label">Model Name / Number</label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="e.g. MacBook Air M2, ThinkPad X1, XPS 15"
-            value={formData.laptop_model}
-            onChange={(e) => setFormData({ ...formData, laptop_model: e.target.value })}
-          />
+          {/* Model Name / Number (Full width for clean readability) */}
+          <div>
+            <ModelSearchDropdown
+              brand={formData.laptop_brand}
+              selectedModel={formData.laptop_model}
+              onSelectModel={(modelVal) => setFormData(prev => ({ ...prev, laptop_model: modelVal }))}
+            />
+          </div>
+
+          {/* Serial Number (Optional, clean full-width input) */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>
+              <label className="form-label" style={{ margin: 0 }}>
+                Serial Number
+              </label>
+              <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                Optional (located on bottom cover)
+              </span>
+            </div>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="e.g. C02G9012MD6R or leave empty"
+              value={formData.serial_number}
+              onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="form-label">Serial Number (Optional)</label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="e.g. C02G9012MD6R or leave empty"
-            value={formData.serial_number}
-            onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+        {/* Right: Live Generated Laptop Visual Preview Beside the Details */}
+        <div className="book-device-preview-col">
+          <LaptopVisualPreview
+            brand={formData.laptop_brand}
+            model={formData.laptop_model}
+            serial={formData.serial_number}
           />
         </div>
       </div>

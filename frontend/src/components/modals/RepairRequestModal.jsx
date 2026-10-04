@@ -36,19 +36,19 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
 
   const [formData, setFormData] = useState({
     brand: 'Dell',
-    model: 'Inspiron 15 3520',
+    model: '',
     serial_number: '',
     os: 'Windows 11',
-    description: 'My laptop turns on but the screen remains black. Fan spins normally, keyboard backlight lights up, but zero display output.',
+    description: '',
     budgetMin: currentProblem.basePrice,
     budgetMax: currentProblem.maxPrice,
     customer_selected_price: Math.round((currentProblem.basePrice + currentProblem.maxPrice) / 2),
-    address: 'Flat 402, Green Glen Heights, Hitec City',
-    area: 'Hitec City',
+    address: '',
+    area: '',
     city: 'Hyderabad',
-    pincode: '500081',
-    preferredTime: 'Today, 4:00 PM – 6:00 PM',
-    phone: '+91 98765 43210',
+    pincode: '',
+    preferredTime: 'On-Demand Dispatch',
+    phone: '',
     name: ''
   });
 
@@ -107,7 +107,6 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
     value: prob.id,
     num: prob.id,
     label: prob.name,
-    priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
     basePrice: prob.basePrice,
     maxPrice: prob.maxPrice,
     categoryName: currentCategory.shortName
@@ -118,7 +117,6 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
     value: prob.id,
     num: prob.id,
     label: prob.name,
-    priceRange: `₹${prob.basePrice.toLocaleString()} – ₹${prob.maxPrice.toLocaleString()}`,
     basePrice: prob.basePrice,
     maxPrice: prob.maxPrice,
     categoryId: prob.categoryId,
@@ -589,21 +587,7 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                    Preferred Pickup Time
-                  </label>
-                  <select 
-                    value={formData.preferredTime}
-                    onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
-                    style={{ width: '100%' }}
-                  >
-                    <option value="Today, 2:00 PM - 4:00 PM">Today, 2:00 PM - 4:00 PM</option>
-                    <option value="Today, 4:00 PM – 6:00 PM">Today, 4:00 PM – 6:00 PM</option>
-                    <option value="Tomorrow, 10:00 AM - 12:00 PM">Tomorrow, 10:00 AM - 12:00 PM</option>
-                    <option value="Tomorrow, 2:00 PM - 4:00 PM">Tomorrow, 2:00 PM - 4:00 PM</option>
-                  </select>
-                </div>
+
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
                   <button type="button" className="btn-secondary" onClick={() => setCurrentStep(2)}>

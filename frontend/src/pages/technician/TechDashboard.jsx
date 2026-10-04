@@ -646,10 +646,7 @@ export default function TechDashboard() {
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', padding: '12px 14px', background: 'var(--bg-main)', borderRadius: '10px', marginBottom: '14px', fontSize: '0.82rem' }}>
                           <div><strong>Pickup Location:</strong> {req.pickup_address}, {req.pickup_city} ({req.pickup_landmark || 'No landmark'})</div>
-                          <div><strong>Preferred Slot:</strong> {req.pickup_slot || 'ASAP'}</div>
                           <div><strong>Serial No:</strong> {req.serial_number || 'To Be Verified on Bench'}</div>
-                          <div><strong>OS Access / PIN:</strong> <span style={{ color: 'var(--text-dim)' }}>On-Demand (Requested if needed)</span></div>
-                          <div><strong>Part Preference:</strong> {req.part_preference || 'OEM Original'}</div>
                           <div><strong>Charger Intake:</strong> {req.charger_included ? (req.charger_details || 'Yes (Charger Included)') : 'No Charger Handed Over'}</div>
                           <div><strong>Accessories:</strong> {Array.isArray(req.included_accessories) ? req.included_accessories.join(', ') : (req.included_accessories || 'None')}</div>
                           <div><strong>Pre-existing Flaws:</strong> <span style={{ color: '#d97706' }}>{Array.isArray(req.pre_existing_damage) ? req.pre_existing_damage.join(', ') : (req.pre_existing_damage || 'None')}</span></div>
@@ -833,11 +830,9 @@ export default function TechDashboard() {
                             </span>
                           )}
                         </div>
-                        <div><strong>BitLocker Status:</strong> {ord.bitlocker_status || 'Disabled'}</div>
                         <div><strong>Charger Intake:</strong> {ord.charger_included ? (ord.charger_details || 'Yes (Charger Included)') : 'No Charger Handed Over'}</div>
                         <div><strong>Accessories:</strong> {Array.isArray(ord.included_accessories) ? ord.included_accessories.join(', ') : (ord.included_accessories || 'None')}</div>
                         <div><strong>Pre-Existing Flaws:</strong> <span style={{ color: '#d97706', fontWeight: 600 }}>{Array.isArray(ord.pre_existing_damage) ? ord.pre_existing_damage.join(', ') : (ord.pre_existing_damage || 'None')}</span></div>
-                        <div><strong>Part Preference:</strong> {ord.part_preference || 'OEM Original'}</div>
                         <div><strong>Customer WhatsApp:</strong> {ord.customer_whatsapp || ord.customer_phone || 'N/A'}</div>
                         <div><strong>Data Backup Status:</strong> <span style={{ color: '#059669' }}>{ord.data_backup_status || 'Customer Confirmed'}</span></div>
                       </div>

@@ -49,6 +49,28 @@ export function AcerLogo({ width = 42, height = 14, color = 'currentColor' }) {
   );
 }
 
+export const BRAND_OPTIONS = [
+  'Apple',
+  'Dell',
+  'HP',
+  'Lenovo',
+  'Asus',
+  'Acer',
+  'MSI',
+  'Samsung',
+  'Microsoft Surface',
+  'Razer',
+  'LG',
+  'Toshiba',
+  'Sony Vaio',
+  'Alienware',
+  'Huawei',
+  'Xiaomi',
+  'Fujitsu',
+  'Gigabyte',
+  'Panasonic Toughbook'
+];
+
 export const POPULAR_BRANDS = [
   { name: 'Apple', logo: AppleLogo, color: 'var(--text-main)' },
   { name: 'Dell', logo: DellLogo, color: '#007DB8' },

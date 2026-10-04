@@ -119,6 +119,91 @@
   font-weight: 800 !important;
 }
 
+/* Segmented Role Switcher Bar - Matching Exactly User UI */
+.auth-segmented-role-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid rgba(191, 219, 254, 0.9);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .auth-segmented-role-bar {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.auth-segmented-role-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-main, #1e293b);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.auth-segmented-role-btn svg {
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.auth-segmented-role-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .auth-segmented-role-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Active Customer State (Image 2) */
+.auth-segmented-role-btn.active-customer {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.28);
+}
+
+.auth-segmented-role-btn.active-customer svg {
+  color: #ffffff !important;
+}
+
+/* Active Technician State (Image 3) */
+.auth-segmented-role-btn.active-technician {
+  background: #ea580c !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.28);
+}
+
+.auth-segmented-role-btn.active-technician svg {
+  color: #ffffff !important;
+}
+
+/* Active Admin State (Image 4) */
+.auth-segmented-role-btn.active-admin {
+  background: #059669 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.28);
+}
+
+.auth-segmented-role-btn.active-admin svg {
+  color: #ffffff !important;
+}
+
 /* Header & Avatar */
 .auth-header-bay {
   text-align: center;

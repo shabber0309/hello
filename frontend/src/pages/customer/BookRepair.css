@@ -239,6 +239,16 @@
   transition: all 0.18s ease;
 }
 
+select.form-input {
+  line-height: 50px;
+}
+
+select.form-input option {
+  background-color: var(--bg-surface, #ffffff);
+  color: var(--text-main, #0f172a);
+  padding: 10px;
+}
+
 textarea.form-input {
   height: auto;
   min-height: 96px;
@@ -248,6 +258,412 @@ textarea.form-input {
 .form-input:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Device Identity & Online Laptop Visual Preview Layout */
+.book-device-identity-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 960px) {
+  .book-device-identity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.book-device-inputs-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+.book-device-preview-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Laptop Visual Preview Card */
+.laptop-preview-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.laptop-preview-container:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+}
+
+.laptop-preview-stage {
+  position: relative;
+  width: 100%;
+  height: 230px;
+  background: #0f172a;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.laptop-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease, opacity 0.25s ease;
+}
+
+.laptop-preview-stage:hover .laptop-preview-image {
+  transform: scale(1.03);
+}
+
+.laptop-preview-zoom-btn {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.laptop-preview-zoom-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: scale(1.08);
+}
+
+.laptop-preview-meta {
+  padding: 12px 16px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border-top: 1px solid var(--border-light, #e2e8f0);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.laptop-preview-brand-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--primary, #2563eb);
+}
+
+.laptop-preview-model-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Lightbox Modal */
+.laptop-preview-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.laptop-preview-lightbox-card {
+  position: relative;
+  max-width: 640px;
+  width: 100%;
+  background: var(--bg-surface-elevated, #ffffff);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-medium, #cbd5e1);
+}
+
+.laptop-preview-lightbox-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-surface-soft, #f1f5f9);
+  border: 1px solid var(--border-medium, #cbd5e1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main, #0f172a);
+  transition: all 0.15s ease;
+  z-index: 5;
+}
+
+.laptop-preview-lightbox-close:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.laptop-preview-lightbox-header {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.laptop-preview-lightbox-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+}
+
+.laptop-preview-lightbox-img {
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  display: block;
+}
+
+.laptop-preview-lightbox-caption {
+  padding: 14px 20px;
+  background: var(--bg-surface-soft, #f8fafc);
+  border-top: 1px solid var(--border-light, #e2e8f0);
+  font-size: 0.85rem;
+  color: var(--text-main, #0f172a);
+}
+
+.spin-fast {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* OEM Model Autocomplete Dropdown (like HP Care & Dell Support) */
+.oem-suggestions-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.oem-suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 6px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.oem-suggestion-header {
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted, #64748b);
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.oem-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.oem-suggestion-item:hover, .oem-suggestion-item:focus {
+  background: var(--bg-surface-soft, #f1f5f9);
+  outline: none;
+}
+
+.oem-suggestion-thumb {
+  width: 44px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #0f172a;
+  flex-shrink: 0;
+}
+
+.oem-suggestion-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+}
+
+.oem-suggestion-code {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oem-suggestion-sub {
+  font-size: 0.73rem;
+  color: var(--text-muted, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oem-suggestion-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+/* Searchable Model Dropdown */
+.model-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.15s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.model-dropdown-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-surface-soft, #f8fafc);
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.model-dropdown-search-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.88rem;
+  color: var(--text-main, #0f172a);
+}
+
+.model-dropdown-search-input::placeholder {
+  color: var(--text-muted, #94a3b8);
+}
+
+.model-dropdown-list {
+  max-height: 270px;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.model-dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.model-dropdown-option:hover {
+  background: var(--bg-surface-soft, #f1f5f9);
+}
+
+.model-dropdown-option.selected {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.model-dropdown-thumb {
+  width: 44px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #0f172a;
+  flex-shrink: 0;
+}
+
+.model-dropdown-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+}
+
+.model-dropdown-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.model-dropdown-specs {
+  font-size: 0.73rem;
+  color: var(--text-muted, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .book-step-title {
@@ -694,6 +1110,170 @@ textarea.form-input {
 
 .summary-row strong, .summary-row span:last-child {
   text-align: right;
+}
+
+/* Modern Grouped Repair Order Summary Card */
+.order-summary-card {
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .order-summary-card {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.order-summary-header {
+  padding: 14px 20px;
+  background: var(--bg-surface-soft, #f8fafc);
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+[data-theme="dark"] .order-summary-header {
+  background: rgba(15, 23, 42, 0.6);
+  border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+.order-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 18px 20px 14px;
+}
+
+@media (max-width: 640px) {
+  .order-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+.order-summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  background: var(--bg-surface-soft, #f8fafc);
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light, #e2e8f0);
+}
+
+[data-theme="dark"] .order-summary-section {
+  background: rgba(15, 23, 42, 0.4);
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+.order-summary-section-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--primary, #2563eb);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.order-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.84rem;
+}
+
+.order-summary-label {
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.order-summary-value {
+  color: var(--text-main, #0f172a);
+  font-weight: 600;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-summary-value.highlight-blue {
+  color: #2563eb;
+}
+
+.order-summary-value.highlight-amber {
+  color: #d97706;
+}
+
+.order-summary-value.highlight-green {
+  color: #059669;
+}
+
+.order-summary-logistics {
+  margin: 0 20px 16px;
+  padding: 14px 16px;
+  background: var(--bg-surface-soft, #f8fafc);
+  border-radius: 10px;
+  border: 1px solid var(--border-light, #e2e8f0);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+[data-theme="dark"] .order-summary-logistics {
+  background: rgba(15, 23, 42, 0.4);
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+.order-summary-logistics-content {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .order-summary-logistics-content {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.order-summary-logistics-slot,
+.order-summary-logistics-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.order-summary-budget-footer {
+  padding: 14px 20px;
+  background: var(--bg-surface-soft, #eff6ff);
+  border-top: 1.5px solid var(--border-light, #bfdbfe);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+[data-theme="dark"] .order-summary-budget-footer {
+  background: rgba(30, 58, 138, 0.25);
+  border-top-color: rgba(59, 130, 246, 0.3);
+}
+
+.order-summary-budget-amount {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primary, #2563eb);
+  letter-spacing: -0.5px;
+}
+
+[data-theme="dark"] .order-summary-budget-amount {
+  color: #60a5fa;
 }
 
 /* Hardware Intake & Security Credentials Styling */

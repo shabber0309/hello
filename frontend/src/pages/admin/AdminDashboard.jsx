@@ -1236,9 +1236,6 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                                       <span style={{ color: 'var(--text-dim)' }}>Not Requested (On-Demand)</span>
                                     )}
                                   </div>
-                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                                    <strong>BitLocker:</strong> {ord.bitlocker_status || 'Disabled / Not Applicable'}
-                                  </div>
                                   {ord.credentials_request_note && (
                                     <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                                       Note: "{ord.credentials_request_note}"
@@ -1267,9 +1264,9 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                                 </div>
 
                                 <div className="admin-dossier-box">
-                                  <div className="admin-dossier-label">Replacement Part Preference</div>
-                                  <div className="admin-dossier-value" style={{ color: 'var(--primary)' }}>
-                                    🛠️ {ord.part_preference || 'OEM Original (100% Genuine with Brand Warranty)'}
+                                  <div className="admin-dossier-label">Customer Target Budget</div>
+                                  <div className="admin-dossier-value" style={{ color: 'var(--primary)', fontWeight: 800 }}>
+                                    ₹{(ord.customer_selected_price || ord.base_price_min || 0).toLocaleString()}
                                   </div>
                                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                                     Data Backup: {ord.data_backup_status || 'Customer Confirmed'}
@@ -1282,7 +1279,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                                     📍 {ord.pickup_address}, {ord.pickup_area ? `${ord.pickup_area}, ` : ''}{ord.pickup_city} - {ord.pickup_pincode || '500081'}
                                   </div>
                                   <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-                                    <strong>Landmark / Gate Pass:</strong> {ord.pickup_landmark || 'No landmark specified'} • <strong>Slot:</strong> {ord.pickup_slot}
+                                    <strong>Landmark / Gate Pass:</strong> {ord.pickup_landmark || 'No landmark specified'}
                                   </div>
                                   <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                                     <strong>Customer:</strong> {ord.customer_name} ({ord.customer_phone} / {ord.customer_email}) • <strong>Assigned Tech:</strong> {ord.technician_name} ({ord.technician_bench || 'Cleanroom Bench'})
