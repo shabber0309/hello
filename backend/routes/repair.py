@@ -30,7 +30,7 @@ def create_repair(current_user):
     pickup_area = data.get('pickup_area', '').strip()
     pickup_city = data.get('pickup_city', 'Hyderabad')
     pickup_pincode = data.get('pickup_pincode', '').strip()
-    pickup_slot = data.get('pickup_slot', 'Today, 2:00 PM - 4:00 PM')
+    pickup_slot = (data.get('pickup_slot') or 'On-Demand Pickup').strip()
     problem_photos = data.get('problem_photos')
     photos_json = json.dumps(problem_photos) if problem_photos and isinstance(problem_photos, list) else None
     charger_photos = data.get('charger_photos')

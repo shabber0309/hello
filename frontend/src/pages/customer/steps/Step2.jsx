@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Layers, Wrench, Info, ShieldCheck, CheckSquare, ArrowLeft, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Layers, Wrench, ShieldCheck, ArrowLeft, ArrowRight } from 'lucide-react';
 import { SearchableDropdown } from '../../../components/common';
 
 export default function Step2({
@@ -11,11 +11,14 @@ export default function Step2({
   problemOptions,
   allProblemsOptions,
   currentCategory,
+  currentProblem,
   handleCategorySelect,
   handleProblemSelect,
   onBack,
   onNext
 }) {
+  const problemDisplayName = currentProblem?.name || formData.issue_name || 'Hardware Diagnostic';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       <h3 className="book-step-title">
@@ -50,26 +53,6 @@ export default function Step2({
         />
       </div>
 
-      {/* Indicative Benchmark Rate Box */}
-      <div className="indicative-rate-card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div className="indicative-icon-circle">
-            <Info size={18} color="var(--primary)" />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-              Hyderabad 2026 Indicative Range
-            </div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>
-              ₹{formData.base_price_min.toLocaleString()} – ₹{formData.base_price_max.toLocaleString()}
-            </div>
-          </div>
-        </div>
-        <div className="indicative-note">
-          Base price represents fixed inspection/component rework. The highest price covers OEM/original replacement parts or complex micro-soldering.
-        </div>
-      </div>
-
       {/* Problem Description in Words */}
       <div>
         <label className="form-label">
@@ -84,37 +67,50 @@ export default function Step2({
         />
       </div>
 
-      {/* Spare Part Tier Preference */}
-      <div className="book-intake-card">
-        <div className="book-intake-title">
-          <ShieldCheck size={17} color="#2563eb" /> Replacement Part Tier Preference
+      {/* Indicative Price Range & Target Budget Slider Box */}
+      <div className="price-slider-box">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <div className="customer-budget-tag">
+            Your Target Budget: <span className="budget-val">₹{formData.customer_selected_price.toLocaleString()}</span>
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              Indicative Price Range for: {problemDisplayName}
+            </div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
+              ₹{formData.base_price_min.toLocaleString()} — ₹{formData.base_price_max.toLocaleString()}
+            </div>
+          </div>
         </div>
-        <div className="book-power-grid">
-          {[
-            {
-              id: 'OEM Original (100% Genuine with Brand Warranty)',
-              title: 'OEM Original (Genuine)',
-              desc: 'Direct OEM authentic component with manufacturer warranty'
-            },
-            {
-              id: 'Grade-A High Quality Compatible (Cost-effective)',
-              title: 'Grade-A Compatible',
-              desc: 'Certified high-performance alternative, tested & guaranteed'
-            }
-          ].map((tier) => (
-            <button
-              key={tier.id}
-              type="button"
-              onClick={() => setFormData({ ...formData, part_preference: tier.id })}
-              className={`book-power-btn ${formData.part_preference === tier.id ? 'book-power-btn-active' : ''}`}
-            >
-              <CheckSquare size={16} color={formData.part_preference === tier.id ? '#2563eb' : 'var(--text-muted)'} />
-              <div>
-                <div style={{ fontWeight: 700 }}>{tier.title}</div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 400 }}>{tier.desc}</div>
-              </div>
-            </button>
-          ))}
+
+        {/* Slider Input */}
+        <div style={{ margin: '18px 0 8px' }}>
+          <input
+            type="range"
+            min={formData.base_price_min}
+            max={formData.base_price_max}
+            step={50}
+            value={formData.customer_selected_price}
+            onChange={(e) => setFormData({ ...formData, customer_selected_price: Number(e.target.value) })}
+            className="ecommerce-range-slider"
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            <span>Fixed Base Price: ₹{formData.base_price_min.toLocaleString()}</span>
+            <span style={{ color: '#2563eb', fontWeight: 700 }}>Selected: ₹{formData.customer_selected_price.toLocaleString()}</span>
+            <span>Highest Benchmark: ₹{formData.base_price_max.toLocaleString()}</span>
+          </div>
+        </div>
+
+        {/* Transparent Disclaimer */}
+        <div className="price-transparency-disclaimer">
+          <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <strong>Estimated Repair Cost: ₹{formData.base_price_min.toLocaleString()} – ₹{formData.base_price_max.toLocaleString()}</strong>.
+            <div style={{ marginTop: '2px' }}>
+              Final price depends on laptop brand, model, part availability (OEM vs compatible parts), and technician diagnosis during the live workbench video stream. You will approve the final quote before any repair proceeds.
+            </div>
+          </div>
         </div>
       </div>
 

@@ -172,27 +172,39 @@ function MainApp() {
 
           {/* Role Protected / Dedicated Portals */}
           <Route path="/dashboard" element={
-            user ? (
-              <CustomerDashboard onNewBooking={() => navigate('/book')} />
-            ) : (
+            !user ? (
               <Navigate to="/login" replace state={{ from: '/dashboard' }} />
+            ) : user.role === 'technician' ? (
+              <Navigate to="/technician" replace />
+            ) : user.role === 'admin' ? (
+              <Navigate to="/admin" replace />
+            ) : (
+              <CustomerDashboard onNewBooking={() => navigate('/book')} />
             )
           } />
 
           <Route path="/technician" element={
-            user ? (
-              <TechDashboard />
+            !user ? (
+              <Navigate to="/login" replace state={{ from: '/technician' }} />
+            ) : user.role === 'customer' ? (
+              <Navigate to="/dashboard" replace />
+            ) : user.role === 'admin' ? (
+              <Navigate to="/admin" replace />
             ) : (
-              <Navigate to="/login" replace state={{ from: '/technician', role: 'technician' }} />
+              <TechDashboard />
             )
           } />
           <Route path="/tech" element={<Navigate to="/technician" replace />} />
 
           <Route path="/admin" element={
-            user && user.role === 'admin' ? (
-              <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(null)} />
+            !user ? (
+              <Navigate to="/login" replace state={{ from: '/admin' }} />
+            ) : user.role === 'customer' ? (
+              <Navigate to="/dashboard" replace />
+            ) : user.role === 'technician' ? (
+              <Navigate to="/technician" replace />
             ) : (
-              <Navigate to="/login" replace state={{ from: '/admin', role: 'admin' }} />
+              <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(null)} />
             )
           } />
 

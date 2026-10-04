@@ -10,6 +10,7 @@ from routes.repair import repair_bp
 from routes.stream import stream_bp
 from routes.payment import payment_bp
 from routes.admin import admin_bp
+from routes.device_lookup import device_bp
 
 from database import init_database
 
@@ -29,6 +30,7 @@ def create_app(config_class=Config):
     app.register_blueprint(stream_bp)
     app.register_blueprint(payment_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(device_bp)
 
     @app.route('/api/health', methods=['GET'])
     def health_check():

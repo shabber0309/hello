@@ -336,7 +336,6 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
                   <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-light)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '6px', fontSize: '0.78rem' }}>
                     <div><span style={{ color: 'var(--text-dim)' }}>Charger:</span> <strong>{searchedOrder.charger_included ? (searchedOrder.charger_details || 'Included') : 'Not Included'}</strong></div>
                     <div><span style={{ color: 'var(--text-dim)' }}>Accessories:</span> <strong>{Array.isArray(searchedOrder.included_accessories) ? searchedOrder.included_accessories.join(', ') : (searchedOrder.included_accessories || 'None')}</strong></div>
-                    <div><span style={{ color: 'var(--text-dim)' }}>Part Tier:</span> <strong>{searchedOrder.part_preference || 'OEM Original'}</strong></div>
                   </div>
                 </div>
 

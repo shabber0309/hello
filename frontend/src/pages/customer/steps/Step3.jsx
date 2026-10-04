@@ -4,14 +4,13 @@ import { MapPin, MessageCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 export default function Step3({
   formData,
   setFormData,
-  timeSlots,
   onBack,
   onNext
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       <h3 className="book-step-title">
-        <MapPin size={20} color="var(--primary)" className="book-step-title-icon" /> Step 3: Doorstep Pickup Slot & Address
+        <MapPin size={20} color="var(--primary)" className="book-step-title-icon" /> Step 3: Doorstep Pickup Address & Contact Details
       </h3>
 
       <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -67,18 +66,7 @@ export default function Step3({
         </div>
       </div>
 
-      <div>
-        <label className="form-label">Preferred Pickup Time Slot</label>
-        <select
-          className="form-input"
-          value={formData.pickup_slot}
-          onChange={(e) => setFormData({ ...formData, pickup_slot: e.target.value })}
-        >
-          {timeSlots.map(t => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-      </div>
+      
 
       {/* WhatsApp Contact & Security Landmark */}
       <div className="book-intake-card">

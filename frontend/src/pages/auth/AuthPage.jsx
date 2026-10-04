@@ -165,10 +165,12 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
       setError(res.error || 'Invalid credentials');
     } else {
       const u = res.user;
-      if (u?.role === 'customer') navigate('/dashboard');
-      else if (u?.role === 'technician') navigate('/technician');
+      if (u?.role === 'technician') navigate('/technician');
       else if (u?.role === 'admin') navigate('/admin');
-      else navigate('/dashboard');
+      else {
+        const dest = location.state?.from || '/dashboard';
+        navigate(dest);
+      }
     }
   };
 
@@ -206,14 +208,16 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     setError('');
     setSuccessMsg('');
 
-    const res = await loginWithOtp(otpEmail.trim(), otpCode.trim(), role);
+    const res = await loginWithOtp(otpEmail.trim(), otpCode.trim());
     setLoading(false);
     if (res.success) {
       const u = res.user;
-      if (u?.role === 'customer') navigate('/dashboard');
-      else if (u?.role === 'technician') navigate('/technician');
+      if (u?.role === 'technician') navigate('/technician');
       else if (u?.role === 'admin') navigate('/admin');
-      else navigate('/dashboard');
+      else {
+        const dest = location.state?.from || '/dashboard';
+        navigate(dest);
+      }
     } else {
       setError(res.error || 'Invalid or expired OTP code');
     }
@@ -247,7 +251,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
       email: regEmail.trim(),
       phone: regPhone.trim(),
       password: regPassword,
-      role: regRole
+      role: regRole || 'customer'
     });
 
     setLoading(false);
@@ -255,8 +259,8 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
       setError(res.error || 'Registration failed');
     } else {
       const u = res.user;
-      if (u?.role === 'admin') navigate('/admin');
-      else if (u?.role === 'technician') navigate('/technician');
+      if (u?.role === 'technician') navigate('/technician');
+      else if (u?.role === 'admin') navigate('/admin');
       else navigate('/dashboard');
     }
   };
@@ -354,7 +358,16 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
       {/* Auth Card Container */}
       <div className="auth-card">
         {/* Top Accent Gradient Stripe */}
-        <div className="auth-top-stripe" style={{ background: roleMeta?.topStripe || 'linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa)' }} />
+        <div 
+          className="auth-top-stripe" 
+          style={{ 
+            background: mode === 'login' 
+              ? 'linear-gradient(90deg, #2563eb, #38bdf8, #60a5fa)' 
+              : (mode === 'register' 
+                ? 'linear-gradient(90deg, #0284c7, #06b6d4, #10b981)' 
+                : 'linear-gradient(90deg, #6366f1, #8b5cf6, #d946ef)') 
+          }} 
+        />
 
         {/* Current Active Session Indicator */}
         {user && (
@@ -362,45 +375,32 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
             <div>
               Signed in as: <strong style={{ color: 'var(--text-main)' }}>{user.name}</strong> ({user.role})
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                logout();
-                handleRoleSelect('customer');
-              }}
-              className="auth-signout-btn"
-            >
-              Sign Out
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (user.role === 'technician') navigate('/technician');
+                  else if (user.role === 'admin') navigate('/admin');
+                  else navigate('/dashboard');
+                }}
+                className="btn-primary"
+                style={{ padding: '4px 10px', fontSize: '0.72rem', borderRadius: '6px' }}
+              >
+                Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  handleRoleSelect('customer');
+                }}
+                className="auth-signout-btn"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         )}
-
-        {/* Portal Role Switcher Tabs */}
-        <div className="auth-role-tabs">
-          <button
-            type="button"
-            onClick={() => handleRoleSelect('customer')}
-            className={`auth-role-tab-btn ${role === 'customer' ? 'auth-role-tab-customer-active' : ''}`}
-          >
-            <UserCheck size={14} /> Customer
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleRoleSelect('technician')}
-            className={`auth-role-tab-btn ${role === 'technician' ? 'auth-role-tab-technician-active' : ''}`}
-          >
-            <Wrench size={14} /> Technician
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleRoleSelect('admin')}
-            className={`auth-role-tab-btn ${role === 'admin' ? 'auth-role-tab-admin-active' : ''}`}
-          >
-            <ShieldCheck size={14} /> Admin
-          </button>
-        </div>
 
         {/* Auth Header with Icon Wrap */}
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
@@ -412,18 +412,29 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: roleMeta.iconWrapBg,
-            border: `1px solid ${roleMeta.badgeBorder}`,
+            background: mode === 'login'
+              ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.18) 0%, rgba(30, 64, 175, 0.3) 100%)'
+              : (mode === 'register'
+                ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.18) 0%, rgba(16, 185, 129, 0.25) 100%)'
+                : 'linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.3) 100%)'),
+            border: `1px solid ${mode === 'login' ? 'rgba(37, 99, 235, 0.35)' : (mode === 'register' ? 'rgba(2, 132, 199, 0.35)' : 'rgba(99, 102, 241, 0.35)')}`,
             boxShadow: '0 8px 20px -4px rgba(0,0,0,0.3)'
           }}>
-            {roleMeta.icon}
+            {mode === 'login' && <Lock size={28} color="#3b82f6" />}
+            {mode === 'register' && <UserCheck size={28} color="#0284c7" />}
+            {mode === 'forgot' && <KeyRound size={28} color="#6366f1" />}
           </div>
 
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '0 0 4px', letterSpacing: '-0.02em' }}>
-            {mode === 'login' && (role === 'admin' ? 'Super Admin Sign In' : 'Welcome Back')}
+          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.02em', color: 'var(--text-main, #ffffff)' }}>
+            {mode === 'login' && 'Sign In'}
             {mode === 'register' && 'Create Free Account'}
             {mode === 'forgot' && 'Reset Account Password'}
           </h1>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            {mode === 'login' && 'Enter your credentials to access your dashboard'}
+            {mode === 'register' && 'Join Live Fix for live-camera verified hardware and software service'}
+            {mode === 'forgot' && 'Enter your registered email or phone to reset your password'}
+          </p>
         </div>
 
         {/* Error Alert */}
@@ -635,7 +646,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     </>
                   ) : (
                     <>
-                      <span>Sign In as {role === 'admin' ? 'Admin' : (role === 'technician' ? 'Technician' : 'Customer')}</span>
+                      <span>Sign In</span>
                       <ArrowRight size={16} />
                     </>
                   )}
@@ -781,6 +792,41 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
         {/* Mode: Register */}
         {mode === 'register' && (
           <form onSubmit={handleRegisterSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Account Type Selector */}
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                Account Type
+              </label>
+              <div className="auth-segmented-role-bar">
+                <button
+                  type="button"
+                  onClick={() => setRegRole('customer')}
+                  className={`auth-segmented-role-btn ${regRole === 'customer' ? 'active-customer' : ''}`}
+                >
+                  <UserCheck size={16} />
+                  <span>Customer</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRegRole('technician')}
+                  className={`auth-segmented-role-btn ${regRole === 'technician' ? 'active-technician' : ''}`}
+                >
+                  <Wrench size={16} />
+                  <span>Technician</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRegRole('admin')}
+                  className={`auth-segmented-role-btn ${regRole === 'admin' ? 'active-admin' : ''}`}
+                >
+                  <ShieldCheck size={16} />
+                  <span>Admin</span>
+                </button>
+              </div>
+            </div>
+
             <div>
               <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                 Full Name
@@ -1165,19 +1211,8 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
         )}
 
         {/* Footer Navigation */}
-        <div style={{ marginTop: '22px', textAlign: 'center', fontSize: '0.82rem' }}>
-          {mode === 'login' ? (
-            <p style={{ margin: '0 0 12px 0', color: 'var(--text-muted)' }}>
-              Don't have an account yet?{' '}
-              <button
-                type="button"
-                onClick={() => { navigate('/register'); setError(''); setSuccessMsg(''); }}
-                style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
-              >
-                Create Free Account &rarr;
-              </button>
-            </p>
-          ) : (
+        {mode !== 'login' && (
+          <div style={{ marginTop: '22px', textAlign: 'center', fontSize: '0.82rem' }}>
             <p style={{ margin: '0 0 12px 0', color: 'var(--text-muted)' }}>
               Already have an account?{' '}
               <button
@@ -1188,8 +1223,8 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 Sign In to Account &rarr;
               </button>
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

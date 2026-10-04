@@ -282,12 +282,24 @@ export default function Navbar({
           {/* BAY 8: Login Bay OR User Profile Dropdown */}
           <div className="silicone-bay silicone-bay-login" ref={profileMenuRef}>
             {!user ? (
-              <button
-                className="silicone-login-btn"
-                onClick={() => navigate('/login')}
-              >
-                Login
-              </button>
+              <div className="silicone-auth-btn-group">
+                <button
+                  type="button"
+                  className="silicone-register-btn"
+                  onClick={() => navigate('/register')}
+                  title="Create a free Live Fix account"
+                >
+                  Register
+                </button>
+                <button
+                  type="button"
+                  className="silicone-login-btn"
+                  onClick={() => navigate('/login')}
+                  title="Sign in to your account"
+                >
+                  Login
+                </button>
+              </div>
             ) : (
               <button
                 className="silicone-profile-trigger"
@@ -365,51 +377,32 @@ export default function Navbar({
                   </div>
                 </div>
 
-                {/* Role Switchers - Quick Portal Access */}
-                {user && (
-                  <div className="silicone-dropdown-section">
-                    <button
-                      className="silicone-dropdown-item"
-                      onClick={() => {
-                        switchRole('customer');
-                        setShowProfileMenu(false);
-                        navigate('/dashboard');
-                      }}
-                    >
-                      <UserCheck size={14} color="var(--primary)" />
-                      <span>Customer Portal</span>
-                    </button>
-
-                    <button
-                      className="silicone-dropdown-item"
-                      onClick={() => {
-                        switchRole('technician');
-                        setShowProfileMenu(false);
-                        navigate('/technician');
-                      }}
-                    >
-                      <Wrench size={14} color="var(--cta-orange)" />
-                      <span>Technician Workbench</span>
-                    </button>
-
-                    <button
-                      className="silicone-dropdown-item"
-                      onClick={() => {
-                        switchRole('admin');
-                        setShowProfileMenu(false);
-                        navigate('/admin');
-                      }}
-                    >
-                      <Shield size={14} color="#10b981" />
-                      <span>Admin Console</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* User Actions based on role */}
+                {/* User Actions strictly isolated based on role */}
                 <div className="silicone-dropdown-footer">
                   {(isTech || user?.role === 'technician') ? (
                     <>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/technician?tab=dashboard');
+                        }}
+                      >
+                        <Wrench size={14} color="var(--cta-orange)" />
+                        <span>Technician Workbench</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/technician?tab=active');
+                        }}
+                      >
+                        <Laptop size={14} color="var(--primary)" />
+                        <span>Active Repairs</span>
+                      </button>
+
                       <button
                         className="silicone-dropdown-item"
                         onClick={() => {
@@ -442,9 +435,88 @@ export default function Navbar({
                         <Settings size={14} color="var(--primary)" />
                         <span>Station Settings</span>
                       </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenEditProfile) onOpenEditProfile();
+                        }}
+                      >
+                        <Edit size={14} color="var(--primary)" />
+                        <span>Edit Profile</span>
+                      </button>
+                    </>
+                  ) : (isAdmin || user?.role === 'admin') ? (
+                    <>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/admin?tab=overview');
+                        }}
+                      >
+                        <Shield size={14} color="#10b981" />
+                        <span>Admin Console</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/admin?tab=orders');
+                        }}
+                      >
+                        <Laptop size={14} color="#10b981" />
+                        <span>Repair Orders</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/admin?tab=database');
+                        }}
+                      >
+                        <Settings size={14} color="#10b981" />
+                        <span>System Health</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenEditProfile) onOpenEditProfile();
+                        }}
+                      >
+                        <Edit size={14} color="var(--primary)" />
+                        <span>Edit Profile</span>
+                      </button>
                     </>
                   ) : (
                     <>
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/dashboard');
+                        }}
+                      >
+                        <Home size={14} color="var(--primary)" />
+                        <span>Customer Dashboard</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/dashboard?tab=repairs');
+                        }}
+                      >
+                        <Laptop size={14} color="var(--primary)" />
+                        <span>My Repairs</span>
+                      </button>
+
                       <button
                         className="silicone-dropdown-item"
                         onClick={() => {
@@ -676,68 +748,6 @@ export default function Navbar({
                     </button>
                   </>
                 )}
-
-                {isAdmin && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', margin: '4px 0' }}>
-                    <button
-                      onClick={() => {
-                        switchRole('customer');
-                        setMobileMenuOpen(false);
-                        navigate('/dashboard');
-                      }}
-                      style={{
-                        background: 'rgba(37, 99, 235, 0.15)',
-                        border: '1px solid rgba(37, 99, 235, 0.35)',
-                        color: 'var(--primary)',
-                        padding: '8px 4px',
-                        borderRadius: '8px',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Customer
-                    </button>
-                    <button
-                      onClick={() => {
-                        switchRole('technician');
-                        setMobileMenuOpen(false);
-                        navigate('/technician');
-                      }}
-                      style={{
-                        background: 'rgba(234, 88, 12, 0.15)',
-                        border: '1px solid rgba(234, 88, 12, 0.35)',
-                        color: '#ea580c',
-                        padding: '8px 4px',
-                        borderRadius: '8px',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Tech
-                    </button>
-                    <button
-                      onClick={() => {
-                        switchRole('admin');
-                        setMobileMenuOpen(false);
-                        navigate('/admin');
-                      }}
-                      style={{
-                        background: 'rgba(16, 185, 129, 0.15)',
-                        border: '1px solid rgba(16, 185, 129, 0.35)',
-                        color: '#059669',
-                        padding: '8px 4px',
-                        borderRadius: '8px',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Admin
-                    </button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -756,16 +766,30 @@ export default function Navbar({
                 </div>
               </button>
             ) : (
-              <button
-                className="silicone-login-btn"
-                style={{ width: '100%', marginTop: '6px' }}
-                onClick={() => {
-                  navigate('/login');
-                  setMobileMenuOpen(false);
-                }}
-              >
-                Login
-              </button>
+              <div className="silicone-mobile-auth-group" style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  className="silicone-register-btn"
+                  style={{ flex: 1, width: '100%' }}
+                  onClick={() => {
+                    navigate('/register');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  Register
+                </button>
+                <button
+                  type="button"
+                  className="silicone-login-btn"
+                  style={{ flex: 1, width: '100%' }}
+                  onClick={() => {
+                    navigate('/login');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  Login
+                </button>
+              </div>
             )}
           </div>
         )}
