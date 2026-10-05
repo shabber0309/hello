@@ -89,6 +89,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   // Status & feedback
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [formFieldErrors, setFormFieldErrors] = useState({});
 
   const regPwValidation = useMemo(() => getPasswordValidationState(regPassword), [regPassword]);
@@ -532,71 +533,6 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
           </p>
         </div>
 
-        {/* Dedicated Sign In / Register Tab Bar */}
-        <div style={{
-          display: 'flex',
-          background: 'var(--bg-surface-elevated, rgba(15, 23, 42, 0.5))',
-          border: '1.5px solid var(--border-light, rgba(255,255,255,0.1))',
-          borderRadius: '12px',
-          padding: '4px',
-          marginBottom: '20px',
-          gap: '4px'
-        }}>
-          <button
-            type="button"
-            onClick={() => {
-              navigate('/login');
-              setMode('login');
-              setError('');
-              setFormFieldErrors({});
-            }}
-            style={{
-              flex: 1,
-              padding: '9px 12px',
-              borderRadius: '8px',
-              fontSize: '0.86rem',
-              fontWeight: 700,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              background: mode === 'login' ? 'var(--primary, #2563eb)' : 'transparent',
-              color: mode === 'login' ? '#ffffff' : 'var(--text-muted)'
-            }}
-          >
-            <Lock size={15} />
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              navigate('/register');
-              setMode('register');
-              setError('');
-              setFormFieldErrors({});
-            }}
-            style={{
-              flex: 1,
-              padding: '9px 12px',
-              borderRadius: '8px',
-              fontSize: '0.86rem',
-              fontWeight: 700,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              background: mode === 'register' ? 'var(--primary, #2563eb)' : 'transparent',
-              color: mode === 'register' ? '#ffffff' : 'var(--text-muted)'
-            }}
-          >
-            <UserCheck size={15} />
-            Create Account
-          </button>
-        </div>
 
         {/* Error Alert */}
         {error && (
