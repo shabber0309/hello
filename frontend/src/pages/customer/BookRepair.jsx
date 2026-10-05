@@ -62,8 +62,8 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
 
   // Form State
   const [formData, setFormData] = useState({
-    laptop_brand: 'Apple',
-    laptop_model: 'MacBook Air M2 (2023)',
+    laptop_brand: '',
+    laptop_model: '',
     serial_number: '',
     issue_category: '',
     issue_name: '',

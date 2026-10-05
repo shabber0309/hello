@@ -53,7 +53,7 @@ export default function ModelSearchDropdown({
   };
 
   const currentDisplayLabel = () => {
-    if (!selectedModel) return `-- Select ${brand || 'Laptop'} Model --`;
+    if (!selectedModel) return 'Select Model Name';
     const found = brandModels.find(
       m => m.model_code.toLowerCase() === selectedModel.toLowerCase()
     );

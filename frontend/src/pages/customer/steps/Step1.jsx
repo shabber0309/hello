@@ -40,10 +40,10 @@ export default function Step1({
     if (onClearError) onClearError('brand');
     if (val === 'OTHER') {
       setCustomBrandMode(true);
-      setFormData(prev => ({ ...prev, laptop_brand: customBrandText || '' }));
+      setFormData(prev => ({ ...prev, laptop_brand: customBrandText || '', laptop_model: '' }));
     } else {
       setCustomBrandMode(false);
-      setFormData(prev => ({ ...prev, laptop_brand: val }));
+      setFormData(prev => ({ ...prev, laptop_brand: val, laptop_model: '' }));
     }
   };
 
@@ -75,7 +75,7 @@ export default function Step1({
                   type="button"
                   onClick={() => {
                     setCustomBrandMode(false);
-                    setFormData(prev => ({ ...prev, laptop_brand: 'Apple' }));
+                    setFormData(prev => ({ ...prev, laptop_brand: '' }));
                   }}
                   style={{
                     background: 'none',
@@ -96,7 +96,7 @@ export default function Step1({
               <select
                 id="laptop-brand-select"
                 className="form-input"
-                value={customBrandMode ? 'OTHER' : (BRAND_OPTIONS.includes(formData.laptop_brand) ? formData.laptop_brand : 'OTHER')}
+                value={customBrandMode ? 'OTHER' : (formData.laptop_brand && BRAND_OPTIONS.includes(formData.laptop_brand) ? formData.laptop_brand : (formData.laptop_brand ? 'OTHER' : ''))}
                 onChange={handleBrandSelectChange}
                 style={{
                   cursor: 'pointer',
@@ -109,7 +109,7 @@ export default function Step1({
                   boxShadow: brandError ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
                 }}
               >
-                <option value="" disabled>-- Select Laptop Brand --</option>
+                <option value="">Select Laptop Brand</option>
                 {BRAND_OPTIONS.map((brandName) => (
                   <option key={brandName} value={brandName}>
                     {brandName}
