@@ -61,7 +61,7 @@ export default function ModelSearchDropdown({
   };
 
   return (
-    <div style={{ position: 'relative' }} ref={dropdownRef}>
+    <div style={{ position: 'relative', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }} ref={dropdownRef}>
       <label className="form-label" style={{ marginBottom: '7px', display: 'block' }}>
         Model Name / Number
       </label>
@@ -80,11 +80,13 @@ export default function ModelSearchDropdown({
           padding: '0 16px',
           boxSizing: 'border-box',
           fontSize: '0.92rem',
+          minWidth: 0,
+          maxWidth: '100%',
           borderColor: error ? '#ef4444' : (isOpen ? '#2563eb' : undefined),
           boxShadow: error ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : (isOpen ? '0 0 0 3px rgba(37, 99, 235, 0.15)' : undefined)
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden', flex: 1, minWidth: 0 }}>
           <Laptop size={18} color={error ? '#ef4444' : 'var(--primary)'} style={{ flexShrink: 0 }} />
           <span
             style={{
@@ -92,13 +94,14 @@ export default function ModelSearchDropdown({
               color: selectedModel ? 'var(--text-main)' : 'var(--text-muted)',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
-              textOverflow: 'ellipsis'
+              textOverflow: 'ellipsis',
+              minWidth: 0
             }}
           >
             {currentDisplayLabel()}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', flexShrink: 0 }}>
           <ChevronDown
             size={18}
             strokeWidth={2.4}

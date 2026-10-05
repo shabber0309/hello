@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { LAPTOP_PROBLEM_CATEGORIES, ALL_PROBLEMS_FLAT } from '../../data/laptopProblems';
+import { getSavedAddress, saveCustomerAddress } from '../../data/pincodeLocations';
 import { Step1, Step2, Step3, Step4 } from './steps';
 import { scrollToFirstError } from '../../utils/validation';
 import './BookRepair.css';
@@ -12,12 +13,186 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
   const location = useLocation();
   const prefill = location.state?.prefillProblem || '';
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('livefix_booking_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.step && parsed.step >= 1 && parsed.step <= 4) {
+          return parsed.step;
+        }
+      }
+    } catch (e) {}
+    return 1;
+  });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [photoError, setPhotoError] = useState('');
 
   const stepperRef = useRef(null);
+
+  // Selected Category and Problem State - Defaults to empty ('') so "Select Issue Category" is default
+  const [selectedCatId, setSelectedCatId] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('livefix_booking_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.step > 2 && parsed.selectedCatId && parsed.formData?.issue_category) {
+          return parsed.selectedCatId;
+        }
+      }
+    } catch (e) {}
+    return '';
+  });
+
+  const [selectedProbId, setSelectedProbId] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('livefix_booking_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.step > 2 && parsed.selectedProbId && parsed.formData?.issue_name) {
+          return parsed.selectedProbId;
+        }
+      }
+    } catch (e) {}
+    return '';
+  });
+
+  // Photos State: Min 1, Max 3 required
+  const [photos, setPhotos] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('livefix_booking_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.photos)) return parsed.photos;
+      }
+    } catch (e) {}
+    return [];
+  });
+
+  // Mandatory Charger Photos State: Min 1, Max 3 required
+  const [chargerPhotos, setChargerPhotos] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('livefix_booking_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.chargerPhotos)) return parsed.chargerPhotos;
+      }
+    } catch (e) {}
+    return [];
+  });
+  const [chargerPhotoError, setChargerPhotoError] = useState('');
+
+  // Optional Per-Accessory Photos State: map of accessoryName -> array of photos (Max 3 per item)
+  const [accessoryPhotosMap, setAccessoryPhotosMap] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('livefix_booking_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.accessoryPhotosMap) return parsed.accessoryPhotosMap;
+      }
+    } catch (e) {}
+    return {};
+  });
+  const [accessoryPhotoError, setAccessoryPhotoError] = useState('');
+  const [customAccText, setCustomAccText] = useState('');
+
+  // Form State with Session Storage Hydration & Saved Address Auto-fill
+  const [formData, setFormData] = useState(() => {
+    const savedAddr = getSavedAddress();
+    const initialData = {
+      laptop_brand: '',
+      laptop_model: '',
+      serial_number: '',
+      issue_category: '',
+      issue_name: '',
+      issue_description: prefill ? `Selected Issue: ${prefill}` : '',
+      charger_included: true,
+      charger_details: 'Original Charger / Power Adapter',
+      included_accessories: [],
+      pre_existing_damage: ['None / Mint Condition'],
+      pickup_address: savedAddr?.pickup_address || '',
+      pickup_area: savedAddr?.pickup_area || '',
+      pickup_city: savedAddr?.pickup_city || 'Hyderabad',
+      pickup_pincode: savedAddr?.pickup_pincode || '',
+      pickup_landmark: savedAddr?.pickup_landmark || '',
+      pickup_slot: 'On-Demand Dispatch',
+      data_backup_status: 'Customer Confirmed Backup (Diagnostic Waiver Signed)',
+      chassis_open_consent: true,
+      base_price_min: 0,
+      base_price_max: 0,
+      customer_selected_price: 0
+    };
+
+    try {
+      const saved = sessionStorage.getItem('livefix_booking_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.formData) {
+          return { 
+            ...initialData, 
+            ...parsed.formData,
+            pickup_address: parsed.formData.pickup_address || savedAddr?.pickup_address || '',
+            pickup_pincode: parsed.formData.pickup_pincode || savedAddr?.pickup_pincode || '',
+            pickup_area: parsed.formData.pickup_area || savedAddr?.pickup_area || '',
+            pickup_city: parsed.formData.pickup_city || savedAddr?.pickup_city || 'Hyderabad',
+            pickup_landmark: parsed.formData.pickup_landmark || savedAddr?.pickup_landmark || ''
+          };
+        }
+      }
+    } catch (e) {}
+    return initialData;
+  });
+
+  // Clear any old stale test selections so Step 2 always defaults to "Select Issue Category"
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('livefix_booking_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.step <= 2 && parsed.selectedCatId === 'software' && parsed.selectedProbId === 1) {
+          setSelectedCatId('');
+          setSelectedProbId('');
+          setFormData(prev => ({
+            ...prev,
+            issue_category: '',
+            issue_name: '',
+            base_price_min: 0,
+            base_price_max: 0,
+            customer_selected_price: 0
+          }));
+        }
+      }
+    } catch (e) {}
+  }, []);
+
+  // Automatically persist progress to sessionStorage so page refresh stays on current step with all data intact
+  useEffect(() => {
+    try {
+      const stateToSave = {
+        step,
+        formData,
+        selectedCatId,
+        selectedProbId,
+        photos,
+        chargerPhotos,
+        accessoryPhotosMap
+      };
+      sessionStorage.setItem('livefix_booking_state', JSON.stringify(stateToSave));
+    } catch (err) {
+      // In case quota is exceeded due to raw photos, safely persist step and form fields
+      try {
+        const fallbackState = {
+          step,
+          formData,
+          selectedCatId,
+          selectedProbId
+        };
+        sessionStorage.setItem('livefix_booking_state', JSON.stringify(fallbackState));
+      } catch (e) {}
+    }
+  }, [step, formData, selectedCatId, selectedProbId, photos, chargerPhotos, accessoryPhotosMap]);
 
   // Automatically scroll to the top of the wizard (book-stepper-bar) on step transition
   useEffect(() => {
@@ -27,7 +202,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
         const headerHeight = header ? header.offsetHeight : 76;
         const rect = stepperRef.current.getBoundingClientRect();
         const absoluteTop = rect.top + window.pageYOffset;
-        // Position stepper bar comfortably below the fixed navbar
         const targetScroll = Math.max(0, absoluteTop - headerHeight - 16);
 
         window.scrollTo({
@@ -44,46 +218,6 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     const timeoutId = setTimeout(scrollToStepper, 50);
     return () => clearTimeout(timeoutId);
   }, [step]);
-
-  // Selected Category and Problem State (Null initially so search input placeholder appears as in Image 2)
-  const [selectedCatId, setSelectedCatId] = useState(null);
-  const [selectedProbId, setSelectedProbId] = useState(null);
-
-  // Photos State: Min 1, Max 5 required
-  const [photos, setPhotos] = useState([]);
-  // Mandatory Charger Photos State: Min 1, Max 3 required
-  const [chargerPhotos, setChargerPhotos] = useState([]);
-  const [chargerPhotoError, setChargerPhotoError] = useState('');
-
-  // Optional Per-Accessory Photos State: map of accessoryName -> array of photos (Max 3 per item)
-  const [accessoryPhotosMap, setAccessoryPhotosMap] = useState({});
-  const [accessoryPhotoError, setAccessoryPhotoError] = useState('');
-  const [customAccText, setCustomAccText] = useState('');
-
-  // Form State
-  const [formData, setFormData] = useState({
-    laptop_brand: '',
-    laptop_model: '',
-    serial_number: '',
-    issue_category: '',
-    issue_name: '',
-    issue_description: prefill ? `Selected Issue: ${prefill}` : '',
-    charger_included: true, // Mandatory for all laptops
-    charger_details: 'Original Charger / Power Adapter',
-    included_accessories: [],
-    pre_existing_damage: ['None / Mint Condition'],
-    pickup_address: '',
-    pickup_area: '',
-    pickup_city: 'Hyderabad',
-    pickup_pincode: '',
-    pickup_landmark: '',
-    pickup_slot: 'On-Demand Dispatch',
-    data_backup_status: 'Customer Confirmed Backup (Diagnostic Waiver Signed)',
-    chassis_open_consent: true,
-    base_price_min: 1500,
-    base_price_max: 3500,
-    customer_selected_price: 2500
-  });
 
   // Handle Charger Photo Upload (Mandatory Min 1, Max 3)
   const handleChargerPhotoUpload = (e) => {
@@ -402,19 +536,18 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
   const handleCategorySelect = (opt) => {
     const catId = opt.id || opt.value;
     setSelectedCatId(catId);
+    setSelectedProbId(null);
+    clearFieldError('category');
+    clearFieldError('problem');
     const cat = LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === catId);
-    if (cat && cat.problems.length > 0) {
-      const firstProb = cat.problems[0];
-      setSelectedProbId(firstProb.id);
-      setFormData(prev => ({
-        ...prev,
-        issue_category: cat.name,
-        issue_name: firstProb.name,
-        base_price_min: firstProb.basePrice,
-        base_price_max: firstProb.maxPrice,
-        customer_selected_price: Math.round((firstProb.basePrice + firstProb.maxPrice) / 2)
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      issue_category: cat ? cat.name : '',
+      issue_name: '',
+      base_price_min: 0,
+      base_price_max: 0,
+      customer_selected_price: 0
+    }));
   };
 
   // Step 2 Problem Dropdown Selection Handler (Supports cross-category search!)
@@ -424,11 +557,12 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       setSelectedCatId(opt.categoryId);
     }
     setSelectedProbId(probId);
-    const prob = ALL_PROBLEMS_FLAT.find(p => p.id === probId) || currentCategory.problems.find(p => p.id === probId);
+    clearFieldError('problem');
+    const prob = ALL_PROBLEMS_FLAT.find(p => p.id === probId) || currentCategory?.problems.find(p => p.id === probId);
     if (prob) {
       setFormData(prev => ({
         ...prev,
-        issue_category: prob.categoryName || currentCategory.name,
+        issue_category: prob.categoryName || currentCategory?.name || '',
         issue_name: prob.name,
         base_price_min: prob.basePrice,
         base_price_max: prob.maxPrice,
@@ -479,6 +613,8 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
       });
       const data = await res.json();
       if (res.ok) {
+        try { sessionStorage.removeItem('livefix_booking_state'); } catch (e) {}
+        saveCustomerAddress(formData);
         onBookingSuccess(data.order);
       } else {
         setError(data.error || 'Failed to book repair.');
@@ -494,6 +630,8 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
         quote_amount: formData.customer_selected_price,
         quote_approved: false
       };
+      try { sessionStorage.removeItem('livefix_booking_state'); } catch (e) {}
+      saveCustomerAddress(formData);
       onBookingSuccess(mockOrder);
     } finally {
       setLoading(false);

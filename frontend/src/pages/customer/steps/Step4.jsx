@@ -1,12 +1,11 @@
 import React from 'react';
-import { ShieldCheck, ArrowLeft, Laptop, FileText, CheckCircle2, MapPin } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Laptop, FileText, MapPin, Wrench, Camera } from 'lucide-react';
 
 export default function Step4({
   formData,
-  setFormData,
   currentCategory,
   currentProblem,
-  photos,
+  photos = [],
   loading,
   onBack,
   onSubmit
@@ -21,37 +20,32 @@ export default function Step4({
   ].filter(Boolean).join(', ');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <h3 className="book-step-title">
         <ShieldCheck size={20} color="var(--primary)" className="book-step-title-icon" /> Step 4: Review Order & Confirm Pickup
       </h3>
 
-      
-
-      {/* Modern Grouped Repair Order Summary Card */}
+      {/* Clean Repair Order Summary Card */}
       <div className="order-summary-card">
         <div className="order-summary-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FileText size={18} color="var(--primary)" />
-            <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-              Repair Order Preview
+            <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)' }}>
+              Repair Order Summary
             </h4>
           </div>
-          <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.74rem' }}>
-            <CheckCircle2 size={13} /> Verified Intake Manifest
-          </span>
         </div>
 
         <div className="order-summary-grid">
-          {/* Column 1: Device & Problem Details */}
+          {/* Section 1: Laptop Details */}
           <div className="order-summary-section">
             <div className="order-summary-section-title">
-              <Laptop size={14} color="var(--primary)" /> Device & Issue Details
+              <Laptop size={14} color="var(--primary)" /> Laptop Details
             </div>
             <div className="order-summary-item">
-              <span className="order-summary-label">Laptop:</span>
+              <span className="order-summary-label">Brand & Model:</span>
               <span className="order-summary-value" style={{ fontWeight: 700 }}>
-                {formData.laptop_brand} {formData.laptop_model || 'Standard Laptop'}
+                {formData.laptop_brand} {formData.laptop_model || ''}
               </span>
             </div>
             {formData.serial_number && (
@@ -62,89 +56,80 @@ export default function Step4({
                 </span>
               </div>
             )}
-            <div className="order-summary-item">
-              <span className="order-summary-label">Problem Category:</span>
-              <span className="order-summary-value highlight-blue">
-                {currentCategory ? currentCategory.shortName : 'General'}: {problemDisplayName}
-              </span>
-            </div>
-            <div className="order-summary-item">
-              <span className="order-summary-label">Pre-Existing Condition:</span>
-              <span className="order-summary-value highlight-amber">
-                {formData.pre_existing_damage && formData.pre_existing_damage.length > 0 ? formData.pre_existing_damage.join(', ') : 'None / Mint Condition'}
-              </span>
-            </div>
-            <div className="order-summary-item">
-              <span className="order-summary-label">Photo Proof:</span>
-              <span className="order-summary-value highlight-green">
-                {photos.length > 0 ? `${photos.length} photo(s) attached` : 'None attached'}
-              </span>
-            </div>
-          </div>
-
-          {/* Column 2: Handover & Coordination */}
-          <div className="order-summary-section">
-            <div className="order-summary-section-title">
-              <ShieldCheck size={14} color="var(--primary)" /> Handover & Coordination
-            </div>
-            <div className="order-summary-item">
-              <span className="order-summary-label">Charger Handover:</span>
-              <span className="order-summary-value">
-                {formData.charger_included ? (formData.charger_details || 'Original Charger Handed Over') : 'No Charger Included'}
-              </span>
-            </div>
-            <div className="order-summary-item">
-              <span className="order-summary-label">Included Accessories:</span>
-              <span className="order-summary-value">
-                {formData.included_accessories && formData.included_accessories.length > 0 ? formData.included_accessories.join(', ') : 'None'}
-              </span>
-            </div>
-            <div className="order-summary-item">
-              <span className="order-summary-label">Chassis Consent:</span>
-              <span className="order-summary-value highlight-green">
-                {formData.chassis_open_consent ? 'Authorized for Bench Diagnostic' : 'Standard Intake'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Pickup Logistics Full Row */}
-        <div className="order-summary-logistics">
-          <div className="order-summary-section-title">
-            <MapPin size={14} color="var(--primary)" /> Doorstep Pickup Location
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-              <MapPin size={15} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div>
-                <span className="order-summary-label" style={{ display: 'block', fontSize: '0.72rem', marginBottom: '1px' }}>Address</span>
-                <span style={{ color: 'var(--text-main)', fontSize: '0.86rem', lineHeight: '1.4', fontWeight: 600 }}>
-                  {formattedAddress || 'Address will be confirmed upon pickup'}
+            {photos && photos.length > 0 && (
+              <div className="order-summary-item">
+                <span className="order-summary-label">Photos:</span>
+                <span className="order-summary-value highlight-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Camera size={13} /> {photos.length} attached
                 </span>
               </div>
+            )}
+          </div>
+
+          {/* Section 2: Reported Issue */}
+          <div className="order-summary-section">
+            <div className="order-summary-section-title">
+              <Wrench size={14} color="var(--primary)" /> Reported Issue
             </div>
-            {formData.pickup_landmark && (
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', paddingLeft: '23px' }}>
-                <strong>Landmark:</strong> {formData.pickup_landmark}
+            <div className="order-summary-item">
+              <span className="order-summary-label">Category:</span>
+              <span className="order-summary-value highlight-blue">
+                {currentCategory ? currentCategory.shortName : 'General'}
+              </span>
+            </div>
+            <div className="order-summary-item">
+              <span className="order-summary-label">Service:</span>
+              <span className="order-summary-value" style={{ fontWeight: 600 }}>
+                {problemDisplayName}
+              </span>
+            </div>
+            {formData.issue_description && (
+              <div className="order-summary-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+                <span className="order-summary-label">Description:</span>
+                <span className="order-summary-desc-box">
+                  "{formData.issue_description}"
+                </span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Target Budget Footer Bar */}
-        <div className="order-summary-budget-footer">
-          <div>
-            <div style={{ fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', fontWeight: 800 }}>
-              Customer Target Budget
-            </div>
-            <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Final technician quote will be confirmed live before work starts
-            </div>
+        {/* Section 3: Doorstep Pickup Location */}
+        <div className="order-summary-logistics">
+          <div className="order-summary-section-title">
+            <MapPin size={14} color="var(--primary)" /> Doorstep Pickup Location
           </div>
-          <div className="order-summary-budget-amount">
-            ₹{formData.customer_selected_price.toLocaleString()}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <MapPin size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <span style={{ color: 'var(--text-main)', fontSize: '0.88rem', lineHeight: '1.45', fontWeight: 600, display: 'block', wordBreak: 'break-word' }}>
+                {formattedAddress || 'Address will be confirmed upon pickup'}
+              </span>
+              {formData.pickup_landmark && (
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '3px' }}>
+                  <strong>Landmark:</strong> {formData.pickup_landmark}
+                </span>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Section 4: Target Budget Footer */}
+        {formData.customer_selected_price > 0 && (
+          <div className="order-summary-budget-footer">
+            <div>
+              <div style={{ fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', fontWeight: 800 }}>
+                Target Estimated Budget
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Live camera inspection & exact quote confirmed before repair starts
+              </div>
+            </div>
+            <div className="order-summary-budget-amount">
+              ₹{Number(formData.customer_selected_price).toLocaleString('en-IN')}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Step 4 Actions Footer */}
@@ -161,9 +146,8 @@ export default function Step4({
           onClick={onSubmit}
           disabled={loading}
           className="btn-verified"
-          style={{ padding: '12px 28px', fontSize: '1rem' }}
         >
-          <ShieldCheck size={18} /> {loading ? 'Posting Repair Request...' : 'Post Problem Online & Confirm Pickup'}
+          <ShieldCheck size={18} /> {loading ? 'Confirming...' : 'Book Repair'}
         </button>
       </div>
     </div>

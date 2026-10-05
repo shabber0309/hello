@@ -45,8 +45,8 @@ export default function LaptopVisualPreview({ brand, model }) {
         <div className="laptop-preview-top-row">
           <span className="laptop-preview-brand-label">{displayBrand}</span>
           {model && (
-            <span className="laptop-preview-model-code-badge" title={`Model No: ${resolved.model_code || model}`}>
-              Model No: {resolved.model_code || model}
+            <span className="laptop-preview-model-code-badge" title={resolved.model_code || model}>
+              {resolved.model_code || model}
             </span>
           )}
         </div>
@@ -71,8 +71,8 @@ export default function LaptopVisualPreview({ brand, model }) {
                 <div className="laptop-preview-top-row">
                   <span className="laptop-preview-brand-label">{displayBrand}</span>
                   {model && (
-                    <span className="laptop-preview-model-code-badge" title={`Model No: ${resolved.model_code || model}`}>
-                      Model No: {resolved.model_code || model}
+                    <span className="laptop-preview-model-code-badge" title={resolved.model_code || model}>
+                      {resolved.model_code || model}
                     </span>
                   )}
                 </div>

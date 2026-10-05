@@ -55,7 +55,7 @@ export default function Step1({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div className="book-step-content-wrap">
       <h3 className="book-step-title">
         <Laptop size={20} color="var(--primary)" className="book-step-title-icon" /> Step 1: Laptop Brand, Model & Photo Proof
       </h3>
@@ -65,7 +65,7 @@ export default function Step1({
         {/* Left: Input Specifications */}
         <div className="book-device-inputs-col">
           {/* Brand Selection Dropdown */}
-          <div id="field-brand">
+          <div id="field-brand" style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>
               <label className="form-label" htmlFor="laptop-brand-select" style={{ margin: 0 }}>
                 Brand <span style={{ color: '#ef4444' }}>*</span>
@@ -170,7 +170,7 @@ export default function Step1({
           </div>
 
           {/* Model Name / Number (Full width for clean readability) */}
-          <div id="field-model">
+          <div id="field-model" style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
             <ModelSearchDropdown
               brand={formData.laptop_brand}
               selectedModel={formData.laptop_model}
@@ -183,7 +183,7 @@ export default function Step1({
           </div>
 
           {/* Serial Number (Optional, clean full-width input) */}
-          <div>
+          <div style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>
               <label className="form-label" style={{ margin: 0 }}>
                 Serial Number
@@ -226,38 +226,14 @@ export default function Step1({
               {photos.map((p, idx) => (
                 <div
                   key={p.id}
-                  style={{
-                    position: 'relative',
-                    width: '64px',
-                    height: '46px',
-                    borderRadius: '6px',
-                    overflow: 'hidden',
-                    border: '1.5px solid var(--border-medium, #cbd5e1)',
-                    background: 'var(--bg-surface, #ffffff)',
-                    flexShrink: 0
-                  }}
+                  className="intake-manifest-thumb-item"
                   title={`Problem photo ${idx + 1}`}
                 >
                   <img src={p.dataUrl} alt={`Problem photo ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <button
                     type="button"
                     onClick={() => removePhoto(p.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '2px',
-                      right: '2px',
-                      background: '#2563eb',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '15px',
-                      height: '15px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#ffffff',
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
+                    className="intake-manifest-thumb-remove-btn"
                     title="Remove photo"
                   >
                     <X size={10} />
@@ -265,7 +241,7 @@ export default function Step1({
                 </div>
               ))}
               {photos.length === 0 && (
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                <span className="intake-manifest-empty-hint">
                   No photos uploaded yet
                 </span>
               )}
@@ -312,38 +288,14 @@ export default function Step1({
               {chargerPhotos.map((photo) => (
                 <div
                   key={photo.id}
-                  style={{
-                    position: 'relative',
-                    width: '64px',
-                    height: '46px',
-                    borderRadius: '6px',
-                    overflow: 'hidden',
-                    border: '1.5px solid var(--border-medium, #cbd5e1)',
-                    background: 'var(--bg-surface, #ffffff)',
-                    flexShrink: 0
-                  }}
+                  className="intake-manifest-thumb-item"
                   title={photo.name}
                 >
                   <img src={photo.dataUrl} alt={photo.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <button
                     type="button"
                     onClick={() => removeChargerPhoto(photo.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '2px',
-                      right: '2px',
-                      background: '#2563eb',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '15px',
-                      height: '15px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#ffffff',
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
+                    className="intake-manifest-thumb-remove-btn"
                     title="Remove"
                   >
                     <X size={10} />
@@ -351,7 +303,7 @@ export default function Step1({
                 </div>
               ))}
               {chargerPhotos.length === 0 && (
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                <span className="intake-manifest-empty-hint">
                   No photos uploaded yet
                 </span>
               )}
@@ -520,38 +472,14 @@ export default function Step1({
                     itemPhotos.map((photo) => (
                       <div
                         key={photo.id}
-                        style={{
-                          position: 'relative',
-                          width: '64px',
-                          height: '46px',
-                          borderRadius: '6px',
-                          overflow: 'hidden',
-                          border: '1.5px solid var(--border-medium, #cbd5e1)',
-                          background: 'var(--bg-surface, #ffffff)',
-                          flexShrink: 0
-                        }}
+                        className="intake-manifest-thumb-item"
                         title={photo.name}
                       >
                         <img src={photo.dataUrl} alt={photo.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         <button
                           type="button"
                           onClick={() => removeItemPhoto(acc, photo.id)}
-                          style={{
-                            position: 'absolute',
-                            top: '2px',
-                            right: '2px',
-                            background: '#2563eb',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '15px',
-                            height: '15px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#ffffff',
-                            cursor: 'pointer',
-                            padding: 0
-                          }}
+                          className="intake-manifest-thumb-remove-btn"
                           title="Remove photo"
                         >
                           <X size={10} />
@@ -559,7 +487,7 @@ export default function Step1({
                       </div>
                     ))
                   ) : (
-                    <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                    <span className="intake-manifest-empty-hint">
                       No photos uploaded yet
                     </span>
                   )}
