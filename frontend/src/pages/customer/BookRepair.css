@@ -363,12 +363,42 @@ textarea.form-input {
   gap: 3px;
 }
 
+.laptop-preview-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
 .laptop-preview-brand-label {
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--primary, #2563eb);
+}
+
+.laptop-preview-model-code-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  color: var(--text-muted, #64748b);
+  background: var(--bg-surface-soft, rgba(37, 99, 235, 0.08));
+  border: 1px solid var(--border-light, #e2e8f0);
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.2px;
+  max-width: 65%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .laptop-preview-model-code-badge {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .laptop-preview-model-name {
