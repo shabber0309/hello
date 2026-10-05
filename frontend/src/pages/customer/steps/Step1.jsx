@@ -189,7 +189,7 @@ export default function Step1({
                 Serial Number
               </label>
               <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                Optional (located on bottom cover)
+                Optional
               </span>
             </div>
             <input
@@ -431,17 +431,10 @@ export default function Step1({
           </div>
 
           {/* Quick Add Pills */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            paddingTop: '8px',
-            borderTop: '1px dashed var(--border-subtle, rgba(0, 0, 0, 0.08))',
-            width: '100%',
-            flexWrap: 'wrap'
-          }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Quick add:</span>
-            {['Mouse', 'Laptop Bag', 'USB Hub', 'External Drive'].map(item => {
+          <div className="intake-manifest-quick-add">
+            <span className="intake-manifest-quick-add-label">Quick add:</span>
+            <div className="intake-manifest-pills-wrap">
+              {['Mouse', 'Laptop Bag', 'USB Hub', 'External Drive'].map(item => {
               const isAdded = formData.included_accessories.includes(item);
               return (
                 <button
@@ -477,6 +470,7 @@ export default function Step1({
                 </button>
               );
             })}
+            </div>
           </div>
 
           {accessoryPhotoError && (
