@@ -267,42 +267,99 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     setPhotos(prev => prev.filter(p => p.id !== id));
   };
 
-  // Step 1 Validation (Device Specs, Photo Proof Min 1, Max 5 & Mandatory Charger Photos Min 1, Max 3)
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const clearFieldError = (fieldName) => {
+    setFieldErrors(prev => {
+      if (!prev[fieldName]) return prev;
+      const updated = { ...prev };
+      delete updated[fieldName];
+      return updated;
+    });
+  };
+
+  // Step 1 Validation with individual errors for brand, model, photos, and chargerPhotos
   const handleProceedToStep2 = () => {
-    if (!formData.laptop_brand.trim() || !formData.laptop_model.trim()) {
-      setError('Please provide laptop brand and model name.');
-      return;
+    const errors = {};
+    if (!formData.laptop_brand || !formData.laptop_brand.trim()) {
+      errors.brand = 'Please select or enter your laptop brand.';
+    }
+    if (!formData.laptop_model || !formData.laptop_model.trim()) {
+      errors.model = 'Please select or enter your laptop model name/number.';
     }
     if (photos.length === 0) {
-      setPhotoError('Photo proof is required (Min 1, Max 3). Please upload at least 1 photo showing the problem or device label.');
-      return;
-    }
-    if (photos.length > 3) {
-      setPhotoError('Maximum 3 photos allowed.');
-      return;
+      errors.photos = 'Photo proof is required (Min 1, Max 3). Please upload at least 1 photo.';
+    } else if (photos.length > 3) {
+      errors.photos = 'Maximum 3 photos allowed.';
     }
     if (chargerPhotos.length < 1) {
-      setChargerPhotoError('Charger photo is mandatory for all laptops (Min 1, Max 3). Please upload at least 1 photo of your laptop charger.');
+      errors.chargerPhotos = 'Charger photo is mandatory (Min 1, Max 3). Please upload at least 1 photo of your charger.';
+    } else if (chargerPhotos.length > 3) {
+      errors.chargerPhotos = 'Maximum 3 charger photos allowed.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('');
       return;
     }
-    if (chargerPhotos.length > 3) {
-      setChargerPhotoError('Maximum 3 charger photos allowed.');
-      return;
-    }
+
+    setFieldErrors({});
     setError('');
     setPhotoError('');
     setChargerPhotoError('');
     setStep(2);
   };
 
-  // Step 2 to Step 3 Validation
+  // Step 2 to Step 3 Validation with individual errors for problem
   const handleProceedToStep3 = () => {
+    const errors = {};
+    if (!selectedCatId && !formData.issue_category) {
+      errors.category = 'Please select a primary diagnostic category.';
+    }
     if (!selectedProbId && !formData.issue_name) {
-      setError('Please select or search your specific laptop problem before proceeding.');
+      errors.problem = 'Please select or search your specific laptop problem/service.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('');
       return;
     }
+
+    setFieldErrors({});
     setError('');
     setStep(3);
+  };
+
+  // Step 3 to Step 4 Validation with individual errors for address, area, pincode, consent
+  const handleProceedToStep4 = () => {
+    const errors = {};
+    if (!formData.pickup_address || !formData.pickup_address.trim()) {
+      errors.pickup_address = 'Please enter your complete doorstep pickup address.';
+    }
+    if (!formData.pickup_area || !formData.pickup_area.trim()) {
+      errors.pickup_area = 'Please enter your area or locality.';
+    }
+    const pincodeClean = (formData.pickup_pincode || '').trim();
+    if (!pincodeClean) {
+      errors.pickup_pincode = 'Please enter your 6-digit postal pincode.';
+    } else if (!/^\d{6}$/.test(pincodeClean)) {
+      errors.pickup_pincode = 'Pincode must be exactly 6 numeric digits (e.g. 500081).';
+    }
+    if (!formData.chassis_open_consent) {
+      errors.chassis_open_consent = 'Diagnostic & backup authorization is required to proceed with repair.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('');
+      return;
+    }
+
+    setFieldErrors({});
+    setError('');
+    setStep(4);
   };
 
   // Memoized options for SearchableDropdowns
@@ -483,13 +540,19 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
             formData={formData}
             setFormData={setFormData}
             photos={photos}
-            handlePhotoUpload={handlePhotoUpload}
+            handlePhotoUpload={(e) => {
+              clearFieldError('photos');
+              handlePhotoUpload(e);
+            }}
             removePhoto={removePhoto}
-            photoError={photoError}
+            photoError={fieldErrors.photos || photoError}
             chargerPhotos={chargerPhotos}
-            handleChargerPhotoUpload={handleChargerPhotoUpload}
+            handleChargerPhotoUpload={(e) => {
+              clearFieldError('chargerPhotos');
+              handleChargerPhotoUpload(e);
+            }}
             removeChargerPhoto={removeChargerPhoto}
-            chargerPhotoError={chargerPhotoError}
+            chargerPhotoError={fieldErrors.chargerPhotos || chargerPhotoError}
             accessoryPhotosMap={accessoryPhotosMap}
             handleItemPhotoUpload={handleItemPhotoUpload}
             removeItemPhoto={removeItemPhoto}
@@ -500,6 +563,9 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
             handleAddCustomAccessory={handleAddCustomAccessory}
             toggleAccessory={toggleAccessory}
             onNext={handleProceedToStep2}
+            brandError={fieldErrors.brand}
+            modelError={fieldErrors.model}
+            onClearError={clearFieldError}
           />
         )}
 
@@ -514,10 +580,19 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
             allProblemsOptions={allProblemsOptions}
             currentCategory={currentCategory}
             currentProblem={currentProblem}
-            handleCategorySelect={handleCategorySelect}
-            handleProblemSelect={handleProblemSelect}
+            handleCategorySelect={(opt) => {
+              clearFieldError('category');
+              clearFieldError('problem');
+              handleCategorySelect(opt);
+            }}
+            handleProblemSelect={(opt) => {
+              clearFieldError('problem');
+              handleProblemSelect(opt);
+            }}
             onBack={() => setStep(1)}
             onNext={handleProceedToStep3}
+            categoryError={fieldErrors.category}
+            problemError={fieldErrors.problem}
           />
         )}
 
@@ -526,7 +601,12 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
             formData={formData}
             setFormData={setFormData}
             onBack={() => setStep(2)}
-            onNext={() => setStep(4)}
+            onNext={handleProceedToStep4}
+            addressError={fieldErrors.pickup_address}
+            areaError={fieldErrors.pickup_area}
+            pincodeError={fieldErrors.pickup_pincode}
+            consentError={fieldErrors.chassis_open_consent}
+            onClearError={clearFieldError}
           />
         )}
 

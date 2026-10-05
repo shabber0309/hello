@@ -13,6 +13,16 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [formFieldErrors, setFormFieldErrors] = useState({});
+
+  const clearFormFieldError = (field) => {
+    setFormFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (user) {
@@ -22,6 +32,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
       setPassword('');
       setError('');
       setSuccess('');
+      setFormFieldErrors({});
     }
   }, [user, isOpen]);
 
@@ -31,9 +42,10 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      setError('Photo size should be less than 5MB');
+      setFormFieldErrors((prev) => ({ ...prev, avatar: 'Photo size should be less than 5MB' }));
       return;
     }
+    clearFormFieldError('avatar');
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatar(reader.result);
@@ -44,6 +56,19 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = {};
+    if (!name.trim()) {
+      errors.name = 'Full name is required';
+    }
+    if (password && password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -309,6 +334,12 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
             </div>
           </div>
 
+          {formFieldErrors.avatar && (
+            <div style={{ color: '#ef4444', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500, marginTop: '-6px' }}>
+              <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.avatar}
+            </div>
+          )}
+
           <div>
             <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
               Full Name
@@ -316,10 +347,21 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
             <input 
               type="text" 
               value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              style={{ width: '100%' }}
-              required 
+              onChange={(e) => {
+                clearFormFieldError('name');
+                setName(e.target.value);
+              }} 
+              style={{
+                width: '100%',
+                border: formFieldErrors.name ? '1.5px solid #ef4444' : undefined,
+                boxShadow: formFieldErrors.name ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
+              }}
             />
+            {formFieldErrors.name && (
+              <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.name}
+              </span>
+            )}
           </div>
 
           <div>
@@ -342,10 +384,22 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
             <input 
               type="password" 
               value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
+              onChange={(e) => {
+                clearFormFieldError('password');
+                setPassword(e.target.value);
+              }} 
               placeholder="••••••••••••"
-              style={{ width: '100%' }}
+              style={{
+                width: '100%',
+                border: formFieldErrors.password ? '1.5px solid #ef4444' : undefined,
+                boxShadow: formFieldErrors.password ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
+              }}
             />
+            {formFieldErrors.password && (
+              <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.password}
+              </span>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>

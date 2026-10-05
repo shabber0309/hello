@@ -80,6 +80,16 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [formFieldErrors, setFormFieldErrors] = useState({});
+
+  const clearFormFieldError = (field) => {
+    setFormFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   // Countdown timers for OTP resend
   useEffect(() => {
@@ -151,10 +161,20 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
   const handleLoginSubmit = async (e) => {
     e?.preventDefault();
-    if (!identifier.trim() || !password) {
-      setError('Email or phone number and password are required');
+    const errors = {};
+    if (!identifier.trim()) {
+      errors.identifier = 'Please enter your email or phone number';
+    }
+    if (!password) {
+      errors.password = 'Please enter your account password';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      setError('');
       return;
     }
+
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
@@ -176,20 +196,26 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
   const handleSendLoginOtp = async (e) => {
     e?.preventDefault();
-    if (!otpEmail.trim() || !otpEmail.includes('@')) {
-      setError('Please provide a valid email address');
+    const emailClean = otpEmail.trim();
+    if (!emailClean) {
+      setFormFieldErrors({ otpEmail: 'Please enter your email address' });
       return;
     }
+    if (!emailClean.includes('@') || !emailClean.includes('.')) {
+      setFormFieldErrors({ otpEmail: 'Please provide a valid email address (e.g. name@example.com)' });
+      return;
+    }
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
 
-    const res = await sendOtp(otpEmail.trim(), role);
+    const res = await sendOtp(emailClean, role);
     setLoading(false);
     if (res.success) {
       setOtpStep(2);
       setOtpCooldown(60);
-      setSuccessMsg(`Sign-in verification code sent to ${otpEmail.trim()}`);
+      setSuccessMsg(`Sign-in verification code sent to ${emailClean}`);
       if (res.data?.dev_otp) {
         setOtpDevCode(res.data.dev_otp);
       }
@@ -201,9 +227,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   const handleVerifyLoginOtp = async (e) => {
     e?.preventDefault();
     if (!otpCode.trim()) {
-      setError('Please enter the 6-digit verification code');
+      setFormFieldErrors({ otpCode: 'Please enter the 6-digit verification code' });
       return;
     }
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
@@ -225,31 +252,48 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
   const handleRegisterSubmit = async (e) => {
     e?.preventDefault();
-    if (!regName.trim() || !regEmail.trim() || !regPassword) {
-      setError('Name, email, and password are required');
-      return;
+    const errors = {};
+    if (!regName.trim()) {
+      errors.regName = 'Please enter your full name';
     }
-    if (regPassword.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
+    const emailClean = regEmail.trim();
+    if (!emailClean) {
+      errors.regEmail = 'Please enter your email address';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean)) {
+      errors.regEmail = 'Please enter a valid email address (e.g. alex@example.com)';
+    }
+    const phoneClean = regPhone.trim();
+    if (!phoneClean) {
+      errors.regPhone = 'Please enter your 10-digit mobile number';
+    } else if (!/^\d{10}$/.test(phoneClean.replace(/[^0-9]/g, ''))) {
+      errors.regPhone = 'Mobile number must be 10 numeric digits';
+    }
+    if (!regPassword) {
+      errors.regPassword = 'Password is required';
+    } else if (regPassword.length < 6) {
+      errors.regPassword = 'Password must be at least 6 characters long';
     }
     if (!regConfirmPassword) {
-      setError('Please confirm your password');
-      return;
+      errors.regConfirmPassword = 'Please confirm your password';
+    } else if (regPassword !== regConfirmPassword) {
+      errors.regConfirmPassword = 'Passwords do not match';
     }
-    if (regPassword !== regConfirmPassword) {
-      setError('Passwords do not match. Please verify your confirm password.');
+
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      setError('');
       return;
     }
 
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
 
     const res = await register({
       name: regName.trim(),
-      email: regEmail.trim(),
-      phone: regPhone.trim(),
+      email: emailClean,
+      phone: phoneClean,
       password: regPassword,
       role: regRole || 'customer'
     });
@@ -268,9 +312,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   const handleRequestOtp = async (e) => {
     e?.preventDefault();
     if (!forgotIdentifier.trim()) {
-      setError('Please provide your registered email or phone number');
+      setFormFieldErrors({ forgotIdentifier: 'Please provide your registered email or phone number' });
       return;
     }
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
@@ -308,26 +353,31 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
   const handleResetSubmit = async (e) => {
     e?.preventDefault();
+    const errors = {};
     if (!forgotOtp.trim()) {
-      setError('Please enter the 6-digit OTP code');
-      return;
+      errors.forgotOtp = 'Please enter the 6-digit OTP code';
     }
     if (!forgotNewPassword) {
-      setError('Please enter a new password');
-      return;
-    }
-    if (forgotNewPassword.length < 6) {
-      setError('New password must be at least 6 characters long');
-      return;
+      errors.forgotNewPassword = 'New password is required';
+    } else if (forgotNewPassword.length < 6) {
+      errors.forgotNewPassword = 'New password must be at least 6 characters long';
     }
     if (!forgotConfirmPassword) {
-      setError('Please confirm your new password');
+      errors.forgotConfirmPassword = 'Please confirm your new password';
+    } else if (forgotNewPassword !== forgotConfirmPassword) {
+      errors.forgotConfirmPassword = 'New password and confirmation do not match';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      setError('');
       return;
     }
-    if (forgotNewPassword !== forgotConfirmPassword) {
-      setError('New password and confirmation do not match');
-      return;
-    }
+
+    setFormFieldErrors({});
+    setLoading(true);
+    setError('');
+    setSuccessMsg('');
 
     setLoading(true);
     setError('');
@@ -535,7 +585,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
             </div>
 
             {loginMethod === 'password' ? (
-              <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <form onSubmit={handleLoginSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div>
                   <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
                     Email Address or Phone Number
@@ -544,7 +594,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     <input
                       type="text"
                       value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
+                      onChange={(e) => {
+                        clearFormFieldError('identifier');
+                        setIdentifier(e.target.value);
+                      }}
                       placeholder="Enter registered email or phone"
                       style={{
                         width: '100%',
@@ -553,15 +606,20 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                         height: '44px',
                         borderRadius: '10px',
                         background: 'var(--bg-input, rgba(15, 23, 42, 0.5))',
-                        border: '1px solid var(--border-light)',
+                        border: formFieldErrors.identifier ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                        boxShadow: formFieldErrors.identifier ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                         color: 'var(--text-main)',
                         fontSize: '0.88rem'
                       }}
-                      required
                       autoFocus
                     />
-                    <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                    <Mail size={16} color={formFieldErrors.identifier ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '14px' }} />
                   </div>
+                  {formFieldErrors.identifier && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} /> {formFieldErrors.identifier}
+                    </span>
+                  )}
                 </div>
 
                 <div>
@@ -571,7 +629,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     </label>
                     <button 
                       type="button" 
-                      onClick={() => { setMode('forgot'); setError(''); setSuccessMsg(''); }}
+                      onClick={() => { setMode('forgot'); setError(''); setSuccessMsg(''); setFormFieldErrors({}); }}
                       style={{ 
                         background: 'none', 
                         border: 'none', 
@@ -589,7 +647,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        clearFormFieldError('password');
+                        setPassword(e.target.value);
+                      }}
                       placeholder="Enter account password"
                       style={{
                         width: '100%',
@@ -598,13 +659,13 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                         height: '44px',
                         borderRadius: '10px',
                         background: 'var(--bg-input, rgba(15, 23, 42, 0.5))',
-                        border: '1px solid var(--border-light)',
+                        border: formFieldErrors.password ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                        boxShadow: formFieldErrors.password ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                         color: 'var(--text-main)',
                         fontSize: '0.88rem'
                       }}
-                      required
                     />
-                    <Lock size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                    <Lock size={16} color={formFieldErrors.password ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '14px' }} />
                     
                     <button
                       type="button"
@@ -624,6 +685,11 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                       {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                     </button>
                   </div>
+                  {formFieldErrors.password && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} /> {formFieldErrors.password}
+                    </span>
+                  )}
                 </div>
 
                 <button
@@ -656,7 +722,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
               /* OTP Sign In Flow */
               <div>
                 {otpStep === 1 ? (
-                  <form onSubmit={handleSendLoginOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <form onSubmit={handleSendLoginOtp} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div>
                       <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
                         Your Email Address
@@ -665,7 +731,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                         <input
                           type="email"
                           value={otpEmail}
-                          onChange={(e) => setOtpEmail(e.target.value)}
+                          onChange={(e) => {
+                            clearFormFieldError('otpEmail');
+                            setOtpEmail(e.target.value);
+                          }}
                           placeholder="e.g. yourname@example.com"
                           style={{
                             width: '100%',
@@ -673,15 +742,20 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                             height: '44px',
                             borderRadius: '10px',
                             background: 'var(--bg-input)',
-                            border: '1px solid var(--border-light)',
+                            border: formFieldErrors.otpEmail ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                            boxShadow: formFieldErrors.otpEmail ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                             color: 'var(--text-main)',
                             fontSize: '0.88rem'
                           }}
-                          required
                           autoFocus
                         />
-                        <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                        <Mail size={16} color={formFieldErrors.otpEmail ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '14px' }} />
                       </div>
+                      {formFieldErrors.otpEmail && (
+                        <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={13} /> {formFieldErrors.otpEmail}
+                        </span>
+                      )}
                     </div>
 
                     <button
@@ -703,7 +777,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     </button>
                   </form>
                 ) : (
-                  <form onSubmit={handleVerifyLoginOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <form onSubmit={handleVerifyLoginOtp} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {otpDevCode && (
                       <div style={{ background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.78rem', color: '#60a5fa' }}>
                         Security OTP: <strong>{otpDevCode}</strong> (or master <strong>123456</strong>)
@@ -713,9 +787,9 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
-                          Enter 6-Digit OTP Code
+                          Enter 6-Digit Code
                         </label>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                        <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>
                           Sent to {otpEmail}
                         </span>
                       </div>
@@ -723,7 +797,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                         type="text"
                         maxLength={6}
                         value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value)}
+                        onChange={(e) => {
+                          clearFormFieldError('otpCode');
+                          setOtpCode(e.target.value);
+                        }}
                         placeholder="••••••"
                         style={{
                           width: '100%',
@@ -731,7 +808,8 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                           height: '46px',
                           borderRadius: '10px',
                           background: 'var(--bg-input)',
-                          border: '1px solid var(--border-light)',
+                          border: formFieldErrors.otpCode ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                          boxShadow: formFieldErrors.otpCode ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                           color: '#38bdf8',
                           fontSize: '1.25rem',
                           letterSpacing: '8px',
@@ -739,9 +817,13 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                           fontFamily: 'var(--font-mono, monospace)',
                           fontWeight: 700
                         }}
-                        required
                         autoFocus
                       />
+                      {formFieldErrors.otpCode && (
+                        <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={13} /> {formFieldErrors.otpCode}
+                        </span>
+                      )}
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -791,7 +873,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
         {/* Mode: Register */}
         {mode === 'register' && (
-          <form onSubmit={handleRegisterSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <form onSubmit={handleRegisterSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* Account Type Selector */}
             <div>
               <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
@@ -835,13 +917,31 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 <input
                   type="text"
                   value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regName');
+                    setRegName(e.target.value);
+                  }}
                   placeholder="e.g. Alex Morgan"
-                  style={{ width: '100%', paddingLeft: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  required
+                  style={{
+                    width: '100%',
+                    paddingLeft: '36px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: formFieldErrors.regName ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.regName ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
+                  autoFocus
                 />
-                <User size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                <User size={15} color={formFieldErrors.regName ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '12px' }} />
               </div>
+              {formFieldErrors.regName && (
+                <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} /> {formFieldErrors.regName}
+                </span>
+              )}
             </div>
 
             <div>
@@ -852,13 +952,30 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 <input
                   type="email"
                   value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regEmail');
+                    setRegEmail(e.target.value);
+                  }}
                   placeholder="alex@example.com"
-                  style={{ width: '100%', paddingLeft: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  required
+                  style={{
+                    width: '100%',
+                    paddingLeft: '36px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: formFieldErrors.regEmail ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.regEmail ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
                 />
-                <Mail size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                <Mail size={15} color={formFieldErrors.regEmail ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '12px' }} />
               </div>
+              {formFieldErrors.regEmail && (
+                <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} /> {formFieldErrors.regEmail}
+                </span>
+              )}
             </div>
 
             <div>
@@ -869,12 +986,30 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 <input
                   type="text"
                   value={regPhone}
-                  onChange={(e) => setRegPhone(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regPhone');
+                    setRegPhone(e.target.value);
+                  }}
                   placeholder="+91 98765 43210"
-                  style={{ width: '100%', paddingLeft: '32px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
+                  style={{
+                    width: '100%',
+                    paddingLeft: '32px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: formFieldErrors.regPhone ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.regPhone ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
                 />
-                <Phone size={14} color="var(--text-dim)" style={{ position: 'absolute', left: '10px', top: '13px' }} />
+                <Phone size={14} color={formFieldErrors.regPhone ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '10px', top: '13px' }} />
               </div>
+              {formFieldErrors.regPhone && (
+                <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} /> {formFieldErrors.regPhone}
+                </span>
+              )}
             </div>
 
             {/* Password */}
@@ -891,12 +1026,25 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 <input
                   type={showRegPassword ? 'text' : 'password'}
                   value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regPassword');
+                    setRegPassword(e.target.value);
+                  }}
                   placeholder="Create password (min 6 characters)"
-                  style={{ width: '100%', paddingLeft: '36px', paddingRight: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  required
+                  style={{
+                    width: '100%',
+                    paddingLeft: '36px',
+                    paddingRight: '36px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: formFieldErrors.regPassword ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.regPassword ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
                 />
-                <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                <Lock size={15} color={formFieldErrors.regPassword ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <button
                   type="button"
                   onClick={() => setShowRegPassword(!showRegPassword)}
@@ -905,6 +1053,11 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   {showRegPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {formFieldErrors.regPassword && (
+                <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} /> {formFieldErrors.regPassword}
+                </span>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -938,7 +1091,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 <input
                   type={showRegConfirmPassword ? 'text' : 'password'}
                   value={regConfirmPassword}
-                  onChange={(e) => setRegConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regConfirmPassword');
+                    setRegConfirmPassword(e.target.value);
+                  }}
                   placeholder="Re-enter password to confirm"
                   style={{
                     width: '100%',
@@ -947,13 +1103,13 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     height: '40px',
                     borderRadius: '10px',
                     background: 'var(--bg-input)',
-                    border: `1px solid ${regConfirmPassword ? (regPassword === regConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'}`,
+                    border: formFieldErrors.regConfirmPassword ? '1.5px solid #ef4444' : `1px solid ${regConfirmPassword ? (regPassword === regConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'}`,
+                    boxShadow: formFieldErrors.regConfirmPassword ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                     color: 'var(--text-main)',
                     fontSize: '0.85rem'
                   }}
-                  required
                 />
-                <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                <Lock size={15} color={formFieldErrors.regConfirmPassword ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <button
                   type="button"
                   onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
@@ -962,6 +1118,11 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   {showRegConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {formFieldErrors.regConfirmPassword && (
+                <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} /> {formFieldErrors.regConfirmPassword}
+                </span>
+              )}
             </div>
 
             <button
@@ -993,7 +1154,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
         {mode === 'forgot' && (
           <div>
             {forgotStep === 1 ? (
-              <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <form onSubmit={handleRequestOtp} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
                     Registered Email or Phone Number
@@ -1002,17 +1163,35 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     <input
                       type="text"
                       value={forgotIdentifier}
-                      onChange={(e) => setForgotIdentifier(e.target.value)}
+                      onChange={(e) => {
+                        clearFormFieldError('forgotIdentifier');
+                        setForgotIdentifier(e.target.value);
+                      }}
                       placeholder="Enter registered email or phone number"
-                      style={{ width: '100%', paddingLeft: '38px', height: '42px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.88rem' }}
-                      required
+                      style={{
+                        width: '100%',
+                        paddingLeft: '38px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        background: 'var(--bg-input)',
+                        border: formFieldErrors.forgotIdentifier ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                        boxShadow: formFieldErrors.forgotIdentifier ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                        color: 'var(--text-main)',
+                        fontSize: '0.88rem'
+                      }}
                       autoFocus
                     />
-                    <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
+                    <Mail size={16} color={formFieldErrors.forgotIdentifier ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '13px' }} />
                   </div>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', display: 'block', marginTop: '4px' }}>
-                    We will send a 6-digit OTP code to the verified email for your account.
-                  </span>
+                  {formFieldErrors.forgotIdentifier ? (
+                    <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} /> {formFieldErrors.forgotIdentifier}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', display: 'block', marginTop: '4px' }}>
+                      We will send a 6-digit OTP code to the verified email for your account.
+                    </span>
+                  )}
                 </div>
 
                 <button
@@ -1035,7 +1214,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
               </form>
             ) : (
               /* Forgot Step 2: Enter OTP, New Password, Confirm New Password */
-              <form onSubmit={handleResetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
+              <form onSubmit={handleResetSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
                 {forgotDevOtp && (
                   <div style={{ background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.78rem', color: '#60a5fa' }}>
                     Security OTP: <strong>{forgotDevOtp}</strong> (or master <strong>123456</strong>)
@@ -1056,7 +1235,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     type="text"
                     maxLength={6}
                     value={forgotOtp}
-                    onChange={(e) => setForgotOtp(e.target.value)}
+                    onChange={(e) => {
+                      clearFormFieldError('forgotOtp');
+                      setForgotOtp(e.target.value);
+                    }}
                     placeholder="••••••"
                     style={{
                       width: '100%',
@@ -1064,7 +1246,8 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                       height: '44px',
                       borderRadius: '10px',
                       background: 'var(--bg-input)',
-                      border: '1px solid var(--border-light)',
+                      border: formFieldErrors.forgotOtp ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                      boxShadow: formFieldErrors.forgotOtp ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                       color: '#38bdf8',
                       fontSize: '1.2rem',
                       letterSpacing: '6px',
@@ -1072,16 +1255,20 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                       fontFamily: 'var(--font-mono, monospace)',
                       fontWeight: 700
                     }}
-                    required
                     autoFocus
                   />
+                  {formFieldErrors.forgotOtp && (
+                    <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} /> {formFieldErrors.forgotOtp}
+                    </span>
+                  )}
                 </div>
 
                 {/* Resend & Edit Email Controls */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <button
                     type="button"
-                    onClick={() => { setForgotStep(1); setError(''); }}
+                    onClick={() => { setForgotStep(1); setError(''); setFormFieldErrors({}); }}
                     style={{
                       background: 'none',
                       border: 'none',
@@ -1124,12 +1311,25 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     <input
                       type={showForgotNewPassword ? 'text' : 'password'}
                       value={forgotNewPassword}
-                      onChange={(e) => setForgotNewPassword(e.target.value)}
+                      onChange={(e) => {
+                        clearFormFieldError('forgotNewPassword');
+                        setForgotNewPassword(e.target.value);
+                      }}
                       placeholder="Enter new password (min 6 characters)"
-                      style={{ width: '100%', paddingLeft: '36px', paddingRight: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                      required
+                      style={{
+                        width: '100%',
+                        paddingLeft: '36px',
+                        paddingRight: '36px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: 'var(--bg-input)',
+                        border: formFieldErrors.forgotNewPassword ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                        boxShadow: formFieldErrors.forgotNewPassword ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                        color: 'var(--text-main)',
+                        fontSize: '0.85rem'
+                      }}
                     />
-                    <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <Lock size={15} color={formFieldErrors.forgotNewPassword ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '12px' }} />
                     <button
                       type="button"
                       onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}
@@ -1138,6 +1338,11 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                       {showForgotNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+                  {formFieldErrors.forgotNewPassword && (
+                    <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} /> {formFieldErrors.forgotNewPassword}
+                    </span>
+                  )}
                 </div>
 
                 {/* Confirm New Password */}
@@ -1171,7 +1376,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     <input
                       type={showForgotConfirmPassword ? 'text' : 'password'}
                       value={forgotConfirmPassword}
-                      onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        clearFormFieldError('forgotConfirmPassword');
+                        setForgotConfirmPassword(e.target.value);
+                      }}
                       placeholder="Confirm new password"
                       style={{
                         width: '100%',
@@ -1180,13 +1388,13 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                         height: '40px',
                         borderRadius: '10px',
                         background: 'var(--bg-input)',
-                        border: `1px solid ${forgotConfirmPassword ? (forgotNewPassword === forgotConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'}`,
+                        border: formFieldErrors.forgotConfirmPassword ? '1.5px solid #ef4444' : `1px solid ${forgotConfirmPassword ? (forgotNewPassword === forgotConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'}`,
+                        boxShadow: formFieldErrors.forgotConfirmPassword ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                         color: 'var(--text-main)',
                         fontSize: '0.85rem'
                       }}
-                      required
                     />
-                    <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <Lock size={15} color={formFieldErrors.forgotConfirmPassword ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '12px' }} />
                     <button
                       type="button"
                       onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)}
@@ -1195,6 +1403,11 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                       {showForgotConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+                  {formFieldErrors.forgotConfirmPassword && (
+                    <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} /> {formFieldErrors.forgotConfirmPassword}
+                    </span>
+                  )}
                 </div>
 
                 <button

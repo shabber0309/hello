@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronDown, Check, X, Laptop } from 'lucide-react';
+import { Search, ChevronDown, Check, X, Laptop, AlertCircle } from 'lucide-react';
 import { getModelsForBrand } from './laptopModelsData';
 
 export default function ModelSearchDropdown({
@@ -7,7 +7,8 @@ export default function ModelSearchDropdown({
   selectedModel,
   onSelectModel,
   serialNumber,
-  onSerialChange
+  onSerialChange,
+  error = ''
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,12 +80,12 @@ export default function ModelSearchDropdown({
           padding: '0 16px',
           boxSizing: 'border-box',
           fontSize: '0.92rem',
-          borderColor: isOpen ? '#2563eb' : undefined,
-          boxShadow: isOpen ? '0 0 0 3px rgba(37, 99, 235, 0.15)' : undefined
+          borderColor: error ? '#ef4444' : (isOpen ? '#2563eb' : undefined),
+          boxShadow: error ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : (isOpen ? '0 0 0 3px rgba(37, 99, 235, 0.15)' : undefined)
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden', flex: 1 }}>
-          <Laptop size={18} color="var(--primary)" style={{ flexShrink: 0 }} />
+          <Laptop size={18} color={error ? '#ef4444' : 'var(--primary)'} style={{ flexShrink: 0 }} />
           <span
             style={{
               fontWeight: selectedModel ? 600 : 400,
@@ -108,6 +109,12 @@ export default function ModelSearchDropdown({
           />
         </div>
       </div>
+
+      {error && (
+        <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+          <AlertCircle size={13} /> {error}
+        </span>
+      )}
 
       {/* Searchable Dropdown Popup */}
       {isOpen && (

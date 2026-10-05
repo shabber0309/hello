@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Laptop, AlertTriangle, X, Plus, Search, Check, ArrowRight, ChevronDown } from 'lucide-react';
+import { Laptop, AlertTriangle, AlertCircle, X, Plus, Search, Check, ArrowRight, ChevronDown } from 'lucide-react';
 import { BRAND_OPTIONS } from './brandLogos';
 import LaptopVisualPreview from './LaptopVisualPreview';
 import ModelSearchDropdown from './ModelSearchDropdown';
@@ -24,7 +24,10 @@ export default function Step1({
   submitCustomAccessory,
   handleAddCustomAccessory,
   toggleAccessory,
-  onNext
+  onNext,
+  brandError = '',
+  modelError = '',
+  onClearError
 }) {
   const isInitialCustom = Boolean(formData.laptop_brand && !BRAND_OPTIONS.includes(formData.laptop_brand));
   const [customBrandMode, setCustomBrandMode] = useState(isInitialCustom);
@@ -34,6 +37,7 @@ export default function Step1({
 
   const handleBrandSelectChange = (e) => {
     const val = e.target.value;
+    if (onClearError) onClearError('brand');
     if (val === 'OTHER') {
       setCustomBrandMode(true);
       setFormData(prev => ({ ...prev, laptop_brand: customBrandText || '' }));
@@ -45,6 +49,7 @@ export default function Step1({
 
   const handleCustomBrandInputChange = (e) => {
     const text = e.target.value;
+    if (onClearError) onClearError('brand');
     setCustomBrandText(text);
     setFormData(prev => ({ ...prev, laptop_brand: text }));
   };
@@ -99,7 +104,9 @@ export default function Step1({
                   paddingRight: '42px',
                   appearance: 'none',
                   WebkitAppearance: 'none',
-                  MozAppearance: 'none'
+                  MozAppearance: 'none',
+                  borderColor: brandError ? '#ef4444' : undefined,
+                  boxShadow: brandError ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
                 }}
               >
                 <option value="" disabled>-- Select Laptop Brand --</option>
@@ -125,6 +132,12 @@ export default function Step1({
               </div>
             </div>
 
+            {brandError && !customBrandMode && (
+              <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                <AlertCircle size={13} /> {brandError}
+              </span>
+            )}
+
             {/* Option to type if not available in the dropdown */}
             {customBrandMode && (
               <div style={{ marginTop: '12px' }}>
@@ -138,14 +151,20 @@ export default function Step1({
                   value={customBrandText}
                   onChange={handleCustomBrandInputChange}
                   style={{
-                    borderColor: 'var(--primary)',
-                    boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.12)'
+                    borderColor: brandError ? '#ef4444' : 'var(--primary)',
+                    boxShadow: brandError ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : '0 0 0 3px rgba(37, 99, 235, 0.12)'
                   }}
                   autoFocus
                 />
-                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                  Your custom brand will be recorded on the intake manifest.
-                </span>
+                {brandError ? (
+                  <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                    <AlertCircle size={13} /> {brandError}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                    Your custom brand will be recorded on the intake manifest.
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -155,7 +174,11 @@ export default function Step1({
             <ModelSearchDropdown
               brand={formData.laptop_brand}
               selectedModel={formData.laptop_model}
-              onSelectModel={(modelVal) => setFormData(prev => ({ ...prev, laptop_model: modelVal }))}
+              onSelectModel={(modelVal) => {
+                if (onClearError) onClearError('model');
+                setFormData(prev => ({ ...prev, laptop_model: modelVal }));
+              }}
+              error={modelError}
             />
           </div>
 

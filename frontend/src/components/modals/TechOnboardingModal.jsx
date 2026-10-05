@@ -10,7 +10,8 @@ import {
   Award, 
   FileText,
   TrendingUp,
-  MapPin
+  MapPin,
+  AlertCircle
 } from 'lucide-react';
 import './TechOnboardingModal.css';
 
@@ -25,11 +26,42 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
     workbenchTools: 'ESD Mat, 100x Microscope, Thermal Camera, Oscilloscope'
   });
   const [submitted, setSubmitted] = useState(false);
+  const [formFieldErrors, setFormFieldErrors] = useState({});
+
+  const clearFormFieldError = (field) => {
+    setFormFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = {};
+    if (!formData.name.trim()) {
+      errors.name = 'Full name is required';
+    }
+    if (!formData.email.trim()) {
+      errors.email = 'Email address is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = 'Please enter a valid email address';
+    }
+    if (!formData.phone.trim()) {
+      errors.phone = 'Phone number is required';
+    }
+    if (!formData.city.trim()) {
+      errors.city = 'City / coverage area is required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      return;
+    }
+
     try {
       await fetch('/api/auth/register', {
         method: 'POST',
@@ -132,19 +164,30 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                   Full Name / Workshop Name
                 </label>
                 <input 
                   type="text" 
-                  required
                   placeholder="e.g. Vikram Verma"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  style={{ width: '100%' }}
+                  onChange={(e) => {
+                    clearFormFieldError('name');
+                    setFormData({ ...formData, name: e.target.value });
+                  }}
+                  style={{
+                    width: '100%',
+                    border: formFieldErrors.name ? '1.5px solid #ef4444' : undefined,
+                    boxShadow: formFieldErrors.name ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
+                  }}
                 />
+                {formFieldErrors.name && (
+                  <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                    <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.name}
+                  </span>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -154,12 +197,23 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
                   </label>
                   <input 
                     type="email" 
-                    required
                     placeholder="vikram@tech.com"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    style={{ width: '100%' }}
+                    onChange={(e) => {
+                      clearFormFieldError('email');
+                      setFormData({ ...formData, email: e.target.value });
+                    }}
+                    style={{
+                      width: '100%',
+                      border: formFieldErrors.email ? '1.5px solid #ef4444' : undefined,
+                      boxShadow: formFieldErrors.email ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
+                    }}
                   />
+                  {formFieldErrors.email && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.email}
+                    </span>
+                  )}
                 </div>
 
                 <div>
@@ -168,12 +222,23 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
                   </label>
                   <input 
                     type="tel" 
-                    required
                     placeholder="+91 98111 22334"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    style={{ width: '100%' }}
+                    onChange={(e) => {
+                      clearFormFieldError('phone');
+                      setFormData({ ...formData, phone: e.target.value });
+                    }}
+                    style={{
+                      width: '100%',
+                      border: formFieldErrors.phone ? '1.5px solid #ef4444' : undefined,
+                      boxShadow: formFieldErrors.phone ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
+                    }}
                   />
+                  {formFieldErrors.phone && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.phone}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -199,12 +264,23 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
                   </label>
                   <input 
                     type="text" 
-                    required
                     placeholder="e.g. Hyderabad / Hitec City"
                     value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    style={{ width: '100%' }}
+                    onChange={(e) => {
+                      clearFormFieldError('city');
+                      setFormData({ ...formData, city: e.target.value });
+                    }}
+                    style={{
+                      width: '100%',
+                      border: formFieldErrors.city ? '1.5px solid #ef4444' : undefined,
+                      boxShadow: formFieldErrors.city ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
+                    }}
                   />
+                  {formFieldErrors.city && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.city}
+                    </span>
+                  )}
                 </div>
               </div>
 

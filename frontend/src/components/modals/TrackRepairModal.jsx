@@ -129,20 +129,25 @@ export default function TrackRepairModal({ isOpen, onClose, onOpenLiveStream, in
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+        <form onSubmit={handleSearch} noValidate style={{ display: 'flex', gap: '10px', marginBottom: errorMsg ? '6px' : '24px' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search size={18} style={{ position: 'absolute', left: '14px', top: '13px', color: 'var(--text-dim)' }} />
             <input 
               type="text"
               placeholder="Enter your Repair ID or Serial Number..."
               value={searchId}
-              onChange={(e) => setSearchId(e.target.value)}
+              onChange={(e) => {
+                setErrorMsg('');
+                setSearchId(e.target.value);
+              }}
               style={{
                 width: '100%',
                 paddingLeft: '42px',
                 fontSize: '0.95rem',
                 fontFamily: 'var(--font-mono)',
-                fontWeight: 600
+                fontWeight: 600,
+                border: errorMsg ? '1.5px solid #ef4444' : undefined,
+                boxShadow: errorMsg ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
               }}
             />
           </div>
@@ -153,8 +158,8 @@ export default function TrackRepairModal({ isOpen, onClose, onOpenLiveStream, in
         </form>
 
         {errorMsg && (
-          <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '0.85rem', marginBottom: '16px' }}>
-            {errorMsg}
+          <div style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
+            <AlertCircle size={14} style={{ flexShrink: 0 }} /> {errorMsg}
           </div>
         )}
 

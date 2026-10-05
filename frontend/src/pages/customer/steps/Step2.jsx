@@ -15,7 +15,9 @@ export default function Step2({
   handleCategorySelect,
   handleProblemSelect,
   onBack,
-  onNext
+  onNext,
+  categoryError = '',
+  problemError = ''
 }) {
   const problemDisplayName = currentProblem?.name || formData.issue_name || 'Hardware Diagnostic';
 
@@ -37,6 +39,7 @@ export default function Step2({
           searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
           icon={Layers}
           onChange={handleCategorySelect}
+          error={categoryError}
         />
 
         {/* 2. Specific Problem / Service Dropdown */}
@@ -50,6 +53,7 @@ export default function Step2({
           searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
           icon={Wrench}
           onChange={handleProblemSelect}
+          error={problemError}
         />
       </div>
 
