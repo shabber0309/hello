@@ -147,14 +147,23 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
 
         {/* Search Bar */}
         <div className="track-search-card">
-          <form onSubmit={handleSearch} className="track-search-form">
-            <div className="track-search-input-wrap">
+          <form onSubmit={handleSearch} noValidate className="track-search-form">
+            <div 
+              className="track-search-input-wrap"
+              style={{
+                border: errorMsg ? '1.5px solid #ef4444' : undefined,
+                boxShadow: errorMsg ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
+              }}
+            >
               <Search size={18} className="track-search-icon" />
               <input
                 type="text"
                 placeholder="Enter Repair ID, Serial Number, Seal Code, or Email/Phone..."
                 value={searchId}
-                onChange={(e) => setSearchId(e.target.value)}
+                onChange={(e) => {
+                  setErrorMsg('');
+                  setSearchId(e.target.value);
+                }}
                 className="track-search-input"
               />
             </div>
@@ -170,8 +179,8 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
           </form>
 
           {errorMsg && (
-            <div style={{ color: '#ef4444', fontSize: '0.88rem', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <AlertCircle size={15} />
+            <div style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+              <AlertCircle size={15} style={{ flexShrink: 0 }} />
               <span>{errorMsg}</span>
             </div>
           )}

@@ -412,3 +412,150 @@
 .auth-switch-link:hover {
   text-decoration: underline;
 }
+
+/* ==========================================================================
+   Password Requirements Box (High-Contrast accessible Light & Dark modes)
+   ========================================================================== */
+.auth-pw-requirements {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--bg-surface-elevated, #f8fafc);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 10px;
+}
+
+[data-theme="dark"] .auth-pw-requirements {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.auth-pw-requirements-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-main, #1e293b);
+  margin-bottom: 6px;
+}
+
+[data-theme="dark"] .auth-pw-requirements-title {
+  color: #f1f5f9;
+}
+
+.auth-pw-requirements-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 0.72rem;
+}
+
+.auth-pw-req-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.auth-pw-req-item.valid {
+  color: #059669;
+}
+
+[data-theme="dark"] .auth-pw-req-item.valid {
+  color: #34d399;
+}
+
+.auth-pw-req-item.invalid {
+  color: #dc2626;
+}
+
+[data-theme="dark"] .auth-pw-req-item.invalid {
+  color: #f87171;
+}
+
+.auth-pw-req-item-full {
+  grid-column: span 2;
+}
+
+/* ==========================================================================
+   Comprehensive Mobile View Optimization (< 640px)
+   ========================================================================== */
+@media (max-width: 640px) {
+  .auth-page-root {
+    padding: 16px 12px 32px;
+    min-height: auto;
+  }
+
+  .auth-card {
+    padding: 22px 16px 18px;
+    border-radius: 18px;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .auth-card h1 {
+    font-size: 1.35rem !important;
+  }
+
+  .auth-card p {
+    font-size: 0.8rem !important;
+  }
+
+  /* Segmented Role Switcher: Ensure all 3 roles (Customer, Technician, Admin) fit cleanly without overflow */
+  .auth-segmented-role-bar {
+    padding: 3px;
+    gap: 3px;
+    margin-bottom: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .auth-segmented-role-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 7px 4px;
+    font-size: 0.76rem;
+    gap: 4px;
+    border-radius: 7px;
+  }
+
+  .auth-segmented-role-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0;
+  }
+
+  .auth-segmented-role-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Password Requirements: stack to 1 column on narrow screens */
+  .auth-pw-requirements-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .auth-pw-req-item-full {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 380px) {
+  .auth-page-root {
+    padding: 12px 8px 24px;
+  }
+
+  .auth-card {
+    padding: 18px 12px 16px;
+    border-radius: 14px;
+  }
+
+  .auth-segmented-role-btn {
+    font-size: 0.7rem;
+    padding: 6px 2px;
+  }
+}
+

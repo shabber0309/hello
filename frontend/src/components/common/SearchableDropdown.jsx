@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, ChevronDown, Check, X } from 'lucide-react';
+import { Search, ChevronDown, Check, X, AlertCircle } from 'lucide-react';
 import './SearchableDropdown.css';
 
 export default function SearchableDropdown({
@@ -12,7 +12,8 @@ export default function SearchableDropdown({
   placeholder = 'Search...',
   searchPlaceholder = '',
   icon: IconComponent = null,
-  emptyMessage = 'No matching options found'
+  emptyMessage = 'No matching options found',
+  error = ''
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -131,6 +132,7 @@ export default function SearchableDropdown({
       <div 
         className={`search-bar-container ${isOpen ? 'search-bar-open' : ''} ${selectedOption ? 'search-bar-has-value' : ''}`}
         onClick={() => inputRef.current?.focus()}
+        style={error ? { borderColor: '#ef4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.15)' } : undefined}
       >
         <div className="search-bar-left">
           <Search size={18} className="search-bar-icon" />
@@ -185,6 +187,12 @@ export default function SearchableDropdown({
           </button>
         </div>
       </div>
+
+      {error && (
+        <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+          <AlertCircle size={13} /> {error}
+        </span>
+      )}
 
       {/* Dropdown Menu (Appears when clicked or typed into) */}
       {isOpen && (

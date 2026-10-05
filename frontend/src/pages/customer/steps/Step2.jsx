@@ -15,7 +15,9 @@ export default function Step2({
   handleCategorySelect,
   handleProblemSelect,
   onBack,
-  onNext
+  onNext,
+  categoryError = '',
+  problemError = ''
 }) {
   const problemDisplayName = currentProblem?.name || formData.issue_name || 'Hardware Diagnostic';
 
@@ -28,29 +30,35 @@ export default function Step2({
       {/* 2-Column Searchable Dropdowns for Laptop View, Stacked on Mobile */}
       <div className="book-dropdowns-stack">
         {/* 1. Category Dropdown */}
-        <SearchableDropdown
-          label="1. Issue Category (20 Categories)"
-          sublabel="Select primary diagnostic domain"
-          value={selectedCatId}
-          options={categoryOptions}
-          placeholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
-          searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
-          icon={Layers}
-          onChange={handleCategorySelect}
-        />
+        <div id="field-category" style={{ flex: 1 }}>
+          <SearchableDropdown
+            label="1. Issue Category (20 Categories)"
+            sublabel="Select primary diagnostic domain"
+            value={selectedCatId}
+            options={categoryOptions}
+            placeholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
+            searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
+            icon={Layers}
+            onChange={handleCategorySelect}
+            error={categoryError}
+          />
+        </div>
 
         {/* 2. Specific Problem / Service Dropdown */}
-        <SearchableDropdown
-          label="2. Specific Problem / Service"
-          sublabel={currentCategory ? `Showing ${currentCategory.problems.length} services in ${currentCategory.shortName} (or type to search all 200)` : 'Search across all 200 laptop problems'}
-          value={selectedProbId}
-          options={problemOptions}
-          fallbackAllOptions={allProblemsOptions}
-          placeholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
-          searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
-          icon={Wrench}
-          onChange={handleProblemSelect}
-        />
+        <div id="field-problem" style={{ flex: 1 }}>
+          <SearchableDropdown
+            label="2. Specific Problem / Service"
+            sublabel={currentCategory ? `Showing ${currentCategory.problems.length} services in ${currentCategory.shortName} (or type to search all 200)` : 'Search across all 200 laptop problems'}
+            value={selectedProbId}
+            options={problemOptions}
+            fallbackAllOptions={allProblemsOptions}
+            placeholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
+            searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
+            icon={Wrench}
+            onChange={handleProblemSelect}
+            error={problemError}
+          />
+        </div>
       </div>
 
       {/* Problem Description in Words */}
@@ -61,7 +69,7 @@ export default function Step2({
         <textarea
           className="form-input"
           rows={4}
-          placeholder="Describe what occurred (e.g. system shut down during gaming, screen shows flickering green lines when adjusted, battery drops from 80% to 0%, or tea spill on the keyboard)."
+          placeholder="Describe exactly what happened (this is required because the technician will diagnose the issue based on your description). Note: Just like with a doctor or a lawyer, complete honesty with our technician ensures an accurate repair."
           value={formData.issue_description}
           onChange={(e) => setFormData({ ...formData, issue_description: e.target.value })}
         />
@@ -75,9 +83,6 @@ export default function Step2({
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              Indicative Price Range for: {problemDisplayName}
-            </div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
               ₹{formData.base_price_min.toLocaleString()} — ₹{formData.base_price_max.toLocaleString()}
             </div>
@@ -102,16 +107,7 @@ export default function Step2({
           </div>
         </div>
 
-        {/* Transparent Disclaimer */}
-        <div className="price-transparency-disclaimer">
-          <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>
-            <strong>Estimated Repair Cost: ₹{formData.base_price_min.toLocaleString()} – ₹{formData.base_price_max.toLocaleString()}</strong>.
-            <div style={{ marginTop: '2px' }}>
-              Final price depends on laptop brand, model, part availability (OEM vs compatible parts), and technician diagnosis during the live workbench video stream. You will approve the final quote before any repair proceeds.
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       {/* Step 2 Actions Footer */}

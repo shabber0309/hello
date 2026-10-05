@@ -42,7 +42,14 @@ export default function LaptopVisualPreview({ brand, model }) {
 
       {/* Brand & Model Details Only */}
       <div className="laptop-preview-meta">
-        <span className="laptop-preview-brand-label">{displayBrand}</span>
+        <div className="laptop-preview-top-row">
+          <span className="laptop-preview-brand-label">{displayBrand}</span>
+          {model && (
+            <span className="laptop-preview-model-code-badge" title={`Model No: ${resolved.model_code || model}`}>
+              Model No: {resolved.model_code || model}
+            </span>
+          )}
+        </div>
         <h4 className="laptop-preview-model-name" title={displayModel}>
           {displayModel}
         </h4>
@@ -60,9 +67,16 @@ export default function LaptopVisualPreview({ brand, model }) {
               <X size={18} />
             </button>
             <div className="laptop-preview-lightbox-header">
-              <div>
-                <span className="laptop-preview-brand-label">{displayBrand}</span>
-                <h3 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              <div style={{ flex: 1, paddingRight: '12px' }}>
+                <div className="laptop-preview-top-row">
+                  <span className="laptop-preview-brand-label">{displayBrand}</span>
+                  {model && (
+                    <span className="laptop-preview-model-code-badge" title={`Model No: ${resolved.model_code || model}`}>
+                      Model No: {resolved.model_code || model}
+                    </span>
+                  )}
+                </div>
+                <h3 style={{ margin: '4px 0 0', fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
                   {displayModel}
                 </h3>
               </div>

@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   X, Mail, Lock, ShieldCheck, Wrench, UserCheck, 
   ArrowRight, CheckCircle2, RefreshCw, KeyRound, AlertCircle, 
-  Shield, Eye, EyeOff, User, Phone, Sparkles, HelpCircle
+  Shield, Eye, EyeOff, User, Phone, Sparkles, HelpCircle, RotateCcw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import {
+  EMAIL_REGEX,
+  PHONE_REGEX,
+  PASSWORD_REGEX,
+  getPasswordValidationState,
+  sanitizeDigits,
+  validatePhone,
+  validateEmail,
+  scrollToFirstError
+} from '../../utils/validation';
 import './AuthModal.css';
 
 export default function AuthModal({ isOpen, onClose, initialRole = 'customer', onSuccess }) {
@@ -43,6 +53,19 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [formFieldErrors, setFormFieldErrors] = useState({});
+
+  const regPwValidation = useMemo(() => getPasswordValidationState(regPassword), [regPassword]);
+  const forgotPwValidation = useMemo(() => getPasswordValidationState(forgotNewPassword), [forgotNewPassword]);
+
+  const clearFormFieldError = (field) => {
+    setFormFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   React.useEffect(() => {
     let interval = null;
@@ -97,15 +120,30 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
   const handleFillPreset = (presetRole) => {
     setError('');
     setSuccessMsg('');
+    setFormFieldErrors({});
     setRole(presetRole);
   };
 
   const handleLoginSubmit = async (e) => {
     e?.preventDefault();
-    if (!identifier.trim() || !password) {
-      setError('Please enter your email or phone number and password');
+    const errors = {};
+    if (!identifier.trim()) {
+      errors.identifier = 'Please enter your email or phone number';
+    }
+    if (!password) {
+      errors.password = 'Please enter your password';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, {
+        identifier: 'field-modal-identifier',
+        password: 'field-modal-password'
+      }), 50);
       return;
     }
+
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
@@ -122,30 +160,56 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
 
   const handleRegisterSubmit = async (e) => {
     e?.preventDefault();
-    if (!regName.trim() || !regEmail.trim() || !regPassword) {
-      setError('Name, email, and password are required');
-      return;
+    const errors = {};
+    const nameClean = regName.trim();
+    if (!nameClean) {
+      errors.regName = 'Please enter your full name';
+    } else if (!/^[a-zA-Z\s]{2,50}$/.test(nameClean)) {
+      errors.regName = 'Name must contain only letters and spaces (min 2 characters)';
     }
-    if (regPassword.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
+
+    const emailResult = validateEmail(regEmail);
+    if (!emailResult.isValid) {
+      errors.regEmail = emailResult.error;
     }
+
+    const phoneResult = validatePhone(regPhone);
+    if (!phoneResult.isValid) {
+      errors.regPhone = phoneResult.error;
+    }
+
+    const passResult = getPasswordValidationState(regPassword);
+    if (!passResult.isValid) {
+      errors.regPassword = passResult.errorMessage;
+    }
+
     if (!regConfirmPassword) {
-      setError('Please confirm your password');
+      errors.regConfirmPassword = 'Please confirm your password';
+    } else if (regPassword !== regConfirmPassword) {
+      errors.regConfirmPassword = 'Passwords do not match';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, {
+        regName: 'field-modal-regName',
+        regEmail: 'field-modal-regEmail',
+        regPhone: 'field-modal-regPhone',
+        regPassword: 'field-modal-regPassword',
+        regConfirmPassword: 'field-modal-regConfirmPassword'
+      }), 50);
       return;
     }
-    if (regPassword !== regConfirmPassword) {
-      setError('Passwords do not match. Please verify your confirm password.');
-      return;
-    }
+
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
 
     const res = await register({
-      name: regName.trim(),
+      name: nameClean,
       email: regEmail.trim(),
-      phone: regPhone.trim(),
+      phone: sanitizeDigits(regPhone, 10),
       password: regPassword,
       role: regRole
     });
@@ -161,10 +225,20 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
 
   const handleRequestOtp = async (e) => {
     e?.preventDefault();
+    const errors = {};
     if (!forgotIdentifier.trim()) {
-      setError('Please provide your registered email or phone number');
+      errors.forgotIdentifier = 'Please provide your registered email or phone number';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, {
+        forgotIdentifier: 'field-modal-forgotIdentifier'
+      }), 50);
       return;
     }
+
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
@@ -202,31 +276,41 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
 
   const handleResetSubmit = async (e) => {
     e?.preventDefault();
-    if (!forgotOtp.trim()) {
-      setError('6-digit OTP code is required');
-      return;
+    const errors = {};
+    const cleanOtp = sanitizeDigits(forgotOtp, 6);
+    if (!cleanOtp) {
+      errors.forgotOtp = '6-digit OTP code is required';
+    } else if (cleanOtp.length !== 6) {
+      errors.forgotOtp = 'OTP code must be exactly 6 digits';
     }
-    if (!forgotNewPassword) {
-      setError('New password is required');
-      return;
+
+    const passResult = getPasswordValidationState(forgotNewPassword);
+    if (!passResult.isValid) {
+      errors.forgotNewPassword = passResult.errorMessage;
     }
-    if (forgotNewPassword.length < 6) {
-      setError('New password must be at least 6 characters long');
-      return;
-    }
+
     if (!forgotConfirmPassword) {
-      setError('Please confirm your new password');
+      errors.forgotConfirmPassword = 'Please confirm your new password';
+    } else if (forgotNewPassword !== forgotConfirmPassword) {
+      errors.forgotConfirmPassword = 'New password and confirmation do not match';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, {
+        forgotOtp: 'field-modal-forgotOtp',
+        forgotNewPassword: 'field-modal-forgotNewPassword',
+        forgotConfirmPassword: 'field-modal-forgotConfirmPassword'
+      }), 50);
       return;
     }
-    if (forgotNewPassword !== forgotConfirmPassword) {
-      setError('New password and confirmation do not match');
-      return;
-    }
+
+    setFormFieldErrors({});
     setLoading(true);
     setError('');
     setSuccessMsg('');
 
-    const res = await resetPassword(forgotIdentifier.trim(), forgotOtp.trim(), forgotNewPassword);
+    const res = await resetPassword(forgotIdentifier.trim(), cleanOtp, forgotNewPassword);
     setLoading(false);
     if (res.success) {
       setSuccessMsg('Password updated successfully! Please sign in with your new password.');
@@ -237,6 +321,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
       setForgotOtp('');
       setForgotNewPassword('');
       setForgotConfirmPassword('');
+      setFormFieldErrors({});
     } else {
       setError(res.error || 'Invalid or expired OTP code');
     }
@@ -314,7 +399,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
         }}>
           <button
             type="button"
-            onClick={() => { setRole('customer'); setError(''); setSuccessMsg(''); }}
+            onClick={() => { setRole('customer'); setError(''); setSuccessMsg(''); setFormFieldErrors({}); }}
             style={{
               flex: 1,
               padding: '8px 6px',
@@ -337,7 +422,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
 
           <button
             type="button"
-            onClick={() => { setRole('technician'); setError(''); setSuccessMsg(''); }}
+            onClick={() => { setRole('technician'); setError(''); setSuccessMsg(''); setFormFieldErrors({}); }}
             style={{
               flex: 1,
               padding: '8px 6px',
@@ -360,7 +445,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
 
           <button
             type="button"
-            onClick={() => { setRole('admin'); setError(''); setSuccessMsg(''); }}
+            onClick={() => { setRole('admin'); setError(''); setSuccessMsg(''); setFormFieldErrors({}); }}
             style={{
               flex: 1,
               padding: '8px 6px',
@@ -453,16 +538,20 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
             MODE 1: SIGN IN (LOGIN)
            ======================================================== */}
         {mode === 'login' && (
-          <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <form onSubmit={handleLoginSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
               <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
                 Email Address or Phone Number
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-modal-identifier"
                   type="text"
                   value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('identifier');
+                    setIdentifier(e.target.value);
+                  }}
                   placeholder="Enter registered email or phone"
                   style={{
                     width: '100%',
@@ -471,15 +560,20 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                     height: '42px',
                     borderRadius: '10px',
                     background: 'var(--bg-input, rgba(15, 23, 42, 0.5))',
-                    border: '1px solid var(--border-light)',
+                    border: formFieldErrors.identifier ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.identifier ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                     color: 'var(--text-main)',
                     fontSize: '0.88rem'
                   }}
-                  required
                   autoFocus
                 />
                 <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
               </div>
+              {formFieldErrors.identifier && (
+                <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.identifier}
+                </span>
+              )}
             </div>
 
             <div>
@@ -489,7 +583,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                 </label>
                 <button 
                   type="button" 
-                  onClick={() => { setMode('forgot'); setError(''); setSuccessMsg(''); }}
+                  onClick={() => { setMode('forgot'); setError(''); setSuccessMsg(''); setFormFieldErrors({}); }}
                   style={{ 
                     background: 'none', 
                     border: 'none', 
@@ -505,9 +599,13 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
               </div>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-modal-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('password');
+                    setPassword(e.target.value);
+                  }}
                   placeholder="Enter account password"
                   style={{
                     width: '100%',
@@ -516,15 +614,15 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                     height: '42px',
                     borderRadius: '10px',
                     background: 'var(--bg-input, rgba(15, 23, 42, 0.5))',
-                    border: '1px solid var(--border-light)',
+                    border: formFieldErrors.password ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.password ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                     color: 'var(--text-main)',
                     fontSize: '0.88rem'
                   }}
-                  required
                 />
                 <Lock size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
                 
-                {/* Show/Hide Password Eye Button (from E-Commerce project) */}
+                {/* Show/Hide Password Eye Button */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -543,6 +641,11 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
+              {formFieldErrors.password && (
+                <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.password}
+                </span>
+              )}
             </div>
 
             <button
@@ -576,22 +679,40 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
             MODE 2: REGISTER (CREATE ACCOUNT)
            ======================================================== */}
         {mode === 'register' && (
-          <form onSubmit={handleRegisterSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <form onSubmit={handleRegisterSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div>
               <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                 Full Name
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-modal-regName"
                   type="text"
                   value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regName');
+                    setRegName(e.target.value);
+                  }}
                   placeholder="e.g. Alex Johnson"
-                  style={{ width: '100%', paddingLeft: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  required
+                  style={{
+                    width: '100%',
+                    paddingLeft: '36px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: formFieldErrors.regName ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.regName ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
                 />
                 <User size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
               </div>
+              {formFieldErrors.regName && (
+                <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.regName}
+                </span>
+              )}
             </div>
 
             <div>
@@ -600,31 +721,70 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-modal-regEmail"
                   type="email"
                   value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regEmail');
+                    setRegEmail(e.target.value);
+                  }}
                   placeholder="name@example.com"
-                  style={{ width: '100%', paddingLeft: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  required
+                  style={{
+                    width: '100%',
+                    paddingLeft: '36px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: formFieldErrors.regEmail ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.regEmail ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
                 />
                 <Mail size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
               </div>
+              {formFieldErrors.regEmail && (
+                <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.regEmail}
+                </span>
+              )}
             </div>
 
             <div>
               <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                Phone Number (Optional)
+                Phone Number (10 Digits, starts with 6-9)
               </label>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="text"
+                  id="field-modal-regPhone"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={regPhone}
-                  onChange={(e) => setRegPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
-                  style={{ width: '100%', paddingLeft: '34px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
+                  onChange={(e) => {
+                    clearFormFieldError('regPhone');
+                    setRegPhone(sanitizeDigits(e.target.value, 10));
+                  }}
+                  placeholder="e.g. 9876543210"
+                  style={{
+                    width: '100%',
+                    paddingLeft: '34px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: formFieldErrors.regPhone ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.regPhone ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
                 />
                 <Phone size={14} color="var(--text-dim)" style={{ position: 'absolute', left: '10px', top: '13px' }} />
               </div>
+              {formFieldErrors.regPhone && (
+                <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.regPhone}
+                </span>
+              )}
             </div>
 
             <div>
@@ -632,18 +792,32 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                 <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
                   Choose Password
                 </label>
-                {regPassword && regPassword.length < 6 && (
-                  <span style={{ fontSize: '0.72rem', color: '#f87171' }}>Minimum 6 characters</span>
+                {regPassword && regPassword.length < 8 && (
+                  <span style={{ fontSize: '0.72rem', color: '#f87171' }}>Minimum 8 characters</span>
                 )}
               </div>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-modal-regPassword"
                   type={showRegPassword ? 'text' : 'password'}
                   value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regPassword');
+                    setRegPassword(e.target.value);
+                  }}
                   placeholder="Create strong password"
-                  style={{ width: '100%', paddingLeft: '36px', paddingRight: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  required
+                  style={{
+                    width: '100%',
+                    paddingLeft: '36px',
+                    paddingRight: '36px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-input)',
+                    border: formFieldErrors.regPassword ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                    boxShadow: formFieldErrors.regPassword ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
                 />
                 <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <button
@@ -654,6 +828,43 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                   {showRegPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+
+              {/* Live Password Rules Breakdown */}
+              {regPassword.length > 0 && (
+                <div style={{ marginTop: '6px', padding: '8px 10px', background: 'rgba(15, 23, 42, 0.45)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                    Password Requirements:
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '0.71rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.minLength ? '#10b981' : '#ef4444' }}>
+                      {regPwValidation.rules.minLength ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      8+ Characters
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasUpper ? '#10b981' : '#ef4444' }}>
+                      {regPwValidation.rules.hasUpper ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      1 Uppercase (A-Z)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasLower ? '#10b981' : '#ef4444' }}>
+                      {regPwValidation.rules.hasLower ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      1 Lowercase (a-z)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasNumber ? '#10b981' : '#ef4444' }}>
+                      {regPwValidation.rules.hasNumber ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      1 Number (0-9)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasSpecial ? '#10b981' : '#ef4444', gridColumn: 'span 2' }}>
+                      {regPwValidation.rules.hasSpecial ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      1 Special Char (!@#$%^&*)
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {formFieldErrors.regPassword && (
+                <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.regPassword}
+                </span>
+              )}
             </div>
 
             <div>
@@ -684,9 +895,13 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
               </div>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-modal-regConfirmPassword"
                   type={showRegConfirmPassword ? 'text' : 'password'}
                   value={regConfirmPassword}
-                  onChange={(e) => setRegConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    clearFormFieldError('regConfirmPassword');
+                    setRegConfirmPassword(e.target.value);
+                  }}
                   placeholder="Re-enter password to confirm"
                   style={{
                     width: '100%',
@@ -695,11 +910,13 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                     height: '40px',
                     borderRadius: '10px',
                     background: 'var(--bg-input)',
-                    border: `1px solid ${regConfirmPassword ? (regPassword === regConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'}`,
+                    border: formFieldErrors.regConfirmPassword 
+                      ? '1.5px solid #ef4444' 
+                      : (regConfirmPassword ? (regPassword === regConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'),
+                    boxShadow: formFieldErrors.regConfirmPassword ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                     color: 'var(--text-main)',
                     fontSize: '0.85rem'
                   }}
-                  required
                 />
                 <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <button
@@ -710,6 +927,11 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                   {showRegConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {formFieldErrors.regConfirmPassword && (
+                <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.regConfirmPassword}
+                </span>
+              )}
             </div>
 
             <div>
@@ -777,22 +999,40 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
         {mode === 'forgot' && (
           <div>
             {forgotStep === 1 ? (
-              <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <form onSubmit={handleRequestOtp} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
                     Registered Email or Phone Number
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="field-modal-forgotIdentifier"
                       type="text"
                       value={forgotIdentifier}
-                      onChange={(e) => setForgotIdentifier(e.target.value)}
+                      onChange={(e) => {
+                        clearFormFieldError('forgotIdentifier');
+                        setForgotIdentifier(e.target.value);
+                      }}
                       placeholder="Enter registered email or phone"
-                      style={{ width: '100%', paddingLeft: '38px', height: '42px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.88rem' }}
-                      required
+                      style={{
+                        width: '100%',
+                        paddingLeft: '38px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        background: 'var(--bg-input)',
+                        border: formFieldErrors.forgotIdentifier ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                        boxShadow: formFieldErrors.forgotIdentifier ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                        color: 'var(--text-main)',
+                        fontSize: '0.88rem'
+                      }}
                     />
                     <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
                   </div>
+                  {formFieldErrors.forgotIdentifier && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.forgotIdentifier}
+                    </span>
+                  )}
                 </div>
 
                 <button
@@ -805,7 +1045,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleResetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
+              <form onSubmit={handleResetSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
                 {forgotDevOtp && (
                   <div style={{ background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.78rem', color: '#60a5fa' }}>
                     Security Code: <strong>{forgotDevOtp}</strong> (or master <strong>123456</strong>)
@@ -822,10 +1062,15 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                     </span>
                   </div>
                   <input
+                    id="field-modal-forgotOtp"
                     type="text"
+                    inputMode="numeric"
                     maxLength={6}
                     value={forgotOtp}
-                    onChange={(e) => setForgotOtp(e.target.value)}
+                    onChange={(e) => {
+                      clearFormFieldError('forgotOtp');
+                      setForgotOtp(sanitizeDigits(e.target.value, 6));
+                    }}
                     placeholder="••••••"
                     style={{
                       width: '100%',
@@ -833,7 +1078,8 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                       height: '42px',
                       borderRadius: '10px',
                       background: 'var(--bg-input)',
-                      border: '1px solid var(--border-light)',
+                      border: formFieldErrors.forgotOtp ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                      boxShadow: formFieldErrors.forgotOtp ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                       color: '#38bdf8',
                       fontSize: '1.2rem',
                       letterSpacing: '6px',
@@ -841,15 +1087,19 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                       fontFamily: 'var(--font-mono, monospace)',
                       fontWeight: 700
                     }}
-                    required
                     autoFocus
                   />
+                  {formFieldErrors.forgotOtp && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.forgotOtp}
+                    </span>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <button
                     type="button"
-                    onClick={() => { setForgotStep(1); setError(''); }}
+                    onClick={() => { setForgotStep(1); setError(''); setFormFieldErrors({}); }}
                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.76rem', cursor: 'pointer', padding: 0 }}
                   >
                     &larr; Change Email
@@ -882,12 +1132,26 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="field-modal-forgotNewPassword"
                       type={showForgotNewPassword ? 'text' : 'password'}
                       value={forgotNewPassword}
-                      onChange={(e) => setForgotNewPassword(e.target.value)}
-                      placeholder="Enter new password (min 6 characters)"
-                      style={{ width: '100%', paddingLeft: '36px', paddingRight: '36px', height: '40px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-light)', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                      required
+                      onChange={(e) => {
+                        clearFormFieldError('forgotNewPassword');
+                        setForgotNewPassword(e.target.value);
+                      }}
+                      placeholder="Enter new strong password"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '36px',
+                        paddingRight: '36px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: 'var(--bg-input)',
+                        border: formFieldErrors.forgotNewPassword ? '1.5px solid #ef4444' : '1px solid var(--border-light)',
+                        boxShadow: formFieldErrors.forgotNewPassword ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
+                        color: 'var(--text-main)',
+                        fontSize: '0.85rem'
+                      }}
                     />
                     <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                     <button
@@ -898,6 +1162,43 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                       {showForgotNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+
+                  {/* Live Password Rules Breakdown */}
+                  {forgotNewPassword.length > 0 && (
+                    <div style={{ marginTop: '6px', padding: '8px 10px', background: 'rgba(15, 23, 42, 0.45)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                        Password Requirements:
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '0.71rem' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.minLength ? '#10b981' : '#ef4444' }}>
+                          {forgotPwValidation.rules.minLength ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          8+ Characters
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.hasUpper ? '#10b981' : '#ef4444' }}>
+                          {forgotPwValidation.rules.hasUpper ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          1 Uppercase (A-Z)
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.hasLower ? '#10b981' : '#ef4444' }}>
+                          {forgotPwValidation.rules.hasLower ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          1 Lowercase (a-z)
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.hasNumber ? '#10b981' : '#ef4444' }}>
+                          {forgotPwValidation.rules.hasNumber ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          1 Number (0-9)
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.hasSpecial ? '#10b981' : '#ef4444', gridColumn: 'span 2' }}>
+                          {forgotPwValidation.rules.hasSpecial ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          1 Special Char (!@#$%^&*)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {formFieldErrors.forgotNewPassword && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.forgotNewPassword}
+                    </span>
+                  )}
                 </div>
 
                 <div>
@@ -928,9 +1229,13 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                   </div>
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="field-modal-forgotConfirmPassword"
                       type={showForgotConfirmPassword ? 'text' : 'password'}
                       value={forgotConfirmPassword}
-                      onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        clearFormFieldError('forgotConfirmPassword');
+                        setForgotConfirmPassword(e.target.value);
+                      }}
                       placeholder="Confirm new password"
                       style={{
                         width: '100%',
@@ -939,11 +1244,13 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                         height: '40px',
                         borderRadius: '10px',
                         background: 'var(--bg-input)',
-                        border: `1px solid ${forgotConfirmPassword ? (forgotNewPassword === forgotConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'}`,
+                        border: formFieldErrors.forgotConfirmPassword 
+                          ? '1.5px solid #ef4444' 
+                          : (forgotConfirmPassword ? (forgotNewPassword === forgotConfirmPassword ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)') : 'var(--border-light)'),
+                        boxShadow: formFieldErrors.forgotConfirmPassword ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined,
                         color: 'var(--text-main)',
                         fontSize: '0.85rem'
                       }}
-                      required
                     />
                     <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                     <button
@@ -954,6 +1261,11 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
                       {showForgotConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+                  {formFieldErrors.forgotConfirmPassword && (
+                    <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.forgotConfirmPassword}
+                    </span>
+                  )}
                 </div>
 
                 <button
@@ -976,7 +1288,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
               Don't have an account yet?{' '}
               <button
                 type="button"
-                onClick={() => { setMode('register'); setError(''); setSuccessMsg(''); }}
+                onClick={() => { setMode('register'); setError(''); setSuccessMsg(''); setFormFieldErrors({}); }}
                 style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
               >
                 Create Free Account &rarr;
@@ -987,7 +1299,7 @@ export default function AuthModal({ isOpen, onClose, initialRole = 'customer', o
               Already have an account?{' '}
               <button
                 type="button"
-                onClick={() => { setMode('login'); setError(''); setSuccessMsg(''); }}
+                onClick={() => { setMode('login'); setError(''); setSuccessMsg(''); setFormFieldErrors({}); }}
                 style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
               >
                 Sign In to Account &rarr;

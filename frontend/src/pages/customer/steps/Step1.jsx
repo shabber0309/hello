@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Laptop, AlertTriangle, X, Plus, Search, Check, ArrowRight, ChevronDown } from 'lucide-react';
+import { Laptop, AlertTriangle, AlertCircle, X, Plus, Search, Check, ArrowRight, ChevronDown } from 'lucide-react';
 import { BRAND_OPTIONS } from './brandLogos';
 import LaptopVisualPreview from './LaptopVisualPreview';
 import ModelSearchDropdown from './ModelSearchDropdown';
@@ -24,7 +24,10 @@ export default function Step1({
   submitCustomAccessory,
   handleAddCustomAccessory,
   toggleAccessory,
-  onNext
+  onNext,
+  brandError = '',
+  modelError = '',
+  onClearError
 }) {
   const isInitialCustom = Boolean(formData.laptop_brand && !BRAND_OPTIONS.includes(formData.laptop_brand));
   const [customBrandMode, setCustomBrandMode] = useState(isInitialCustom);
@@ -34,17 +37,19 @@ export default function Step1({
 
   const handleBrandSelectChange = (e) => {
     const val = e.target.value;
+    if (onClearError) onClearError('brand');
     if (val === 'OTHER') {
       setCustomBrandMode(true);
-      setFormData(prev => ({ ...prev, laptop_brand: customBrandText || '' }));
+      setFormData(prev => ({ ...prev, laptop_brand: customBrandText || '', laptop_model: '' }));
     } else {
       setCustomBrandMode(false);
-      setFormData(prev => ({ ...prev, laptop_brand: val }));
+      setFormData(prev => ({ ...prev, laptop_brand: val, laptop_model: '' }));
     }
   };
 
   const handleCustomBrandInputChange = (e) => {
     const text = e.target.value;
+    if (onClearError) onClearError('brand');
     setCustomBrandText(text);
     setFormData(prev => ({ ...prev, laptop_brand: text }));
   };
@@ -60,17 +65,17 @@ export default function Step1({
         {/* Left: Input Specifications */}
         <div className="book-device-inputs-col">
           {/* Brand Selection Dropdown */}
-          <div>
+          <div id="field-brand">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>
               <label className="form-label" htmlFor="laptop-brand-select" style={{ margin: 0 }}>
-                Brand
+                Brand <span style={{ color: '#ef4444' }}>*</span>
               </label>
               {customBrandMode && (
                 <button
                   type="button"
                   onClick={() => {
                     setCustomBrandMode(false);
-                    setFormData(prev => ({ ...prev, laptop_brand: 'Apple' }));
+                    setFormData(prev => ({ ...prev, laptop_brand: '' }));
                   }}
                   style={{
                     background: 'none',
@@ -91,7 +96,7 @@ export default function Step1({
               <select
                 id="laptop-brand-select"
                 className="form-input"
-                value={customBrandMode ? 'OTHER' : (BRAND_OPTIONS.includes(formData.laptop_brand) ? formData.laptop_brand : 'OTHER')}
+                value={customBrandMode ? 'OTHER' : (formData.laptop_brand && BRAND_OPTIONS.includes(formData.laptop_brand) ? formData.laptop_brand : (formData.laptop_brand ? 'OTHER' : ''))}
                 onChange={handleBrandSelectChange}
                 style={{
                   cursor: 'pointer',
@@ -99,10 +104,12 @@ export default function Step1({
                   paddingRight: '42px',
                   appearance: 'none',
                   WebkitAppearance: 'none',
-                  MozAppearance: 'none'
+                  MozAppearance: 'none',
+                  borderColor: brandError ? '#ef4444' : undefined,
+                  boxShadow: brandError ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
                 }}
               >
-                <option value="" disabled>-- Select Laptop Brand --</option>
+                <option value="">Select Laptop Brand</option>
                 {BRAND_OPTIONS.map((brandName) => (
                   <option key={brandName} value={brandName}>
                     {brandName}
@@ -125,11 +132,17 @@ export default function Step1({
               </div>
             </div>
 
+            {brandError && !customBrandMode && (
+              <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                <AlertCircle size={13} /> {brandError}
+              </span>
+            )}
+
             {/* Option to type if not available in the dropdown */}
             {customBrandMode && (
               <div style={{ marginTop: '12px' }}>
                 <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--primary)', marginBottom: '5px' }}>
-                  Type Laptop Brand Name
+                  Type Laptop Brand Name <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -138,24 +151,34 @@ export default function Step1({
                   value={customBrandText}
                   onChange={handleCustomBrandInputChange}
                   style={{
-                    borderColor: 'var(--primary)',
-                    boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.12)'
+                    borderColor: brandError ? '#ef4444' : 'var(--primary)',
+                    boxShadow: brandError ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : '0 0 0 3px rgba(37, 99, 235, 0.12)'
                   }}
                   autoFocus
                 />
-                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                  Your custom brand will be recorded on the tamper-evident intake manifest.
-                </span>
+                {brandError ? (
+                  <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                    <AlertCircle size={13} /> {brandError}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                    Your custom brand will be recorded on the intake manifest.
+                  </span>
+                )}
               </div>
             )}
           </div>
 
           {/* Model Name / Number (Full width for clean readability) */}
-          <div>
+          <div id="field-model">
             <ModelSearchDropdown
               brand={formData.laptop_brand}
               selectedModel={formData.laptop_model}
-              onSelectModel={(modelVal) => setFormData(prev => ({ ...prev, laptop_model: modelVal }))}
+              onSelectModel={(modelVal) => {
+                if (onClearError) onClearError('model');
+                setFormData(prev => ({ ...prev, laptop_model: modelVal }));
+              }}
+              error={modelError}
             />
           </div>
 
@@ -166,7 +189,7 @@ export default function Step1({
                 Serial Number
               </label>
               <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                Optional (located on bottom cover)
+                Optional
               </span>
             </div>
             <input
@@ -192,7 +215,7 @@ export default function Step1({
       {/* Intake Manifest Card (Photos & Accessories) */}
       <div className="intake-manifest-card">
         {/* 1. Upload problem photo * */}
-        <div>
+        <div id="field-photos">
           <div className="intake-manifest-row">
             <div className="intake-manifest-label">
               <span className="intake-manifest-number">1.</span>
@@ -278,7 +301,7 @@ export default function Step1({
         <div className="intake-manifest-divider" />
 
         {/* 2. Charger Model / Wattage & Photo Proof */}
-        <div>
+        <div id="field-chargerPhotos">
           <div className="intake-manifest-row">
             <div className="intake-manifest-label">
               <span className="intake-manifest-number">2.</span>
@@ -408,17 +431,10 @@ export default function Step1({
           </div>
 
           {/* Quick Add Pills */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            paddingTop: '8px',
-            borderTop: '1px dashed var(--border-subtle, rgba(0, 0, 0, 0.08))',
-            width: '100%',
-            flexWrap: 'wrap'
-          }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Quick add:</span>
-            {['Mouse', 'Laptop Bag', 'USB Hub', 'External Drive'].map(item => {
+          <div className="intake-manifest-quick-add">
+            <span className="intake-manifest-quick-add-label">Quick add:</span>
+            <div className="intake-manifest-pills-wrap">
+              {['Mouse', 'Laptop Bag', 'USB Hub', 'External Drive'].map(item => {
               const isAdded = formData.included_accessories.includes(item);
               return (
                 <button
@@ -454,6 +470,7 @@ export default function Step1({
                 </button>
               );
             })}
+            </div>
           </div>
 
           {accessoryPhotoError && (

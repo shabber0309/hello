@@ -1,6 +1,5 @@
 import React from 'react';
 import { ShieldCheck, ArrowLeft, Laptop, FileText, CheckCircle2, MapPin } from 'lucide-react';
-import { TamperSealBadge } from '../../../components/common';
 
 export default function Step4({
   formData,
@@ -27,8 +26,7 @@ export default function Step4({
         <ShieldCheck size={20} color="var(--primary)" className="book-step-title-icon" /> Step 4: Review Order & Confirm Pickup
       </h3>
 
-      {/* Tamper Seal Badge */}
-      <TamperSealBadge sealCode="SEAL-TX-READY" city={formData.pickup_city || 'Hyderabad'} />
+      
 
       {/* Modern Grouped Repair Order Summary Card */}
       <div className="order-summary-card">
@@ -99,12 +97,6 @@ export default function Step4({
               <span className="order-summary-label">Included Accessories:</span>
               <span className="order-summary-value">
                 {formData.included_accessories && formData.included_accessories.length > 0 ? formData.included_accessories.join(', ') : 'None'}
-              </span>
-            </div>
-            <div className="order-summary-item">
-              <span className="order-summary-label">WhatsApp Contact:</span>
-              <span className="order-summary-value">
-                {formData.whatsapp_number ? `+91 ${formData.whatsapp_number}` : 'Direct Call Phone'}
               </span>
             </div>
             <div className="order-summary-item">
