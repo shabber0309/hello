@@ -144,7 +144,7 @@ export default function Step1({
                   autoFocus
                 />
                 <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                  Your custom brand will be recorded on the tamper-evident intake manifest.
+                  Your custom brand will be recorded on the intake manifest.
                 </span>
               </div>
             )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, MessageCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { MapPin, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function Step3({
   formData,
@@ -10,11 +10,11 @@ export default function Step3({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       <h3 className="book-step-title">
-        <MapPin size={20} color="var(--primary)" className="book-step-title-icon" /> Step 3: Doorstep Pickup Address & Contact Details
+        <MapPin size={20} color="var(--primary)" className="book-step-title-icon" /> Step 3: Doorstep Pickup Address & Logistics
       </h3>
 
       <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-        Our verified courier arrives with a tamper-evident pouch and seals your machine directly in front of you.
+        Our verified courier arrives at your doorstep to inspect and securely dispatch your laptop to the cleanroom bench.
       </p>
 
       <div>
@@ -66,39 +66,18 @@ export default function Step3({
         </div>
       </div>
 
-      
-
-      {/* WhatsApp Contact & Security Landmark */}
-      <div className="book-intake-card">
-        <div className="book-intake-title">
-          <MessageCircle size={17} color="#2563eb" /> WhatsApp Coordination & Gate Pass
-        </div>
-        <div className="book-form-grid-2">
-          <div>
-            <label className="form-label">WhatsApp Number (For live stream link & OTP)</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="e.g. +91 98765 43210"
-              value={formData.whatsapp_number}
-              onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-            />
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              We send the technician bench stream link and OTP directly to your WhatsApp.
-            </span>
-          </div>
-
-          <div>
-            <label className="form-label">Landmark / Gated Community Gate Pass</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="e.g. Opposite Cyber Gateway, Tower B, MyGate OTP"
-              value={formData.pickup_landmark}
-              onChange={(e) => setFormData({ ...formData, pickup_landmark: e.target.value })}
-            />
-          </div>
-        </div>
+      {/* Landmark / Gate Pass (Optional) */}
+      <div>
+        <label className="form-label">
+          Landmark / Gated Community Gate Pass <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span>
+        </label>
+        <input
+          type="text"
+          className="form-input"
+          placeholder="e.g. Opposite Cyber Gateway, Tower B, MyGate Entry"
+          value={formData.pickup_landmark}
+          onChange={(e) => setFormData({ ...formData, pickup_landmark: e.target.value })}
+        />
       </div>
 
       {/* Data Backup Waiver & Chassis Open Authorization */}
@@ -131,7 +110,7 @@ export default function Step3({
           onClick={onNext}
           className="btn-action"
         >
-          Next: Price Range & Confirmation <ArrowRight size={16} />
+          Next: Review Order & Confirm <ArrowRight size={16} />
         </button>
       </div>
     </div>
