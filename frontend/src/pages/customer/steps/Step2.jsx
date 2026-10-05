@@ -69,7 +69,7 @@ export default function Step2({
         <textarea
           className="form-input"
           rows={4}
-          placeholder="Describe what occurred (e.g. system shut down during gaming, screen shows flickering green lines when adjusted, battery drops from 80% to 0%, or tea spill on the keyboard)."
+          placeholder="Describe exactly what happened (this is required because the technician will diagnose the issue based on your description). Note: Just like with a doctor or a lawyer, complete honesty with our technician ensures an accurate repair."
           value={formData.issue_description}
           onChange={(e) => setFormData({ ...formData, issue_description: e.target.value })}
         />
@@ -83,9 +83,6 @@ export default function Step2({
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              Indicative Price Range for: {problemDisplayName}
-            </div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
               ₹{formData.base_price_min.toLocaleString()} — ₹{formData.base_price_max.toLocaleString()}
             </div>
@@ -110,16 +107,7 @@ export default function Step2({
           </div>
         </div>
 
-        {/* Transparent Disclaimer */}
-        <div className="price-transparency-disclaimer">
-          <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>
-            <strong>Estimated Repair Cost: ₹{formData.base_price_min.toLocaleString()} – ₹{formData.base_price_max.toLocaleString()}</strong>.
-            <div style={{ marginTop: '2px' }}>
-              Final price depends on laptop brand, model, part availability (OEM vs compatible parts), and technician diagnosis during the live workbench video stream. You will approve the final quote before any repair proceeds.
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       {/* Step 2 Actions Footer */}
