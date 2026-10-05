@@ -27,8 +27,7 @@ export default function Step4({
         <ShieldCheck size={20} color="var(--primary)" className="book-step-title-icon" /> Step 4: Review Order & Confirm Pickup
       </h3>
 
-      {/* Tamper Seal Badge */}
-      <TamperSealBadge sealCode="SEAL-TX-READY" city={formData.pickup_city || 'Hyderabad'} />
+      
 
       {/* Modern Grouped Repair Order Summary Card */}
       <div className="order-summary-card">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,15 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [photoError, setPhotoError] = useState('');
+
+  // Automatically scroll to the top of the wizard whenever step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    const wizardRoot = document.querySelector('.book-repair-root');
+    if (wizardRoot) {
+      wizardRoot.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [step]);
 
   // Selected Category and Problem State (Null initially so search input placeholder appears as in Image 2)
   const [selectedCatId, setSelectedCatId] = useState(null);
