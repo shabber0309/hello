@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -16,13 +16,32 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
   const [error, setError] = useState('');
   const [photoError, setPhotoError] = useState('');
 
-  // Automatically scroll to the top of the wizard whenever step changes
+  const stepperRef = useRef(null);
+
+  // Automatically scroll to the top of the wizard (book-stepper-bar) on step transition
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    const wizardRoot = document.querySelector('.book-repair-root');
-    if (wizardRoot) {
-      wizardRoot.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    const scrollToStepper = () => {
+      if (stepperRef.current) {
+        const header = document.querySelector('.silicone-header');
+        const headerHeight = header ? header.offsetHeight : 76;
+        const rect = stepperRef.current.getBoundingClientRect();
+        const absoluteTop = rect.top + window.pageYOffset;
+        // Position stepper bar comfortably below the fixed navbar
+        const targetScroll = Math.max(0, absoluteTop - headerHeight - 16);
+
+        window.scrollTo({
+          top: targetScroll,
+          left: 0,
+          behavior: 'smooth'
+        });
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
+    };
+
+    scrollToStepper();
+    const timeoutId = setTimeout(scrollToStepper, 50);
+    return () => clearTimeout(timeoutId);
   }, [step]);
 
   // Selected Category and Problem State (Null initially so search input placeholder appears as in Image 2)
@@ -425,7 +444,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
 
 
       {/* Stepper Bar */}
-      <div className="book-stepper-bar">
+      <div ref={stepperRef} className="book-stepper-bar">
         {[
           { num: 1, label: 'Device Specs & Photos' },
           { num: 2, label: 'Issue Checklist' },

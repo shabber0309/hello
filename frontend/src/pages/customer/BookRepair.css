@@ -39,6 +39,7 @@
 
 /* Stepper Bar - Compact & Balanced Top/Bottom Gaps */
 .book-stepper-bar {
+  scroll-margin-top: 96px;
   display: flex;
   align-items: center;
   justify-content: space-between;
