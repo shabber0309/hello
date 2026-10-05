@@ -1050,8 +1050,30 @@
     height: 34px !important;
     min-height: 34px !important;
     max-height: 34px !important;
-    padding: 0 11px !important;
+    padding: 0 10px !important;
     font-size: 0.78rem !important;
+  }
+
+  @media (max-width: 480px) {
+    .silicone-actions-bay-group {
+      gap: 4px !important;
+    }
+    .silicone-login-btn,
+    .silicone-register-btn {
+      height: 32px !important;
+      min-height: 32px !important;
+      max-height: 32px !important;
+      padding: 0 8px !important;
+      font-size: 0.73rem !important;
+    }
+  }
+
+  @media (max-width: 375px) {
+    .silicone-login-btn,
+    .silicone-register-btn {
+      padding: 0 6px !important;
+      font-size: 0.69rem !important;
+    }
   }
   .silicone-profile-trigger {
     width: 34px !important;

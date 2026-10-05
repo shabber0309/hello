@@ -986,7 +986,6 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     color: 'var(--text-main)',
                     fontSize: '0.85rem'
                   }}
-                  autoFocus
                 />
                 <User size={15} color={formFieldErrors.regName ? '#ef4444' : 'var(--text-dim)'} style={{ position: 'absolute', left: '12px', top: '12px' }} />
               </div>
@@ -1114,29 +1113,29 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
               {/* Live Password Rules Breakdown */}
               {regPassword.length > 0 && (
-                <div style={{ marginTop: '6px', padding: '8px 10px', background: 'rgba(15, 23, 42, 0.45)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                <div className="auth-pw-requirements">
+                  <div className="auth-pw-requirements-title">
                     Password Requirements:
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '0.71rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.minLength ? '#10b981' : '#ef4444' }}>
-                      {regPwValidation.rules.minLength ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                  <div className="auth-pw-requirements-grid">
+                    <span className={`auth-pw-req-item ${regPwValidation.rules.minLength ? 'valid' : 'invalid'}`}>
+                      {regPwValidation.rules.minLength ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
                       8+ Characters
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasUpper ? '#10b981' : '#ef4444' }}>
-                      {regPwValidation.rules.hasUpper ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                    <span className={`auth-pw-req-item ${regPwValidation.rules.hasUpper ? 'valid' : 'invalid'}`}>
+                      {regPwValidation.rules.hasUpper ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
                       1 Uppercase (A-Z)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasLower ? '#10b981' : '#ef4444' }}>
-                      {regPwValidation.rules.hasLower ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                    <span className={`auth-pw-req-item ${regPwValidation.rules.hasLower ? 'valid' : 'invalid'}`}>
+                      {regPwValidation.rules.hasLower ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
                       1 Lowercase (a-z)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasNumber ? '#10b981' : '#ef4444' }}>
-                      {regPwValidation.rules.hasNumber ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                    <span className={`auth-pw-req-item ${regPwValidation.rules.hasNumber ? 'valid' : 'invalid'}`}>
+                      {regPwValidation.rules.hasNumber ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
                       1 Number (0-9)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasSpecial ? '#10b981' : '#ef4444', gridColumn: 'span 2' }}>
-                      {regPwValidation.rules.hasSpecial ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                    <span className={`auth-pw-req-item auth-pw-req-item-full ${regPwValidation.rules.hasSpecial ? 'valid' : 'invalid'}`}>
+                      {regPwValidation.rules.hasSpecial ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
                       1 Special Char (!@#$%^&*)
                     </span>
                   </div>
@@ -1152,7 +1151,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
             {/* Confirm Password */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px', marginBottom: '4px' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
                   Confirm Password
                 </label>
