@@ -18,7 +18,7 @@ export default function PastRecordingModal({ isOpen, onClose, repairData }) {
     oldSerial: 'PANEL-FAULT-812',
     newSerial: 'PANEL-OEM-9912A',
     milestones: [
-      { time: '00:00', label: 'Doorstep Tamper Bag Unsealed on Camera' },
+      { time: '00:00', label: 'Device Intake & Chassis Opening on Camera' },
       { time: '06:14', label: '100x Microscope Diagnostic: Blown 3A Backlight Fuse' },
       { time: '14:20', label: 'SMD Fuse Desoldered & Ultrasonic Clean' },
       { time: '22:45', label: 'New Fuse Soldered; Multimeter Test 19.8V' },

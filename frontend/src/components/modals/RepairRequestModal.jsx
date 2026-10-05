@@ -178,7 +178,6 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
     e?.preventDefault();
     setIsSubmitting(true);
     const randomId = Math.floor(10000 + Math.random() * 90000);
-    const randomSeal = Math.floor(100000 + Math.random() * 900000);
 
     const payload = {
       laptop_brand: formData.brand,
@@ -221,7 +220,6 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
 
     const finalOrder = serverOrder || {
       order_number: `FX-2026-${randomId}`,
-      tamper_seal_code: `TC-FX-${randomSeal}`,
       laptop_brand: formData.brand,
       laptop_model: formData.model,
       status: 'Order Placed',
@@ -236,6 +234,13 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
       pickup_area: formData.area,
       pickup_city: formData.city
     });
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+      const filtered = existing.filter(o => o.order_number !== finalOrder.order_number && o.id !== finalOrder.id);
+      localStorage.setItem('livefix_all_orders', JSON.stringify([finalOrder, ...filtered]));
+      localStorage.setItem('livefix_latest_order', JSON.stringify(finalOrder));
+    } catch (e) {}
 
     setIsSubmitting(false);
     setCreatedOrder(finalOrder);
@@ -320,7 +325,7 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
             </div>
             <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Repair Request Broadcasted!</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '8px 0 20px' }}>
-              Your request is now live to nearby verified technicians with tamper-seal packaging reserved.
+              Your request is now live to nearby verified technicians for doorstep pickup.
             </p>
 
             <div style={{
@@ -344,9 +349,9 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                 <span style={{ fontWeight: 700, color: 'var(--cta-orange)' }}>₹{formData.customer_selected_price.toLocaleString()}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Tamper Seal Reserved:</span>
-                <span style={{ fontWeight: 700, color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>
-                  {createdOrder.tamper_seal_code}
+                <span style={{ color: 'var(--text-muted)' }}>Pickup Location:</span>
+                <span style={{ fontWeight: 700, color: 'var(--primary)' }}>
+                  {formData.area || formData.city || 'Hyderabad'}
                 </span>
               </div>
             </div>
@@ -752,7 +757,7 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                   gap: '8px'
                 }}>
                   <ShieldCheck size={18} />
-                  <span>Device will be placed in serialized tamper bag SEAL-TX-READY at your doorstep.</span>
+                  <span>Device will be safely inspected and transported in a padded protective case.</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>

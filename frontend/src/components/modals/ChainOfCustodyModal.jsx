@@ -26,19 +26,19 @@ export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS
     {
       id: 0,
       title: 'Secure Pickup',
-      subtitle: 'Doorstep Tamper-Seal Handoff',
+      subtitle: 'Doorstep Courier Handoff',
       status: 'VERIFIED',
       time: '08:45 AM - Oct 24',
-      badge: 'Tamper Sealed #TS-8891',
+      badge: 'Intake Verified',
       icon: Truck,
       image: '/hero_laptop.jpg',
       details: {
         agent: 'Rajesh K. (Authorized Secure Courier #412)',
         location: 'Doorstep Pickup, Flat 402, Green Heights, Hyderabad',
-        tamperSealCode: 'SEAL-TX-7842B',
+        trackingCode: 'TRK-TX-7842B',
         barcodeScan: 'TS-BC-9920148-SECURE',
-        verificationMethod: 'OTP Authenticated & Serialized Security Bag',
-        notes: 'Device placed in antistatic ESD bubble sleeve and locked in tamper-evident serialized bag before leaving customer residence.'
+        verificationMethod: 'OTP Authenticated & Secure Transport Case',
+        notes: 'Device placed in antistatic ESD bubble sleeve and secure padded case before leaving customer residence.'
       }
     },
     {
@@ -47,16 +47,16 @@ export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS
       subtitle: 'Cleanroom Unboxing & Intake',
       status: 'VERIFIED',
       time: '09:02 AM - Oct 24',
-      badge: 'Seal Intact Verified',
+      badge: 'Intake Condition Verified',
       icon: Package,
       image: '/tech_bench_live.jpg',
       details: {
         facility: 'Live Fix ISO-7 Certified Cleanroom Station #4',
         inspector: 'Vikram Verma (Intake Lead)',
-        tamperIntegrity: '100% Unbroken Seal (Hologram matched)',
+        deviceIntegrity: '100% Verified Cleanroom Inflow',
         externalCondition: 'Minor liquid stain on lower case; no chassis denting.',
         intakeVoltage: '19.5V Power Rail Shorted (0.02V detected)',
-        notes: 'Tamper seal unsealed under continuous overhead 4K camera surveillance. Serial number C02G9012MD6R matched with customer invoice.'
+        notes: 'Chassis opened under continuous overhead 4K camera surveillance. Serial number C02G9012MD6R matched with customer invoice.'
       }
     },
     {
@@ -107,7 +107,7 @@ export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS
       badge: 'Secret OTP Protected',
       icon: CheckCircle2,
       details: {
-        returnTamperSeal: 'SEAL-TX-RETURN-8812',
+        returnTracking: 'TRK-TX-RETURN-8812',
         secretOtp: '8492',
         warrantyPeriod: '6 Months Comprehensive Hardware Warranty',
         courier: 'Express Doorstep Courier with Live GPS Tracking'
@@ -348,11 +348,11 @@ export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS
                 color: '#ffffff'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
-                  <Lock size={14} color="#10b981" />
-                  <span>Tamper Integrity Locked</span>
+                  <ShieldCheck size={14} color="#10b981" />
+                  <span>Chain of Custody Verified</span>
                 </div>
                 <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>
-                  TS-SEAL-VERIFIED
+                  ISO-7 CLEANROOM BENCH
                 </span>
               </div>
             </div>

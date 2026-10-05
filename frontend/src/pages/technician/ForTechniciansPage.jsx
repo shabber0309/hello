@@ -69,8 +69,8 @@ export default function ForTechniciansPage({ onRegisterClick, onLoginClick }) {
     },
     {
       icon: ShieldCheck,
-      title: 'Serialized Tamper Bags',
-      desc: 'Laptops arrive in serialized, barcoded tamper bags. You verify seal integrity on video before opening.',
+      title: 'Secure Bench Intake',
+      desc: 'Laptops arrive directly at your workbench. You verify intake condition on video before opening.',
       color: '#f97316'
     },
     {

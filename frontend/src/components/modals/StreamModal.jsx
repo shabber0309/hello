@@ -16,7 +16,7 @@ export default function StreamModal({ order, isOpen = true, onClose, onApproveQu
   const [additionalRejected, setAdditionalRejected] = useState(false);
 
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'Technician Specialist', text: 'Welcome to the live session! I am verifying your tamper seal TC-FX-928341 on camera now.', time: '04:12 PM' },
+    { sender: 'Technician Specialist', text: 'Welcome to the live session! I am inspecting your device on camera now.', time: '04:12 PM' },
     { sender: 'Customer', text: 'What is causing the screen problem?', time: '04:14 PM' },
     { sender: 'Technician Specialist', text: 'The display cable appears damaged. I will show you the connector under the microscope before replacing it.', time: '04:15 PM' }
   ]);
@@ -24,7 +24,7 @@ export default function StreamModal({ order, isOpen = true, onClose, onApproveQu
 
   const checklist = [
     { title: 'Device received', status: 'done' },
-    { title: 'Tamper seal verified', status: 'done' },
+    { title: 'Intake condition verified', status: 'done' },
     { title: 'Device opened', status: 'done' },
     { title: 'Internal components inspected', status: 'done' },
     { title: 'Fault identified', status: 'active' },

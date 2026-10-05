@@ -10,14 +10,14 @@ export default function HelpSupportModal({ isOpen, onClose }) {
 
   const faqs = {
     before: [
-      { q: 'How does Live Fix work?', a: 'You submit a repair request with your laptop model and target budget. Nearby verified technicians submit competitive offers. You choose your technician, your laptop is collected in a serialized tamper bag, repaired live on camera, and returned to your doorstep.' },
+      { q: 'How does Live Fix work?', a: 'You submit a repair request with your laptop model and target budget. Nearby verified technicians submit competitive offers. You choose your technician, your laptop is securely collected, repaired live on camera, and returned to your doorstep.' },
       { q: 'How are technicians verified?', a: 'Every technician undergoes government ID verification, workshop tool inspection (ESD protection, 100x microscope, oscilloscope), and must hold certified hardware credentials (IPC-7711 or Level-4 BGA).' },
       { q: 'How are prices decided?', a: 'You set your target price range. Technicians can accept your budget or send counter-offers. You compare offers based on price, reviews, distance, and completion time before paying anything.' }
     ],
     during: [
-      { q: 'How do I join the live repair session?', a: 'Once the technician unseals your tamper bag on camera, click "Watch Live Repair" from your dashboard or tracking link to join via our integrated Google Meet video stream.' },
+      { q: 'How do I join the live repair session?', a: 'Once your laptop reaches the workbench, click "Watch Live Repair" from your dashboard or tracking link to join via our integrated Google Meet video stream.' },
       { q: 'What happens if another issue is found?', a: 'No work is done without your approval. The technician will show the damaged part live on video, submit an updated quote, and wait for your digital approval before proceeding.' },
-      { q: 'What happens if the tamper seal is damaged?', a: 'All serialized seals are verified on camera before opening. If a seal is broken during courier transit, Live Fix provides immediate 100% insurance and investigation.' }
+      { q: 'How is my device protected during transit?', a: 'All device pickups are transported in padded antistatic cases and continuously tracked until delivery to the cleanroom.' }
     ],
     after: [
       { q: 'How do I get my repair report?', a: 'Upon repair completion and quality testing, a downloadable PDF Repair Report with tests checklist and technician notes is available in your dashboard.' },
@@ -25,7 +25,7 @@ export default function HelpSupportModal({ isOpen, onClose }) {
       { q: 'How do I request support?', a: 'Our 24/7 dedicated support team is available via live chat, WhatsApp, or phone assistance for any questions.' }
     ],
     payments: [
-      { q: 'How do payments work?', a: 'Your payment is held in safe escrow when you accept a quote. Funds are only released to the technician after your laptop passes quality check and you unseal it at delivery.' },
+      { q: 'How do payments work?', a: 'Your payment is held in safe escrow when you accept a quote. Funds are only released to the technician after your laptop passes quality check and you test it at delivery.' },
       { q: 'How do refunds work?', a: 'If a repair cannot be completed or is rejected before parts are purchased, your payment is refunded immediately back to your original source.' },
       { q: 'What happens if a repair is cancelled?', a: 'You can cancel free of charge anytime before the courier collects your device.' }
     ]

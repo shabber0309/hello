@@ -110,7 +110,7 @@ def send_otp_via_smtp(recipient_email, otp_code, role='customer', purpose='login
           <p style="font-size: 13px; color: #94a3b8; margin: 0;">This code expires in <strong>10 minutes</strong>. Never share this code with anyone.</p>
         </div>
         <div class="footer">
-          Tamper-Evident Couriers • Google Meet Verified Repairs • Zero Parts Swapping
+          Secure Doorstep Couriers • Google Meet Verified Repairs • Zero Parts Swapping
         </div>
       </div>
     </body>

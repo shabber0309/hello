@@ -31,7 +31,7 @@ def create_google_meet_room(order):
 
             event = {
                 'summary': f'Live Fix Live Repair: {order.order_number} ({order.laptop_brand} {order.laptop_model})',
-                'description': f'Live transparent hardware repair session for Order #{order.order_number}. Customer Tamper Seal: {order.tamper_seal_code}',
+                'description': f'Live transparent hardware repair session for Order #{order.order_number}. Device: {order.laptop_brand} {order.laptop_model}',
                 'start': {'dateTime': start_time.isoformat() + 'Z'},
                 'end': {'dateTime': end_time.isoformat() + 'Z'},
                 'conferenceData': {

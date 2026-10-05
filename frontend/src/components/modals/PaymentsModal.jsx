@@ -8,7 +8,7 @@ export default function PaymentsModal({ isOpen, onClose }) {
   const [addedNotice, setAddedNotice] = useState('');
   const [transactions, setTransactions] = useState([
     { title: 'Repair Payment (Dell Inspiron 15)', amount: '₹1,500', date: 'Today, 02:45 PM', status: 'Payment Authorized (In Escrow)', badge: 'badge-primary' },
-    { title: 'Doorstep Tamper Pickup Fee', amount: '₹100', date: 'Today, 09:15 AM', status: 'Payment Released', badge: 'badge-verified' },
+    { title: 'Doorstep Secure Pickup Fee', amount: '₹100', date: 'Today, 09:15 AM', status: 'Payment Released', badge: 'badge-verified' },
     { title: 'Diagnosis Adjustment Refund', amount: '+₹500', date: 'Yesterday', status: 'Refunded', badge: 'badge-verified', isRefund: true }
   ]);
 

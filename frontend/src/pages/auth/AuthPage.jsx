@@ -165,6 +165,12 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     }
   }[role];
 
+  const navigateByRole = (userRole) => {
+    if (userRole === 'admin') navigate('/admin/dashboard');
+    else if (userRole === 'technician') navigate('/technician/dashboard');
+    else navigate('/customer/dashboard');
+  };
+
   const handleRoleSelect = (selectedRole) => {
     setRole(selectedRole);
     setRegRole(selectedRole);
@@ -201,13 +207,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     if (!res.success) {
       setError(res.error || 'Invalid credentials');
     } else {
-      const u = res.user;
-      if (u?.role === 'technician') navigate('/technician');
-      else if (u?.role === 'admin') navigate('/admin');
-      else {
-        const dest = location.state?.from || '/dashboard';
-        navigate(dest);
-      }
+      navigateByRole(res.user?.role || role);
     }
   };
 
@@ -261,13 +261,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     const res = await loginWithOtp(otpEmail.trim(), cleanOtp);
     setLoading(false);
     if (res.success) {
-      const u = res.user;
-      if (u?.role === 'technician') navigate('/technician');
-      else if (u?.role === 'admin') navigate('/admin');
-      else {
-        const dest = location.state?.from || '/dashboard';
-        navigate(dest);
-      }
+      navigateByRole(res.user?.role || role);
     } else {
       setError(res.error || 'Invalid or expired OTP code');
     }
@@ -341,10 +335,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     if (!res.success) {
       setError(res.error || 'Registration failed');
     } else {
-      const u = res.user;
-      if (u?.role === 'technician') navigate('/technician');
-      else if (u?.role === 'admin') navigate('/admin');
-      else navigate('/dashboard');
+      navigateByRole(res.user?.role || regRole);
     }
   };
 
@@ -475,9 +466,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
               <button
                 type="button"
                 onClick={() => {
-                  if (user.role === 'technician') navigate('/technician');
-                  else if (user.role === 'admin') navigate('/admin');
-                  else navigate('/dashboard');
+                  navigateByRole(user.role);
                 }}
                 className="btn-primary"
                 style={{ padding: '4px 10px', fontSize: '0.72rem', borderRadius: '6px' }}

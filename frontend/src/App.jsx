@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar, SiliconeWorkbenchFrame } from './components/layout';
@@ -24,7 +24,6 @@ import {
   RepairRequestModal,
   TrackRepairModal,
   TechOnboardingModal,
-  TamperSealModal,
   RepairReportModal,
   FeedbackModal,
   PaymentsModal,
@@ -34,6 +33,32 @@ import {
   QualityCheckDeliveryModal
 } from './components/modals';
 import { ShieldCheck, Video, Lock, Heart } from 'lucide-react';
+
+function UnifiedDashboard() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-muted)' }}>
+        Loading dashboard...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role === 'admin') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  if (user.role === 'technician') {
+    return <Navigate to="/technician/dashboard" replace />;
+  }
+
+  return <Navigate to="/customer/dashboard" replace />;
+}
 
 function MainApp() {
   const { user } = useAuth();
@@ -48,7 +73,6 @@ function MainApp() {
   const [isTrackRepairOpen, setIsTrackRepairOpen] = useState(false);
   const [trackRepairId, setTrackRepairId] = useState('');
   const [isTechOnboardingOpen, setIsTechOnboardingOpen] = useState(false);
-  const [isTamperSealOpen, setIsTamperSealOpen] = useState(false);
   const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -63,6 +87,21 @@ function MainApp() {
     setIsTrackRepairOpen(true);
   };
 
+  // One-time clean slate: purge all customer orders from localStorage and backend
+  useEffect(() => {
+    const purgeKey = 'livefix_purged_old_orders_v3';
+    if (!localStorage.getItem(purgeKey)) {
+      localStorage.removeItem('livefix_all_orders');
+      localStorage.removeItem('livefix_latest_order');
+      localStorage.removeItem('livefix_customer_orders');
+      localStorage.removeItem('livefix_offline_orders');
+      localStorage.removeItem('livefix_mock_orders');
+      localStorage.setItem('livefix_all_orders', '[]');
+      localStorage.setItem(purgeKey, 'true');
+      fetch('/api/repairs/clear-all', { method: 'POST' }).catch(() => {});
+    }
+  }, []);
+
   const sampleDemoOrder = {
     id: 1,
     order_number: 'LIVE-PREVIEW',
@@ -72,7 +111,6 @@ function MainApp() {
     laptop_model: 'Station 4 Camera',
     serial_number: 'CAM-LIVE-4K',
     issue_category: 'Diagnostic Video Stream',
-    tamper_seal_code: 'VERIFIED',
     status: 'In Progress',
     quote_amount: 0,
     quote_approved: true,
@@ -121,7 +159,6 @@ function MainApp() {
             <HowItWorksPage 
               onStartBooking={() => navigate('/book')}
               onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
-              onOpenTamperSeal={() => setIsTamperSealOpen(true)}
             />
           } />
 
@@ -160,25 +197,34 @@ function MainApp() {
           <Route path="/book" element={
             <BookRepair
               onBookingSuccess={(newOrder) => {
-                navigate('/dashboard');
+                navigate('/customer/dashboard');
               }}
               onCancel={() => navigate('/')}
             />
           } />
 
-          {/* Role Protected / Dedicated Portals */}
-          <Route path="/dashboard" element={
+          {/* Customer Dashboard */}
+          <Route path="/customer/dashboard" element={
             <CustomerDashboard onNewBooking={() => navigate('/book')} />
           } />
+          <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
 
-          <Route path="/technician" element={
-            <TechDashboard />
-          } />
-          <Route path="/tech" element={<Navigate to="/technician" replace />} />
-
-          <Route path="/admin" element={
+          {/* Admin Dashboard */}
+          <Route path="/admin/dashboard" element={
             <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
           } />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+
+          {/* Technician Dashboard */}
+          <Route path="/technician/dashboard" element={
+            <TechDashboard />
+          } />
+          <Route path="/technician" element={<Navigate to="/technician/dashboard" replace />} />
+          <Route path="/tech" element={<Navigate to="/technician/dashboard" replace />} />
+          <Route path="/tech/dashboard" element={<Navigate to="/technician/dashboard" replace />} />
+
+          {/* Universal /dashboard Route -> redirects to active role dashboard */}
+          <Route path="/dashboard" element={<UnifiedDashboard />} />
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -212,12 +258,7 @@ function MainApp() {
         }}
       />
 
-      {/* Tamper Seal Security Modal */}
-      <TamperSealModal 
-        isOpen={isTamperSealOpen}
-        onClose={() => setIsTamperSealOpen(false)}
-        sealId=""
-      />
+
 
       {/* Chain of Custody 5-Stage Logistics Hub Modal */}
       <ChainOfCustodyModal 
@@ -231,7 +272,7 @@ function MainApp() {
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
         onSubmitSuccess={(order) => {
-          navigate('/dashboard');
+          navigate('/customer/dashboard');
         }}
       />
 
@@ -268,10 +309,11 @@ function MainApp() {
         isOpen={isAuthModalOpen}
         initialRole={authModalRole}
         onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={(loggedInUser) => {
-          if (loggedInUser?.role === 'admin') navigate('/admin');
-          else if (loggedInUser?.role === 'technician') navigate('/technician');
-          else navigate('/dashboard');
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
+          if (user?.role === 'admin') navigate('/admin/dashboard');
+          else if (user?.role === 'technician') navigate('/technician/dashboard');
+          else navigate('/customer/dashboard');
         }}
       />
 
@@ -313,7 +355,7 @@ function MainApp() {
               <span className="app-footer-arrow">➔</span>
               <span>Live Transparent Repair</span>
               <span className="app-footer-arrow">➔</span>
-              <span>Tamper-Protected Return</span>
+              <span>Quality-Certified Return</span>
             </div>
           </div>
         </div>

@@ -26,12 +26,12 @@ export default function TrackRepairModal({ isOpen, onClose, onOpenLiveStream, in
   const fullStages = [
     { id: 1, name: 'Repair Request Created', time: 'Today, 02:15 PM', status: 'done', desc: 'Customer requested repair for Dell Inspiron 15 (Screen not working)' },
     { id: 2, name: 'Technician Accepted', time: 'Today, 02:22 PM', status: 'done', desc: 'Accepted by Verified Hardware Specialist' },
-    { id: 3, name: 'Pickup Scheduled', time: 'Today, 02:30 PM', status: 'done', desc: 'Doorstep pickup agent assigned with serialized tamper bag' },
-    { id: 4, name: 'Laptop Picked Up', time: 'Today, 02:45 PM', status: 'done', desc: 'Device sealed with Tamper Seal TC-FX-928341 and collected' },
-    { id: 5, name: 'Delivered to Technician', time: 'Today, 03:15 PM', status: 'done', desc: 'Delivered to Cleanroom Bench #4; seal verified intact' },
+    { id: 3, name: 'Pickup Scheduled', time: 'Today, 02:30 PM', status: 'done', desc: 'Doorstep pickup agent assigned for secure collection' },
+    { id: 4, name: 'Laptop Picked Up', time: 'Today, 02:45 PM', status: 'done', desc: 'Device inspected and securely received for transit' },
+    { id: 5, name: 'Delivered to Technician', time: 'Today, 03:15 PM', status: 'done', desc: 'Delivered to Cleanroom Bench #4 and assigned to technician' },
     { id: 6, name: 'Repair In Progress', time: 'Live Now', status: 'active', desc: 'Dell Inspiron 15 — Screen Replacement & eDP connector micro-soldering' },
     { id: 7, name: 'Quality Check', time: 'Estimated 05:45 PM', status: 'upcoming', desc: 'Display panel stress test, refresh rate calibration, keyboard & touchpad tests' },
-    { id: 8, name: 'Return Pickup', time: 'Estimated 06:15 PM', status: 'upcoming', desc: 'Re-sealed with new warranty tamper seal and dispatched' },
+    { id: 8, name: 'Return Pickup', time: 'Estimated 06:15 PM', status: 'upcoming', desc: 'Certified and packaged for doorstep return delivery' },
     { id: 9, name: 'Delivered', time: 'Estimated 06:30 PM', status: 'upcoming', desc: 'Doorstep delivery with secret verification OTP handoff' }
   ];
 
@@ -53,7 +53,6 @@ export default function TrackRepairModal({ isOpen, onClose, onOpenLiveStream, in
           laptop: `${o.laptop_brand} ${o.laptop_model}`,
           repairName: `${o.laptop_brand} ${o.laptop_model} — ${o.issue_category}`,
           serialNumber: o.serial_number || 'N/A',
-          tamperSeal: o.tamper_seal_code || 'N/A',
           technician: o.technician?.name || 'Assigned Certified Specialist',
           currentMilestone: o.status,
           estimatedCompletion: 'Estimated within 24-48 hrs',
@@ -106,7 +105,7 @@ export default function TrackRepairModal({ isOpen, onClose, onOpenLiveStream, in
             </div>
             <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Track Live Repair & Chain of Custody</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-              Enter your serialized Repair ID to inspect live milestones, tamper seal verification, and workbench camera feed.
+              Enter your serialized Repair ID to inspect live milestones, status updates, and workbench camera feed.
             </p>
           </div>
 
@@ -181,9 +180,6 @@ export default function TrackRepairModal({ isOpen, onClose, onOpenLiveStream, in
                     <span className="badge badge-live" style={{ fontSize: '0.85rem', padding: '4px 12px' }}>
                       <Radio size={13} className="pulse-dot" /> 🔵 Repair In Progress
                     </span>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                      Seal ID: {searchedOrder.tamperSeal}
-                    </span>
                   </div>
                 </div>
 
@@ -243,7 +239,7 @@ export default function TrackRepairModal({ isOpen, onClose, onOpenLiveStream, in
                 <button 
                   className="btn-secondary"
                   onClick={() => {
-                    alert(`Repair Details:\nDevice: ${searchedOrder.laptop}\nTask: ${searchedOrder.repairName}\nTechnician: ${searchedOrder.technician}\nTamper Seal: ${searchedOrder.tamperSeal}\nEstimated Cost: ${searchedOrder.estimate}`);
+                    alert(`Repair Details:\nDevice: ${searchedOrder.laptop}\nTask: ${searchedOrder.repairName}\nTechnician: ${searchedOrder.technician}\nEstimated Cost: ${searchedOrder.estimate}`);
                   }}
                   style={{ fontSize: '0.85rem' }}
                 >

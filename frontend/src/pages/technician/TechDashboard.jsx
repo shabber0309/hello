@@ -30,11 +30,12 @@ import {
   Lock,
   ChevronRight,
   Info,
-  Key
+  Key,
+  Bell
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { StreamModal, OrderConversationModal } from '../../components/modals';
+import { StreamModal, OrderConversationModal, NotificationsModal } from '../../components/modals';
 import './TechDashboard.css';
 
 export default function TechDashboard() {
@@ -45,19 +46,10 @@ export default function TechDashboard() {
   const [isLiveStreamOpen, setIsLiveStreamOpen] = useState(false);
   const [streamOrder, setStreamOrder] = useState(null);
   const [activeConversationOrder, setActiveConversationOrder] = useState(null);
-
-  // Sync activeSidebarNav with URL query param ?tab=
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tabParam = params.get('tab');
-    if (tabParam && ['dashboard', 'requests', 'active', 'my-jobs', 'earnings', 'messages', 'verification', 'settings'].includes(tabParam)) {
-      setActiveSidebarNav(tabParam);
-    }
-  }, [location.search]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const handleSidebarChange = (tabId) => {
     setActiveSidebarNav(tabId);
-    navigate(`/technician?tab=${tabId}`, { replace: true });
   };
 
   // Dynamic Requests & Repairs from API
@@ -91,26 +83,52 @@ export default function TechDashboard() {
   const [isCredentialReqModalOpen, setIsCredentialReqModalOpen] = useState(false);
   const [credentialReqNote, setCredentialReqNote] = useState('Technician requires temporary OS login PIN or guest account access to test audio, Wi-Fi, and graphics drivers under live cleanroom camera.');
 
-  const fetchTechJobs = async () => {
+  // Photo viewer lightbox modal state
+  const [activePhotoModalUrl, setActivePhotoModalUrl] = useState(null);
+
+  const fetchTechJobs = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token');
       const headers = activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {};
       
       const res = await fetch('/api/repairs', { headers });
+      let apiOrders = [];
       if (res.ok) {
         const data = await res.json();
-        setOrders(data.orders || []);
+        apiOrders = data.orders || [];
+      }
+
+      // Merge local fallback / offline orders so no customer request is ever dropped
+      try {
+        const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+        const existingKeys = new Set(apiOrders.map(o => String(o.order_number || o.id)));
+        const missingLocal = localSaved.filter(o => !existingKeys.has(String(o.order_number || o.id)));
+        setOrders([...missingLocal, ...apiOrders]);
+      } catch {
+        setOrders(apiOrders);
       }
     } catch (err) {
       console.error('Failed to fetch tech jobs:', err);
+      try {
+        const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+        setOrders(localSaved);
+      } catch {}
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchTechJobs();
-  }, []);
+
+    // 4-second real-time polling so customer requests appear immediately
+    const interval = setInterval(() => {
+      fetchTechJobs(true);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [token]);
 
   // Filtered order groups
   const nearbyRequests = orders.filter(o => o.status === 'Order Placed');
@@ -329,7 +347,7 @@ export default function TechDashboard() {
     <div className="tech-dashboard-root">
       {/* Main Content Area */}
       <main className="tech-main-content">
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div className="tech-content-container">
           
           {/* Global Alert Messages */}
           {feedbackMsg && (
@@ -354,91 +372,120 @@ export default function TechDashboard() {
             </div>
           )}
 
+          {/* Master Technician Header */}
+          <div className="tech-bench-header">
+            <div className="tech-bench-title-group">
+              <div className="tech-bench-badge-row">
+                <span className="badge badge-primary">
+                  <ShieldCheck size={13} /> CLEANROOM WORKBENCH
+                </span>
+                <span className="tech-bench-station-chip">
+                  <Radio size={12} className="pulse-dot" /> Bench #4 Online
+                </span>
+              </div>
+              <h1 className="tech-bench-h1">Welcome, {user?.name || "Technician"} 👋</h1>
+              <p className="tech-bench-sub">
+                Live ESD diagnostics, customer request marketplace & transparent 4K cleanroom broadcast
+              </p>
+            </div>
+
+            <div className="tech-header-actions">
+              <button 
+                type="button" 
+                className="btn-secondary tech-header-btn" 
+                onClick={() => setIsNotificationsOpen(true)}
+                title="View bench notifications and alerts"
+                style={{ position: 'relative' }}
+              >
+                <Bell size={14} /> Alerts
+                {orders.some(o => o.status === 'Diagnosis / Quoting' || o.stream_session?.is_live) && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-3px',
+                    right: '-3px',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#ef4444',
+                    boxShadow: '0 0 6px #ef4444'
+                  }} />
+                )}
+              </button>
+              <button 
+                type="button" 
+                className="btn-secondary tech-header-btn" 
+                onClick={() => fetchTechJobs(false)}
+                title="Sync with central repair order database"
+              >
+                <RefreshCw size={14} /> Refresh Jobs
+              </button>
+              <button 
+                type="button" 
+                className="btn-cta tech-header-btn" 
+                onClick={() => handleLaunchLiveStream(activeRepairs[0])}
+              >
+                <Video size={15} /> Launch Live 4K Stream
+              </button>
+            </div>
+          </div>
+
+            
           {/* ========================================================
               MODULE 1: DASHBOARD OVERVIEW
               ======================================================== */}
           {activeSidebarNav === 'dashboard' && (
             <div>
-              {/* Header */}
-              <div className="tech-bench-header">
-                <div className="tech-bench-title-group">
-                  <div className="tech-bench-badge-row">
-                    <span className="badge badge-verified">
-                      <ShieldCheck size={13} /> Certified Cleanroom Specialist
-                    </span>
-                    <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 700 }}>● Live Camera Online</span>
-                  </div>
-                  <h1 className="tech-bench-h1">Welcome, {user?.name || "Technician"} 👋</h1>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-                    Cleanroom Station #4 • Microscope 100x Stream • ESD Safe Bench
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button className="btn-secondary" onClick={fetchTechJobs} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
-                    <RefreshCw size={14} /> Refresh Jobs
-                  </button>
-                  <button className="btn-cta" onClick={() => handleLaunchLiveStream(activeRepairs[0])} style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
-                    <Video size={15} /> Launch Live 4K Stream
-                  </button>
-                </div>
-              </div>
-
-              {/* 4 Stats Cards */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-                gap: '16px',
-                marginBottom: '32px'
-              }}>
-                <div className="tech-card" style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase' }}>OPEN REQUESTS</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '4px', color: 'var(--cta-orange)' }}>
+              {/* 4 Responsive Stats Cards */}
+              <div className="tech-stats-grid">
+                <div className="tech-stat-card">
+                  <div className="tech-stat-label">OPEN REQUESTS</div>
+                  <div className="tech-stat-value tech-stat-value-orange">
                     {nearbyRequests.length}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Customer repair leads waiting</div>
+                  <div className="tech-stat-desc">Customer repair leads waiting</div>
                 </div>
 
-                <div className="tech-card" style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase' }}>ACTIVE REPAIRS</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '4px', color: 'var(--primary)' }}>
+                <div className="tech-stat-card">
+                  <div className="tech-stat-label">ACTIVE REPAIRS</div>
+                  <div className="tech-stat-value tech-stat-value-cyan">
                     {activeRepairs.length}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Assigned or on bench</div>
+                  <div className="tech-stat-desc">Assigned or on bench</div>
                 </div>
 
-                <div className="tech-card" style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase' }}>LIVE STREAMING</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '4px', color: '#ef4444' }}>
+                <div className="tech-stat-card">
+                  <div className="tech-stat-label">LIVE STREAMING</div>
+                  <div className="tech-stat-value tech-stat-value-red">
                     {activeRepairs.filter(r => r.status === 'In Repair').length}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Active camera broadcast</div>
+                  <div className="tech-stat-desc">Active camera broadcast</div>
                 </div>
 
-                <div className="tech-card" style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 800, textTransform: 'uppercase' }}>COMPLETED JOBS</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '4px', color: 'var(--success)' }}>
+                <div className="tech-stat-card">
+                  <div className="tech-stat-label">COMPLETED JOBS</div>
+                  <div className="tech-stat-value tech-stat-value-green">
                     {completedRepairs.length}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Tamper sealed & returned</div>
+                  <div className="tech-stat-desc">Quality tested & returned</div>
                 </div>
               </div>
 
               {/* Active Cleanroom Workbench Broadcast Box */}
               {activeRepairs.length > 0 ? (
-                <div className="tech-card" style={{ padding: '26px', border: '2px solid var(--border-glow)', marginBottom: '32px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="tech-workbench-card">
+                  <div className="tech-workbench-header">
+                    <div className="tech-workbench-title-left">
                       <span className="badge badge-live">
                         <Radio size={12} className="pulse-dot" /> ACTIVE ON BENCH
                       </span>
-                      <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
+                      <h2 className="tech-workbench-h2">
                         {activeRepairs[0].laptop_brand} {activeRepairs[0].laptop_model}
                       </h2>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="tech-workbench-actions">
                       <button 
+                        type="button"
                         className="btn-cta" 
                         onClick={() => handleLaunchLiveStream(activeRepairs[0])} 
                         style={{ fontSize: '0.82rem', padding: '7px 16px' }}
@@ -447,6 +494,7 @@ export default function TechDashboard() {
                       </button>
 
                       <button
+                        type="button"
                         className="btn-secondary"
                         onClick={() => {
                           setSelectedOrderForAction(activeRepairs[0]);
@@ -458,6 +506,7 @@ export default function TechDashboard() {
                       </button>
 
                       <button
+                        type="button"
                         className="btn-secondary"
                         onClick={() => {
                           setSelectedOrderForAction(activeRepairs[0]);
@@ -471,36 +520,37 @@ export default function TechDashboard() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '18px', background: 'var(--bg-main)', padding: '14px 18px', borderRadius: '12px' }}>
+                  <div className="tech-workbench-meta-grid">
                     <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700 }}>ORDER NUMBER</div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--primary)' }}>{activeRepairs[0].order_number}</div>
+                      <div className="tech-meta-label">ORDER NUMBER</div>
+                      <div className="tech-meta-val" style={{ color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>{activeRepairs[0].order_number}</div>
                     </div>
 
                     <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700 }}>TAMPER SEAL CODE</div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#10b981' }}>{activeRepairs[0].tamper_seal_code || 'VERIFIED'}</div>
+                      <div className="tech-meta-label">DEVICE STATUS</div>
+                      <div className="tech-meta-val" style={{ color: '#10b981', fontFamily: 'var(--font-mono)' }}>Cleanroom Active</div>
                     </div>
 
                     <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700 }}>CURRENT MILESTONE</div>
-                      <div style={{ fontWeight: 800, color: 'var(--cta-orange)' }}>{activeRepairs[0].status}</div>
+                      <div className="tech-meta-label">CURRENT MILESTONE</div>
+                      <div className="tech-meta-val" style={{ color: 'var(--cta-orange)' }}>{activeRepairs[0].status}</div>
                     </div>
 
                     <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700 }}>APPROVED QUOTE</div>
-                      <div style={{ fontWeight: 800, color: 'var(--success)', fontFamily: 'var(--font-mono)' }}>₹{activeRepairs[0].quote_amount || 0}</div>
+                      <div className="tech-meta-label">APPROVED QUOTE</div>
+                      <div className="tech-meta-val" style={{ color: 'var(--success)', fontFamily: 'var(--font-mono)' }}>₹{activeRepairs[0].quote_amount || 0}</div>
                     </div>
                   </div>
 
                   {/* 1-Click Milestone Advancement */}
                   {nextMilestoneMap[activeRepairs[0].status] && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
+                    <div className="tech-milestones-row">
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                         Next Protocol Step: <strong>{nextMilestoneMap[activeRepairs[0].status]}</strong>
                       </div>
 
                       <button
+                        type="button"
                         className="btn-primary"
                         onClick={() => handleUpdateStatus(activeRepairs[0].id, nextMilestoneMap[activeRepairs[0].status])}
                         style={{ padding: '8px 18px', fontSize: '0.82rem', fontWeight: 800 }}
@@ -522,12 +572,12 @@ export default function TechDashboard() {
 
               {/* Nearby Incoming Requests */}
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
                   <div>
                     <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>Incoming Customer Requests</h2>
                     <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Customer repair leads matching your hardware skills</div>
                   </div>
-                  <button className="btn-secondary" onClick={() => setActiveSidebarNav('requests')} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                  <button className="btn-secondary" onClick={() => handleSidebarChange('requests')} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
                     View All ({nearbyRequests.length})
                   </button>
                 </div>
@@ -537,37 +587,87 @@ export default function TechDashboard() {
                     No pending customer leads right now. All requests have been assigned.
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {nearbyRequests.slice(0, 3).map((req) => (
-                      <div key={req.id || req.order_number} className="tech-card" style={{ padding: '18px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{req.laptop_brand} {req.laptop_model}</h3>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>📍 {req.pickup_city || 'Hyderabad'}</span>
+                      <div key={req.id || req.order_number} className="tech-request-card">
+                        <div className="tech-request-header-row">
+                          <div className="tech-request-title-area">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                              <span className="badge badge-orange">{req.order_number}</span>
+                              <h3 className="tech-request-h3">{req.laptop_brand} {req.laptop_model}</h3>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700 }}>
+                                📍 {req.pickup_city || 'Hyderabad'}{req.pickup_area ? ` (${req.pickup_area})` : ''}
+                              </span>
                             </div>
-                            <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>Issue: <strong>{req.issue_category}</strong></div>
+                            <div className="tech-request-issue-line">
+                              Issue: <span style={{ color: 'var(--primary)' }}>{req.issue_category}</span>
+                            </div>
+                            {req.issue_description && (
+                              <p className="tech-request-desc">"{req.issue_description}"</p>
+                            )}
                           </div>
 
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700 }}>ESTIMATE</div>
-                            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--cta-orange)', fontFamily: 'var(--font-mono)' }}>
-                              ₹{req.quote_amount || 0}
-                            </div>
+                          <div className="tech-request-price-box">
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700 }}>CUSTOMER BUDGET</div>
+                            <div className="tech-request-price-val">₹{req.quote_amount || req.customer_selected_price || 0}</div>
+                            <div className="tech-request-payout-tag">90% Payout: ₹{Math.round((req.quote_amount || req.customer_selected_price || 0) * 0.9)}</div>
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border-light)' }}>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-                            Address: {req.pickup_address}
+                        {/* Customer photo preview if present */}
+                        {((req.problem_photos && req.problem_photos.length > 0) || (req.charger_photos && req.charger_photos.length > 0)) && (
+                          <div className="tech-photo-strip">
+                            <span className="tech-photo-badge">
+                              <Camera size={13} color="var(--primary)" /> Photos:
+                            </span>
+                            {(req.problem_photos || []).map((img, pIdx) => (
+                              <img
+                                key={`p-${pIdx}`}
+                                src={img}
+                                alt="Problem proof"
+                                className="tech-photo-thumb"
+                                title="Click to enlarge"
+                                onClick={() => setActivePhotoModalUrl(img)}
+                              />
+                            ))}
+                            {(req.charger_photos || []).map((img, cIdx) => (
+                              <img
+                                key={`c-${cIdx}`}
+                                src={img}
+                                alt="Charger proof"
+                                className="tech-photo-thumb"
+                                title="Click to enlarge"
+                                onClick={() => setActivePhotoModalUrl(img)}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="tech-request-actions-row" style={{ paddingTop: '10px', borderTop: '1px solid var(--border-light)' }}>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', flex: 1, minWidth: '200px' }}>
+                            📍 Pickup: {req.pickup_address}{req.pickup_pincode ? ` (${req.pickup_pincode})` : ''}
                           </div>
 
                           <button 
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: '7px 14px', fontSize: '0.82rem' }}
+                            onClick={() => {
+                              setSelectedOrderForAction(req);
+                              setQuoteForm({ quote_amount: req.quote_amount || '', technician_notes: '' });
+                              setIsQuoteModalOpen(true);
+                            }}
+                          >
+                            Send Quote
+                          </button>
+
+                          <button 
+                            type="button"
                             className="btn-primary"
-                            style={{ padding: '7px 18px', fontSize: '0.82rem', fontWeight: 700 }}
+                            style={{ padding: '7px 20px', fontSize: '0.82rem', fontWeight: 800 }}
                             onClick={() => handleAcceptRequest(req.id, req.quote_amount)}
                           >
-                            Accept Job
+                            <Check size={14} /> Accept Job
                           </button>
                         </div>
                       </div>
@@ -580,22 +680,22 @@ export default function TechDashboard() {
 
           {/* ========================================================
               MODULE 2: REPAIR REQUESTS MARKETPLACE
-             ======================================================== */}
+              ======================================================== */}
           {activeSidebarNav === 'requests' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
                 <div>
                   <h1 style={{ fontSize: '1.9rem', fontWeight: 800, margin: 0 }}>Open Customer Requests</h1>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0' }}>
-                    Browse all unassigned laptop repair leads in your radius
+                    Browse all incoming laptop repair requests submitted by customers
                   </p>
                 </div>
 
-                <div style={{ position: 'relative', width: '280px' }}>
+                <div style={{ position: 'relative', width: '100%', maxWidth: '320px' }}>
                   <Search size={15} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
                   <input
                     type="text"
-                    placeholder="Search brand, issue, city..."
+                    placeholder="Search brand, issue, location..."
                     value={requestSearch}
                     onChange={(e) => setRequestSearch(e.target.value)}
                     style={{ width: '100%', paddingLeft: '36px', height: '40px', fontSize: '0.85rem' }}
@@ -606,54 +706,142 @@ export default function TechDashboard() {
               {nearbyRequests.length === 0 ? (
                 <div className="tech-card" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   <Wrench size={36} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>No Open Requests Available</h3>
-                  <p style={{ fontSize: '0.88rem' }}>Check back soon as new customer orders are submitted regularly.</p>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>No Open Requests in Queue</h3>
+                  <p style={{ fontSize: '0.88rem' }}>When customers book a repair online, orders will automatically pop up here in real time.</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {nearbyRequests
                     .filter(r => !requestSearch || 
                       r.laptop_brand?.toLowerCase().includes(requestSearch.toLowerCase()) ||
+                      r.laptop_model?.toLowerCase().includes(requestSearch.toLowerCase()) ||
                       r.issue_category?.toLowerCase().includes(requestSearch.toLowerCase()) ||
-                      r.pickup_city?.toLowerCase().includes(requestSearch.toLowerCase())
+                      r.pickup_city?.toLowerCase().includes(requestSearch.toLowerCase()) ||
+                      r.pickup_area?.toLowerCase().includes(requestSearch.toLowerCase())
                     )
                     .map((req) => (
-                      <div key={req.id} className="tech-card" style={{ padding: '22px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                      <div key={req.id || req.order_number} className="tech-request-card">
+                        <div className="tech-request-header-row">
+                          <div className="tech-request-title-area">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                               <span className="badge badge-orange">{req.order_number}</span>
-                              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>{req.laptop_brand} {req.laptop_model}</h3>
+                              <h3 className="tech-request-h3">{req.laptop_brand} {req.laptop_model}</h3>
+                              {req.pickup_city && (
+                                <span style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 700 }}>
+                                  📍 {req.pickup_city}{req.pickup_area ? ` • ${req.pickup_area}` : ''}
+                                </span>
+                              )}
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 600 }}>
+                            <div className="tech-request-issue-line">
                               Reported Issue: <span style={{ color: 'var(--primary)' }}>{req.issue_category}</span>
                             </div>
                             {req.issue_description && (
-                              <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '4px 0 0', maxWidth: '600px' }}>
-                                "{req.issue_description}"
-                              </p>
+                              <p className="tech-request-desc">"{req.issue_description}"</p>
                             )}
                           </div>
 
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700 }}>ESTIMATED TARGET BUDGET</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--success)', fontFamily: 'var(--font-mono)' }}>
-                              ₹{req.quote_amount || 0}
-                            </div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>90% Technician Payout: ₹{Math.round((req.quote_amount || 0) * 0.9)}</div>
+                          <div className="tech-request-price-box">
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700 }}>CUSTOMER BUDGET TARGET</div>
+                            <div className="tech-request-price-val">₹{req.quote_amount || req.customer_selected_price || 0}</div>
+                            <div className="tech-request-payout-tag">90% Tech Payout: ₹{Math.round((req.quote_amount || req.customer_selected_price || 0) * 0.9)}</div>
                           </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', padding: '12px 14px', background: 'var(--bg-main)', borderRadius: '10px', marginBottom: '14px', fontSize: '0.82rem' }}>
-                          <div><strong>Pickup Location:</strong> {req.pickup_address}, {req.pickup_city} ({req.pickup_landmark || 'No landmark'})</div>
-                          <div><strong>Serial No:</strong> {req.serial_number || 'To Be Verified on Bench'}</div>
-                          <div><strong>Charger Intake:</strong> {req.charger_included ? (req.charger_details || 'Yes (Charger Included)') : 'No Charger Handed Over'}</div>
-                          <div><strong>Accessories:</strong> {Array.isArray(req.included_accessories) ? req.included_accessories.join(', ') : (req.included_accessories || 'None')}</div>
-                          <div><strong>Pre-existing Flaws:</strong> <span style={{ color: '#d97706' }}>{Array.isArray(req.pre_existing_damage) ? req.pre_existing_damage.join(', ') : (req.pre_existing_damage || 'None')}</span></div>
+                        {/* Customer Intake & Logistics Specs Grid */}
+                        <div className="tech-request-specs-grid">
+                          <div className="tech-spec-item">
+                            <strong>Pickup Location</strong>
+                            {req.pickup_address}
+                            {req.pickup_area ? `, ${req.pickup_area}` : ''}
+                            {req.pickup_city ? `, ${req.pickup_city}` : ''}
+                            {req.pickup_pincode ? ` (${req.pickup_pincode})` : ''}
+                            {req.pickup_landmark ? ` [Near ${req.pickup_landmark}]` : ''}
+                          </div>
+
+                          <div className="tech-spec-item">
+                            <strong>Customer Details</strong>
+                            {req.customer_name || 'Customer'}
+                            {(req.customer_phone || req.customer_whatsapp) && (
+                              <div style={{ marginTop: '2px' }}>
+                                <a 
+                                  href={`tel:${req.customer_phone || req.customer_whatsapp}`}
+                                  style={{ color: '#10b981', fontWeight: 700, textDecoration: 'none', marginRight: '8px' }}
+                                >
+                                  📞 {req.customer_phone || req.customer_whatsapp}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="tech-spec-item">
+                            <strong>Device Serial Number</strong>
+                            {req.serial_number || 'To Be Verified on Bench'}
+                          </div>
+
+                          <div className="tech-spec-item">
+                            <strong>Charger Intake</strong>
+                            {req.charger_included ? (req.charger_details || 'Yes (Original Charger Included)') : 'No Charger Handed Over'}
+                          </div>
+
+                          <div className="tech-spec-item">
+                            <strong>Included Accessories</strong>
+                            {Array.isArray(req.included_accessories) ? req.included_accessories.join(', ') : (req.included_accessories || 'None')}
+                          </div>
+
+                          <div className="tech-spec-item">
+                            <strong>Pre-existing Flaws</strong>
+                            <span style={{ color: '#d97706', fontWeight: 600 }}>
+                              {Array.isArray(req.pre_existing_damage) ? req.pre_existing_damage.join(', ') : (req.pre_existing_damage || 'None declared')}
+                            </span>
+                          </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                        {/* Customer Uploaded Photo Proofs */}
+                        {((req.problem_photos && req.problem_photos.length > 0) || (req.charger_photos && req.charger_photos.length > 0)) && (
+                          <div style={{ marginBottom: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                              <Camera size={14} color="var(--primary)" />
+                              <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+                                Customer Photo Proofs ({ (req.problem_photos?.length || 0) + (req.charger_photos?.length || 0) }) — Click to zoom
+                              </span>
+                            </div>
+                            <div className="tech-photo-strip">
+                              {(req.problem_photos || []).map((img, pIdx) => (
+                                <img
+                                  key={`prob-${pIdx}`}
+                                  src={img}
+                                  alt={`Problem Proof ${pIdx + 1}`}
+                                  className="tech-photo-thumb"
+                                  title="Click to view full photo"
+                                  onClick={() => setActivePhotoModalUrl(img)}
+                                />
+                              ))}
+                              {(req.charger_photos || []).map((img, cIdx) => (
+                                <img
+                                  key={`chg-${cIdx}`}
+                                  src={img}
+                                  alt={`Charger Proof ${cIdx + 1}`}
+                                  className="tech-photo-thumb"
+                                  title="Click to view full photo"
+                                  onClick={() => setActivePhotoModalUrl(img)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="tech-request-actions-row">
                           <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => setActiveConversationOrder(req)}
+                            style={{ padding: '8px 14px', fontSize: '0.84rem' }}
+                          >
+                            <MessageSquare size={14} /> Open Chat & Custody
+                          </button>
+
+                          <button
+                            type="button"
                             className="btn-secondary"
                             onClick={() => {
                               setSelectedOrderForAction(req);
@@ -662,15 +850,16 @@ export default function TechDashboard() {
                             }}
                             style={{ padding: '8px 16px', fontSize: '0.84rem' }}
                           >
-                            Send Custom Quote
+                            <DollarSign size={14} /> Send Custom Quote
                           </button>
 
                           <button
+                            type="button"
                             className="btn-primary"
                             onClick={() => handleAcceptRequest(req.id, req.quote_amount)}
-                            style={{ padding: '8px 22px', fontSize: '0.84rem', fontWeight: 800 }}
+                            style={{ padding: '8px 24px', fontSize: '0.84rem', fontWeight: 800 }}
                           >
-                            Accept Request
+                            <Check size={15} /> Accept Request
                           </button>
                         </div>
                       </div>
@@ -709,7 +898,7 @@ export default function TechDashboard() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                             <span className="badge badge-primary">{ord.order_number}</span>
                             <span className="badge badge-verified">
-                              <ShieldCheck size={12} /> Seal: {ord.tamper_seal_code || 'VERIFIED'}
+                              <ShieldCheck size={12} /> Verified Intake
                             </span>
                             <span className="badge badge-live">
                               <Radio size={11} className="pulse-dot" /> {ord.status}
@@ -776,7 +965,7 @@ export default function TechDashboard() {
                         <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: '10px', textTransform: 'uppercase' }}>
                           Repair Milestones Progression
                         </div>
-                        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+                        <div className="tech-milestone-pills-container">
                           {[
                             'Technician Accepted',
                             'Pickup Scheduled',
@@ -792,18 +981,9 @@ export default function TechDashboard() {
                             return (
                               <button
                                 key={sIdx}
+                                type="button"
                                 onClick={() => handleUpdateStatus(ord.id, stepName)}
-                                style={{
-                                  padding: '6px 12px',
-                                  borderRadius: '8px',
-                                  fontSize: '0.75rem',
-                                  fontWeight: 700,
-                                  whiteSpace: 'nowrap',
-                                  cursor: 'pointer',
-                                  border: isCurrent ? '1.5px solid var(--primary)' : '1px solid var(--border-light)',
-                                  background: isCurrent ? 'var(--primary)' : 'var(--bg-surface)',
-                                  color: isCurrent ? '#ffffff' : 'var(--text-muted)'
-                                }}
+                                className={`tech-milestone-pill ${isCurrent ? 'tech-milestone-pill-active' : ''}`}
                               >
                                 {isCurrent ? '✓ ' : ''}{stepName}
                               </button>
@@ -889,16 +1069,16 @@ export default function TechDashboard() {
                 </div>
               </div>
 
-              <div className="tech-card" style={{ padding: '0', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
+              <div className="tech-table-container">
+                <table className="tech-table">
                   <thead>
-                    <tr style={{ background: 'var(--bg-main)', borderBottom: '1px solid var(--border-light)' }}>
-                      <th style={{ padding: '14px 18px' }}>Order ID</th>
-                      <th style={{ padding: '14px 18px' }}>Device</th>
-                      <th style={{ padding: '14px 18px' }}>Issue Category</th>
-                      <th style={{ padding: '14px 18px' }}>Status</th>
-                      <th style={{ padding: '14px 18px' }}>Amount</th>
-                      <th style={{ padding: '14px 18px' }}>Warranty</th>
+                    <tr>
+                      <th className="tech-th">Order ID</th>
+                      <th className="tech-th">Device</th>
+                      <th className="tech-th">Issue Category</th>
+                      <th className="tech-th">Status</th>
+                      <th className="tech-th">Amount</th>
+                      <th className="tech-th">Warranty</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -909,26 +1089,26 @@ export default function TechDashboard() {
                         return true;
                       })
                       .map((job) => (
-                        <tr key={job.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                          <td style={{ padding: '14px 18px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--primary)' }}>
+                        <tr key={job.id}>
+                          <td className="tech-td" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--primary)' }}>
                             {job.order_number}
                           </td>
-                          <td style={{ padding: '14px 18px' }}>
+                          <td className="tech-td">
                             <div style={{ fontWeight: 800 }}>{job.laptop_brand} {job.laptop_model}</div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>SN: {job.serial_number || 'N/A'}</div>
                           </td>
-                          <td style={{ padding: '14px 18px', color: 'var(--text-muted)' }}>
+                          <td className="tech-td" style={{ color: 'var(--text-muted)' }}>
                             {job.issue_category}
                           </td>
-                          <td style={{ padding: '14px 18px' }}>
+                          <td className="tech-td">
                             <span className={`badge ${job.status === 'Delivered' ? 'badge-verified' : 'badge-orange'}`}>
                               {job.status}
                             </span>
                           </td>
-                          <td style={{ padding: '14px 18px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--success)' }}>
+                          <td className="tech-td" style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--success)' }}>
                             ₹{job.quote_amount || 0}
                           </td>
-                          <td style={{ padding: '14px 18px' }}>
+                          <td className="tech-td">
                             <span style={{ fontSize: '0.78rem', color: '#10b981', fontWeight: 700 }}>
                               90-Day Cleanroom Warranty
                             </span>
@@ -1238,23 +1418,14 @@ export default function TechDashboard() {
 
       {/* Part Replacement Logger Modal */}
       {isPartLogOpen && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.7)',
-          zIndex: 2500,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px'
-        }}>
-          <div className="tech-card" style={{ width: '100%', maxWidth: '520px', padding: '24px' }}>
+        <div className="tech-modal-overlay">
+          <div className="tech-modal-box">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Layers size={18} color="var(--primary)" />
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>Record Part Replacement</h3>
               </div>
-              <button onClick={() => setIsPartLogOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => setIsPartLogOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
                 <X size={18} />
               </button>
             </div>
@@ -1328,23 +1499,14 @@ export default function TechDashboard() {
 
       {/* Quote Editor Modal */}
       {isQuoteModalOpen && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.7)',
-          zIndex: 2500,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px'
-        }}>
-          <div className="tech-card" style={{ width: '100%', maxWidth: '480px', padding: '24px' }}>
+        <div className="tech-modal-overlay">
+          <div className="tech-modal-box">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <DollarSign size={18} color="var(--cta-orange)" />
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>Submit Diagnostic Quote</h3>
               </div>
-              <button onClick={() => setIsQuoteModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => setIsQuoteModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
                 <X size={18} />
               </button>
             </div>
@@ -1391,23 +1553,14 @@ export default function TechDashboard() {
 
       {/* Payout Transfer Modal */}
       {isPayoutModalOpen && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.7)',
-          zIndex: 2500,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px'
-        }}>
-          <div className="tech-card" style={{ width: '100%', maxWidth: '460px', padding: '24px' }}>
+        <div className="tech-modal-overlay">
+          <div className="tech-modal-box">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <DollarSign size={18} color="var(--success)" />
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>Request Bank Payout</h3>
               </div>
-              <button onClick={() => { setIsPayoutModalOpen(false); setPayoutSuccess(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => { setIsPayoutModalOpen(false); setPayoutSuccess(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
                 <X size={18} />
               </button>
             </div>
@@ -1495,7 +1648,7 @@ export default function TechDashboard() {
       {/* Technician On-Demand Credential Request Modal */}
       {isCredentialReqModalOpen && selectedOrderForAction && (
         <div className="tech-modal-overlay">
-          <div className="tech-modal-content" style={{ maxWidth: '500px' }}>
+          <div className="tech-modal-box" style={{ maxWidth: '500px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Key size={20} color="var(--primary)" />
@@ -1549,6 +1702,43 @@ export default function TechDashboard() {
         </div>
       )}
 
+      {/* Customer Hardware Photo Lightbox Modal */}
+      {activePhotoModalUrl && (
+        <div className="tech-modal-overlay" onClick={() => setActivePhotoModalUrl(null)}>
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setActivePhotoModalUrl(null)}
+              style={{
+                position: 'absolute',
+                top: '-44px',
+                right: '0',
+                background: 'rgba(255, 255, 255, 0.25)',
+                border: 'none',
+                color: '#fff',
+                borderRadius: '50%',
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              <X size={20} />
+            </button>
+            <img
+              src={activePhotoModalUrl}
+              alt="Hardware inspection proof"
+              className="tech-photo-lightbox"
+            />
+            <div style={{ color: '#fff', fontSize: '0.82rem', marginTop: '12px', background: 'rgba(0,0,0,0.65)', padding: '5px 16px', borderRadius: '20px' }}>
+              Customer Hardware Photo Proof
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeConversationOrder && (
         <OrderConversationModal
           isOpen={Boolean(activeConversationOrder)}
@@ -1561,6 +1751,20 @@ export default function TechDashboard() {
           }}
         />
       )}
+
+      {/* Technician Bench Alerts Modal */}
+      <NotificationsModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        orders={orders}
+        onActionClick={(action) => {
+          setIsNotificationsOpen(false);
+          if (action === 'Join Live') handleLaunchLiveStream(activeRepairs[0]);
+          else if (action === 'Review Job') handleSidebarChange('requests');
+          else if (action === 'Start Repair') handleSidebarChange('active');
+          else if (action === 'View Ledger') handleSidebarChange('earnings');
+        }}
+      />
     </div>
   );
 }

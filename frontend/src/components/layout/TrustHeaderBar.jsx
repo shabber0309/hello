@@ -6,8 +6,8 @@ export default function TrustHeaderBar() {
     {
       icon: ShieldCheck,
       color: '#10b981',
-      title: 'Tamper-Evident Bagging',
-      sub: 'Serialized pouch sealed at your doorstep'
+      title: 'Secure Doorstep Pickup',
+      sub: 'Inspected & transported directly to bench'
     },
     {
       icon: Video,

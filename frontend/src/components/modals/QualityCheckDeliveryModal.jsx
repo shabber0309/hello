@@ -9,7 +9,7 @@ export default function QualityCheckDeliveryModal({ isOpen, onClose, orderData }
     orderNumber: 'EOF-2026-92809',
     laptopModel: 'Dell XPS 15 9520',
     serialNumber: 'D3X-99401',
-    tamperSealOut: 'SEAL-TX-4411C-OUT',
+    dispatchTracking: 'TRK-TX-4411C',
     secretOtp: '7291',
     amountPaid: 5150,
     warrantyMonths: 6,
@@ -144,13 +144,13 @@ export default function QualityCheckDeliveryModal({ isOpen, onClose, orderData }
             }}>
               <ShieldCheck size={28} color="var(--primary)" />
               <div style={{ fontSize: '0.8rem' }}>
-                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>6 Months Anti-Tamper Warranty</div>
-                <div style={{ color: 'var(--text-muted)' }}>Coverage valid until April 2027. Includes part swap protection.</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>6 Months Platform Warranty</div>
+                <div style={{ color: 'var(--text-muted)' }}>Coverage valid for 6 months on all replaced parts and labor.</div>
               </div>
             </div>
           </div>
 
-          {/* Card 2: Out for Delivery & Tamper Seal */}
+          {/* Card 2: Out for Delivery */}
           <div style={{
             background: 'var(--bg-card-subtle)',
             border: '1px solid var(--border-light)',
@@ -176,7 +176,7 @@ export default function QualityCheckDeliveryModal({ isOpen, onClose, orderData }
             }}>
               <img 
                 src="/hero_laptop.jpg" 
-                alt="Tamper Seal Out for home"
+                alt="Courier Out for Delivery"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
               <div style={{
@@ -189,9 +189,9 @@ export default function QualityCheckDeliveryModal({ isOpen, onClose, orderData }
                 color: '#ffffff'
               }}>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Security Seal Barcode:</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Dispatch Tracking Code:</div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                    {data.tamperSealOut}
+                    {data.dispatchTracking || 'TRK-TX-VERIFIED'}
                   </div>
                 </div>
               </div>
@@ -209,7 +209,7 @@ export default function QualityCheckDeliveryModal({ isOpen, onClose, orderData }
             }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  SECRET DELIVERY OTP (Share only upon unsealing):
+                  SECRET DELIVERY OTP (Share only after verifying your device):
                 </div>
                 <div style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '4px', color: 'var(--primary)' }}>
                   {data.secretOtp}
