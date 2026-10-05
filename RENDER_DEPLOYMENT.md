@@ -1,4 +1,4 @@
-# Deploying FixConnect to Render
+# Deploying Live Fix to Render
 
 This project is configured to deploy as a **single, unified service** on Render's Free tier (serving both the React Vite frontend and the Flask Python API on one domain with zero CORS complications).
 
@@ -18,7 +18,7 @@ This project is configured to deploy as a **single, unified service** on Render'
    - **Build Command**: `chmod +x ./build.sh && ./build.sh`
    - **Start Command**: `gunicorn --chdir backend app:app --workers 2 --threads 4 --timeout 120`
    - **Health Check**: `/api/health`
-6. Click **Apply**. Render will build the frontend, install backend dependencies, seed Admin Shabber, and give you a live URL (e.g. `https://fixconnect-live-hardware.onrender.com`).
+6. Click **Apply**. Render will build the frontend, install backend dependencies, initialize the clean administrator account, and give you a live URL (e.g. `https://livefix-hardware.onrender.com`).
 
 ---
 
@@ -29,7 +29,7 @@ If you prefer to configure it manually on Render:
 1. Go to [Render Dashboard](https://dashboard.render.com/) ➔ **New +** ➔ **Web Service**.
 2. Select your repository: `Live-camera-monitored-hardware-and-software-service`.
 3. Configure the following settings:
-   - **Name**: `fixconnect-app` (or any name you prefer)
+   - **Name**: `livefix-app` (or any name you prefer)
    - **Region**: Closest to you (e.g., *Singapore* or *Oregon*)
    - **Branch**: `main`
    - **Root Directory**: *(Leave empty)*
@@ -58,9 +58,33 @@ If you prefer to configure it manually on Render:
 
 ---
 
-## 🔑 Default Credentials on Render
-When the application first boots on Render, the database is automatically created with:
-- **Admin Username**: `shabber`
-- **Email**: `shabberhussain934@gmail.com`
-- **Password**: `123123123`
+## 💾 Keeping Data Persistent Across Deployments (CRITICAL)
+
+### Why does SQLite data disappear on new deployments?
+Render Web Services (and platforms like Heroku/Railway) use **ephemeral containers**. Every time you push a new commit, Render tears down the old container and boots a new clean one. Any local SQLite `.db` file created inside the container is deleted along with the old container.
+
+### How to keep data permanently (Free & 2 Minutes):
+To keep all users, repair tickets, and profiles safe across every deployment, attach a **free cloud database**:
+
+#### Option A: Render Free PostgreSQL (Recommended)
+1. In your [Render Dashboard](https://dashboard.render.com/), click **New +** ➔ **PostgreSQL**.
+2. Name it (e.g. `livefix-postgres`), select your region, and choose the **Free** instance type.
+3. Click **Create Database**.
+4. Once created, copy the **Internal Database URL** (e.g. `postgres://livefix_user:...@dpg-xxx/livefix`).
+5. Open your `livefix-app` Web Service ➔ **Environment** tab.
+6. Add or update the variable:
+   - **Key**: `DATABASE_URL`
+   - **Value**: *(paste the Internal Database URL)*
+7. Click **Save Changes**. Render will automatically redeploy and connect to the persistent PostgreSQL database. From now on, your data will never disappear on git pushes!
+
+#### Option B: Supabase or Neon PostgreSQL
+1. Create a free project on [Supabase](https://supabase.com/) or [Neon](https://neon.tech/).
+2. Copy the Connection String URI.
+3. In your Render Web Service **Environment**, set `DATABASE_URL` to that URI.
+
+## 🔑 Default Administrator Credentials on Render
+When the application first boots on Render, the clean database is automatically initialized with:
+- **Admin Username**: `admin`
+- **Email**: `admin@livefix.com`
+- **Password**: `admin123`
 *(You can log in and change your password at `/login` or via the Admin Console).*

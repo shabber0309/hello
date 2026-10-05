@@ -1,34 +1,64 @@
-import React, { useState } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Navbar from './components/Navbar';
-import LandingPage from './pages/LandingPage';
-import HowItWorksPage from './pages/HowItWorksPage';
-import ServicesPage from './pages/ServicesPage';
-import ForTechniciansPage from './pages/ForTechniciansPage';
-import PricingPage from './pages/PricingPage';
-import TrackRepairPage from './pages/TrackRepairPage';
-import BookRepair from './pages/BookRepair';
-import UserDashboard from './pages/UserDashboard';
-import TechDashboard from './pages/TechDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import StreamModal from './components/StreamModal';
-import AuthModal from './components/AuthModal';
-import ChainOfCustodyModal from './components/ChainOfCustodyModal';
-import RepairRequestModal from './components/RepairRequestModal';
-import TrackRepairModal from './components/TrackRepairModal';
-import TechOnboardingModal from './components/TechOnboardingModal';
-import TamperSealModal from './components/TamperSealModal';
-import RepairReportModal from './components/RepairReportModal';
-import FeedbackModal from './components/FeedbackModal';
-import PaymentsModal from './components/PaymentsModal';
-import NotificationsModal from './components/NotificationsModal';
-import HelpSupportModal from './components/HelpSupportModal';
-import EditProfileModal from './components/EditProfileModal';
-import QualityCheckDeliveryModal from './components/QualityCheckDeliveryModal';
-import AuthPage from './pages/AuthPage';
-import SiliconeWorkbenchFrame from './components/SiliconeWorkbenchFrame';
+import { Navbar, SiliconeWorkbenchFrame } from './components/layout';
+import './App.css';
+// Role-based Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import BookRepair from './pages/customer/BookRepair';
+import TrackRepairPage from './pages/customer/TrackRepairPage';
+import TechDashboard from './pages/technician/TechDashboard';
+import ForTechniciansPage from './pages/technician/ForTechniciansPage';
+import LandingPage from './pages/public/LandingPage';
+import HowItWorksPage from './pages/public/HowItWorksPage';
+import ServicesPage from './pages/public/ServicesPage';
+import PricingPage from './pages/public/PricingPage';
+import AuthPage from './pages/auth/AuthPage';
+
+// Modals
+import {
+  StreamModal,
+  AuthModal,
+  ChainOfCustodyModal,
+  RepairRequestModal,
+  TrackRepairModal,
+  TechOnboardingModal,
+  RepairReportModal,
+  FeedbackModal,
+  PaymentsModal,
+  NotificationsModal,
+  HelpSupportModal,
+  EditProfileModal,
+  QualityCheckDeliveryModal
+} from './components/modals';
 import { ShieldCheck, Video, Lock, Heart } from 'lucide-react';
+
+function UnifiedDashboard() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-muted)' }}>
+        Loading dashboard...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role === 'admin') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  if (user.role === 'technician') {
+    return <Navigate to="/technician/dashboard" replace />;
+  }
+
+  return <Navigate to="/customer/dashboard" replace />;
+}
 
 function MainApp() {
   const { user } = useAuth();
@@ -43,20 +73,34 @@ function MainApp() {
   const [isTrackRepairOpen, setIsTrackRepairOpen] = useState(false);
   const [trackRepairId, setTrackRepairId] = useState('');
   const [isTechOnboardingOpen, setIsTechOnboardingOpen] = useState(false);
-  const [isTamperSealOpen, setIsTamperSealOpen] = useState(false);
   const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
-  const openAuth = (role = 'admin') => {
-    navigate('/login');
+  const openAuth = (role = 'customer') => {
+    navigate('/login', { state: { role } });
   };
 
   const handleOpenTrackWithId = (id = '') => {
     setTrackRepairId(id);
     setIsTrackRepairOpen(true);
   };
+
+  // One-time clean slate: purge all customer orders from localStorage and backend
+  useEffect(() => {
+    const purgeKey = 'livefix_purged_old_orders_v3';
+    if (!localStorage.getItem(purgeKey)) {
+      localStorage.removeItem('livefix_all_orders');
+      localStorage.removeItem('livefix_latest_order');
+      localStorage.removeItem('livefix_customer_orders');
+      localStorage.removeItem('livefix_offline_orders');
+      localStorage.removeItem('livefix_mock_orders');
+      localStorage.setItem('livefix_all_orders', '[]');
+      localStorage.setItem(purgeKey, 'true');
+      fetch('/api/repairs/clear-all', { method: 'POST' }).catch(() => {});
+    }
+  }, []);
 
   const sampleDemoOrder = {
     id: 1,
@@ -67,7 +111,6 @@ function MainApp() {
     laptop_model: 'Station 4 Camera',
     serial_number: 'CAM-LIVE-4K',
     issue_category: 'Diagnostic Video Stream',
-    tamper_seal_code: 'VERIFIED',
     status: 'In Progress',
     quote_amount: 0,
     quote_approved: true,
@@ -80,7 +123,7 @@ function MainApp() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-root">
       <Navbar 
         onOpenAuthModal={openAuth}
         onOpenRequestModal={() => (user ? navigate('/book') : openAuth('customer'))}
@@ -88,10 +131,13 @@ function MainApp() {
         onOpenTechOnboarding={() => (user ? setIsTechOnboardingOpen(true) : openAuth('technician'))}
         onOpenChainOfCustody={() => setIsChainOfCustodyOpen(true)}
         onOpenPayments={() => setIsPaymentsOpen(true)}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
+        onOpenHelp={() => setIsHelpOpen(true)}
+        onOpenMessages={() => setDemoStreamOrder(sampleDemoOrder)}
         onOpenEditProfile={() => setIsEditProfileOpen(true)}
       />
 
-      <main style={{ flex: 1 }}>
+      <main className="app-main-content">
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={
@@ -113,13 +159,12 @@ function MainApp() {
             <HowItWorksPage 
               onStartBooking={() => navigate('/book')}
               onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
-              onOpenTamperSeal={() => setIsTamperSealOpen(true)}
             />
           } />
 
           <Route path="/services" element={
             <ServicesPage 
-              onStartBooking={() => navigate('/book')}
+              onStartBooking={(problem) => navigate('/book', { state: { prefillProblem: problem } })}
             />
           } />
 
@@ -152,25 +197,34 @@ function MainApp() {
           <Route path="/book" element={
             <BookRepair
               onBookingSuccess={(newOrder) => {
-                navigate('/dashboard');
+                navigate('/customer/dashboard');
               }}
               onCancel={() => navigate('/')}
             />
           } />
 
-          {/* Role Protected / Dedicated Portals */}
-          <Route path="/dashboard" element={
-            <UserDashboard onNewBooking={() => navigate('/book')} />
+          {/* Customer Dashboard */}
+          <Route path="/customer/dashboard" element={
+            <CustomerDashboard onNewBooking={() => navigate('/book')} />
           } />
+          <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
 
-          <Route path="/technician" element={
-            <TechDashboard />
-          } />
-          <Route path="/tech" element={<Navigate to="/technician" replace />} />
-
-          <Route path="/admin" element={
+          {/* Admin Dashboard */}
+          <Route path="/admin/dashboard" element={
             <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
           } />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+
+          {/* Technician Dashboard */}
+          <Route path="/technician/dashboard" element={
+            <TechDashboard />
+          } />
+          <Route path="/technician" element={<Navigate to="/technician/dashboard" replace />} />
+          <Route path="/tech" element={<Navigate to="/technician/dashboard" replace />} />
+          <Route path="/tech/dashboard" element={<Navigate to="/technician/dashboard" replace />} />
+
+          {/* Universal /dashboard Route -> redirects to active role dashboard */}
+          <Route path="/dashboard" element={<UnifiedDashboard />} />
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -204,12 +258,7 @@ function MainApp() {
         }}
       />
 
-      {/* Tamper Seal Security Modal */}
-      <TamperSealModal 
-        isOpen={isTamperSealOpen}
-        onClose={() => setIsTamperSealOpen(false)}
-        sealId=""
-      />
+
 
       {/* Chain of Custody 5-Stage Logistics Hub Modal */}
       <ChainOfCustodyModal 
@@ -223,7 +272,7 @@ function MainApp() {
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
         onSubmitSuccess={(order) => {
-          navigate('/dashboard');
+          navigate('/customer/dashboard');
         }}
       />
 
@@ -260,48 +309,54 @@ function MainApp() {
         isOpen={isAuthModalOpen}
         initialRole={authModalRole}
         onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={(loggedInUser) => {
-          if (loggedInUser?.role === 'admin') navigate('/admin');
-          else if (loggedInUser?.role === 'technician') navigate('/technician');
-          else navigate('/dashboard');
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
+          if (user?.role === 'admin') navigate('/admin/dashboard');
+          else if (user?.role === 'technician') navigate('/technician/dashboard');
+          else navigate('/customer/dashboard');
         }}
       />
 
-      {/* Modern Footer for FixConnect */}
-      <footer style={{
-        background: 'var(--bg-surface)',
-        borderTop: '1px solid var(--border-light)',
-        padding: '36px 0 24px',
-        color: 'var(--text-dim)',
-        fontSize: '0.85rem'
-      }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span 
-              onClick={() => navigate('/')} 
-              style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.1rem', cursor: 'pointer' }}
-            >
-              Fix<span style={{ color: 'var(--primary)' }}>Connect</span>
-            </span>
-            <span>— Laptop Repair, Without the Guesswork.</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/how-it-works')}>How It Works</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/services')}>Services</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/for-technicians')}>For Technicians</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/pricing')}>Pricing</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/track-repair')}>Track Repair</span>
-            {user?.role === 'admin' && (
-              <span style={{ cursor: 'pointer', color: '#10b981', fontWeight: 700 }} onClick={() => navigate('/admin')}>
-                Admin Console
+      {/* Modern Responsive Footer for Live Fix */}
+      <footer className="app-footer">
+        <div className="container app-footer-inner">
+          <div className="app-footer-top">
+            <div className="app-footer-brand-wrap">
+              <span 
+                onClick={() => navigate('/')} 
+                className="app-footer-brand-title"
+              >
+                Live<span className="app-footer-brand-accent">Fix</span>
               </span>
-            )}
-            <span style={{ cursor: 'pointer' }} onClick={() => setIsHelpOpen(true)}>Help & Support</span>
+              <span className="app-footer-tagline">Laptop Repair, Without the Guesswork.</span>
+            </div>
+
+            <nav className="app-footer-nav" aria-label="Footer Navigation">
+              <span className="app-footer-nav-link" onClick={() => navigate('/how-it-works')}>How It Works</span>
+              <span className="app-footer-nav-link" onClick={() => navigate('/services')}>Services</span>
+              <span className="app-footer-nav-link" onClick={() => navigate('/for-technicians')}>For Technicians</span>
+              <span className="app-footer-nav-link" onClick={() => navigate('/pricing')}>Pricing</span>
+              <span className="app-footer-nav-link" onClick={() => navigate('/track-repair')}>Track Repair</span>
+              {user?.role === 'admin' && (
+                <span className="app-footer-nav-link admin-link" onClick={() => navigate('/admin')}>
+                  Admin Console
+                </span>
+              )}
+              <span className="app-footer-nav-link" onClick={() => setIsHelpOpen(true)}>Help & Support</span>
+            </nav>
           </div>
 
-          <div style={{ color: 'var(--text-dim)' }}>
-            © 2026 FixConnect. Verified Technician ➔ Secure Pickup ➔ Live Transparent Repair ➔ Tamper-Protected Return.
+          <div className="app-footer-bottom">
+            <span className="app-footer-copy">© 2026 Live Fix. All rights reserved.</span>
+            <div className="app-footer-badges">
+              <span>Verified Technician</span>
+              <span className="app-footer-arrow">➔</span>
+              <span>Secure Pickup</span>
+              <span className="app-footer-arrow">➔</span>
+              <span>Live Transparent Repair</span>
+              <span className="app-footer-arrow">➔</span>
+              <span>Quality-Certified Return</span>
+            </div>
           </div>
         </div>
       </footer>

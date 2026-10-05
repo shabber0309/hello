@@ -1,0 +1,289 @@
+/* ==========================================================================
+   ServicesPage.css - Repair Catalog & Diagnostic Benchmark Pricing
+   Senior Developer Modular CSS Architecture
+   ========================================================================== */
+
+.services-page-root {
+  padding: 40px 0 80px;
+}
+
+.services-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Page Header */
+.services-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.services-badge {
+  margin-bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.services-h1 {
+  font-size: clamp(2.2rem, 4.2vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--text-main);
+}
+
+.services-gradient-text {
+  background: linear-gradient(135deg, #1d4ed8 0%, #0284c7 50%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.services-subtitle {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 680px;
+  margin: 0 auto 28px;
+  line-height: 1.6;
+}
+
+/* Search Bar */
+.services-search-wrap {
+  position: relative;
+  max-width: 540px;
+  margin: 0 auto 24px;
+}
+
+.services-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+
+.services-search-input {
+  width: 100%;
+  padding: 12px 18px 12px 46px;
+  border-radius: 999px;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-medium);
+  font-size: 0.95rem;
+  color: var(--text-main);
+  box-shadow: var(--card-shadow);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.services-search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* Category Filter Pills */
+.services-category-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+
+.services-category-btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
+}
+
+.services-category-btn:hover {
+  border-color: var(--border-medium);
+  color: var(--text-main);
+}
+
+.services-category-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  font-weight: 800;
+}
+
+/* Services Grid */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 22px;
+  margin-bottom: 60px;
+}
+
+.services-card {
+  padding: 24px;
+  border-radius: 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.services-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--primary);
+}
+
+.services-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.services-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(29, 78, 216, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.services-badges-group {
+  display: flex;
+  gap: 6px;
+}
+
+.services-popular-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(234, 88, 12, 0.12);
+  color: var(--cta-orange);
+  border: 1px solid rgba(234, 88, 12, 0.25);
+}
+
+.services-card-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.services-card-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.services-symptoms-section {
+  margin-bottom: 18px;
+}
+
+.services-symptoms-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.services-symptoms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.services-symptom-pill {
+  font-size: 0.76rem;
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+}
+
+/* Card Bottom */
+.services-card-bottom {
+  border-top: 1px solid var(--border-light);
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.services-price-label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.services-price-val {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #1d4ed8;
+  font-family: var(--font-heading);
+}
+
+.services-warranty-info {
+  font-size: 0.74rem;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.services-book-btn {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+/* Bottom Callout */
+.services-custom-callout {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 36px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  color: #ffffff;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+}
+
+.services-callout-h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.services-callout-p {
+  color: #94a3b8;
+  font-size: 0.94rem;
+  margin: 0;
+  max-width: 580px;
+  line-height: 1.5;
+}
+
+.services-callout-btn {
+  padding: 12px 24px;
+  font-size: 0.92rem;
+  font-weight: 800;
+}

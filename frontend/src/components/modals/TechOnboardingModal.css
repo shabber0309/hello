@@ -1,0 +1,74 @@
+/* ==========================================================================
+   TechOnboardingModal.css - Technician Application & Partner Wizard
+   Senior Developer Modular CSS Architecture
+   ========================================================================== */
+
+.tech-onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background-color: rgba(11, 17, 32, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: techModalFadeIn 0.2s ease-out;
+}
+
+@keyframes techModalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tech-onboarding-dialog {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border-medium);
+  color: var(--text-main);
+}
+
+.tech-onboarding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tech-onboarding-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.tech-onboarding-close-btn {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tech-onboarding-close-btn:hover {
+  background: var(--border-light);
+  color: var(--text-main);
+}

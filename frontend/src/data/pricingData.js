@@ -1,4 +1,4 @@
-// Comprehensive FixConnect 2026 Repair Database
+// Comprehensive Live Fix 2026 Repair Database
 // Synthesized from current Hyderabad & Indian market benchmarks
 
 export const CUSTOMER_SYMPTOMS = [

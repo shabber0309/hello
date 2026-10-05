@@ -1,0 +1,113 @@
+/* ==========================================================================
+   ChainOfCustodyModal.css - 5-Stage Logistics Hub & Security Custody Modal
+   Senior Developer Modular CSS Architecture
+   ========================================================================== */
+
+.custody-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  background-color: rgba(11, 17, 32, 0.88);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: custodyModalFadeIn 0.2s ease-out;
+}
+
+@keyframes custodyModalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.custody-modal-dialog {
+  width: 100%;
+  max-width: 920px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 25px 65px -15px rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border-medium);
+  color: var(--text-main);
+}
+
+.custody-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.custody-modal-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.custody-close-btn {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.custody-close-btn:hover {
+  background: var(--border-light);
+  color: var(--text-main);
+}
+
+.custody-stages-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+
+.custody-stage-btn {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.custody-stage-btn:hover {
+  border-color: var(--border-medium);
+  color: var(--text-main);
+}
+
+.custody-stage-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.custody-detail-card {
+  background: var(--bg-card-subtle);
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  padding: 24px;
+}

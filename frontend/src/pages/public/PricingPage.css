@@ -1,0 +1,506 @@
+/* ==========================================================================
+   PricingPage.css - Transparent Estimate Matrix & Zero-Trust Pricing
+   Senior Developer Modular CSS Architecture
+   ========================================================================== */
+
+.pricing-page-root {
+  padding: 40px 0 80px;
+}
+
+.pricing-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header */
+.pricing-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.pricing-badge {
+  margin-bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pricing-h1 {
+  font-size: clamp(2.2rem, 4.2vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--text-main);
+}
+
+.pricing-gradient-text {
+  background: linear-gradient(135deg, #1d4ed8 0%, #0284c7 50%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.pricing-subtitle {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 680px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Search Bar */
+.pricing-search-wrap {
+  position: relative;
+  max-width: 580px;
+  margin: 0 auto 36px;
+}
+
+.pricing-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 15px;
+}
+
+.pricing-search-input {
+  padding-left: 44px;
+  padding-right: 16px;
+  height: 46px;
+  font-size: 0.92rem;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  width: 100%;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pricing-search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.pricing-search-clear {
+  position: absolute;
+  right: 14px;
+  top: 15px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+/* Navigation Tabs */
+.pricing-tabs-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.pricing-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.pricing-tab-btn:hover {
+  border-color: var(--border-medium);
+  color: var(--text-main);
+}
+
+.pricing-tab-btn.active-primary {
+  border: 2px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.pricing-tab-btn.active-workflow {
+  border: 2px solid #ea580c;
+  background: #ea580c;
+  color: #fff;
+}
+
+/* Tab 1: Symptoms Grid */
+.pricing-symptoms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.pricing-symptom-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 14px;
+}
+
+.pricing-symptom-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pricing-symptom-icon {
+  font-size: 1.6rem;
+}
+
+.pricing-symptom-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
+}
+
+.pricing-symptom-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: var(--text-main);
+}
+
+.pricing-symptom-range {
+  color: var(--cta-orange);
+  font-weight: 800;
+  font-family: var(--font-mono);
+  fontSize: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.pricing-symptom-desc {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0 0 14px;
+}
+
+.pricing-symptom-btn {
+  width: 100%;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Category Filter Pills */
+.pricing-filter-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.pricing-filter-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.pricing-filter-pill:hover {
+  border-color: var(--border-medium);
+  color: var(--text-main);
+}
+
+.pricing-filter-pill.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Tables in Catalog */
+.pricing-catalog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 36px;
+}
+
+.pricing-catalog-card {
+  padding: 20px;
+  border-radius: 14px;
+}
+
+.pricing-catalog-h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--text-main);
+}
+
+.pricing-table-container {
+  overflow-x: auto;
+}
+
+.pricing-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.pricing-table-header {
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.pricing-table-header th {
+  padding: 8px 12px;
+}
+
+.pricing-table-row {
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pricing-table-row:last-child {
+  border-bottom: none;
+}
+
+.pricing-table-row td {
+  padding: 10px 12px;
+}
+
+.pricing-problem-cell {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.pricing-range-hw {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: var(--cta-orange);
+  white-space: nowrap;
+}
+
+.pricing-range-sw {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.pricing-note-cell {
+  color: var(--text-muted);
+}
+
+.pricing-action-cell {
+  text-align: right;
+}
+
+.pricing-book-small-btn {
+  padding: 5px 12px;
+  font-size: 0.76rem;
+  border-radius: 6px;
+}
+
+.pricing-software-note {
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: rgba(234, 88, 12, 0.08);
+  color: var(--cta-orange);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* Tab 4: Workflow Approval */
+.pricing-workflow-card {
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.pricing-workflow-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.pricing-workflow-subtitle {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+}
+
+.pricing-workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.pricing-workflow-step-box {
+  background: var(--bg-card-subtle);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.pricing-workflow-step-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pricing-workflow-step-title {
+  font-weight: 800;
+  margin: 4px 0;
+  color: var(--text-main);
+}
+
+.pricing-workflow-step-detail {
+  font-size: 0.8rem;
+}
+
+.pricing-prompt-box {
+  border-radius: 12px;
+  padding: 18px;
+  transition: all 0.25s ease;
+}
+
+.pricing-prompt-box.pending {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-light);
+}
+
+.pricing-prompt-box.approved {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid #10b981;
+}
+
+.pricing-prompt-box.rejected {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid #ef4444;
+}
+
+.pricing-prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pricing-prompt-title {
+  font-weight: 800;
+  font-size: 0.96rem;
+}
+
+.pricing-prompt-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pricing-btn-reject {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  background: none;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pricing-btn-reject:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.pricing-btn-approve {
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #10b981;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.pricing-btn-approve:hover {
+  filter: brightness(1.1);
+}
+
+.pricing-btn-reset {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  background: none;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* What You Pay For Breakdown */
+.pricing-breakdown-card {
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.pricing-breakdown-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--text-main);
+}
+
+.pricing-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.88rem;
+}
+
+.pricing-breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-main);
+}
+
+.pricing-breakdown-item.free-item strong {
+  color: var(--success);
+}
+
+.pricing-breakdown-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 6px;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.pricing-breakdown-total span:last-child {
+  color: var(--primary);
+}

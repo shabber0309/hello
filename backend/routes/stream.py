@@ -30,8 +30,8 @@ def create_google_meet_room(order):
             end_time = start_time + datetime.timedelta(hours=2)
 
             event = {
-                'summary': f'EyeOnFix Live Repair: {order.order_number} ({order.laptop_brand} {order.laptop_model})',
-                'description': f'Live transparent hardware repair session for Order #{order.order_number}. Customer Tamper Seal: {order.tamper_seal_code}',
+                'summary': f'Live Fix Live Repair: {order.order_number} ({order.laptop_brand} {order.laptop_model})',
+                'description': f'Live transparent hardware repair session for Order #{order.order_number}. Device: {order.laptop_brand} {order.laptop_model}',
                 'start': {'dateTime': start_time.isoformat() + 'Z'},
                 'end': {'dateTime': end_time.isoformat() + 'Z'},
                 'conferenceData': {
@@ -53,7 +53,7 @@ def create_google_meet_room(order):
             if meet_url:
                 return meet_url
         except Exception as e:
-            print(f"[EyeOnFix Google Meet API Warning] {e}. Falling back to instant workbench room.")
+            print(f"[Live Fix Google Meet API Warning] {e}. Falling back to instant workbench room.")
 
     # High-reliability fallback: standard Google Meet format code or embedded live room
     code_part1 = uuid.uuid4().hex[:3]

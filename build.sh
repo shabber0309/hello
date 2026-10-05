@@ -3,7 +3,7 @@
 set -o errexit
 
 echo "=========================================="
-echo "  FixConnect: Building for Render..."
+echo "  Live Fix: Building for Render..."
 echo "=========================================="
 
 # 1. Install frontend dependencies and build React bundle

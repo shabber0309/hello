@@ -1,0 +1,561 @@
+/* ==========================================================================
+   AuthPage.css - Corporate Role-Based Authentication Center
+   Senior Engineering Architecture - BEM / Modular Scoped Stylesheet
+   ========================================================================== */
+
+.auth-page-root {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+}
+
+.auth-bg-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+  filter: blur(80px);
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-card {
+  max-width: 480px;
+  width: 100%;
+  padding: 38px 34px 30px;
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 65px -15px rgba(0, 0, 0, 0.85), 0 0 50px -10px var(--primary-glow);
+  border: 1px solid var(--border-light);
+  z-index: 1;
+  background: var(--bg-surface);
+}
+
+.auth-top-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+/* Active session indicator */
+.auth-session-bar {
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.auth-signout-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.auth-signout-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* Role Switcher Tabs */
+.auth-role-tabs {
+  display: flex;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+  gap: 4px;
+}
+
+.auth-role-tab-btn {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.auth-role-tab-customer-active {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.auth-role-tab-technician-active {
+  background: var(--cta-orange) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.auth-role-tab-admin-active {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* Segmented Role Switcher Bar - Matching Exactly User UI */
+.auth-segmented-role-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid rgba(191, 219, 254, 0.9);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .auth-segmented-role-bar {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.auth-segmented-role-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-main, #1e293b);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.auth-segmented-role-btn svg {
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.auth-segmented-role-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .auth-segmented-role-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Active Customer State (Image 2) */
+.auth-segmented-role-btn.active-customer {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.28);
+}
+
+.auth-segmented-role-btn.active-customer svg {
+  color: #ffffff !important;
+}
+
+/* Active Technician State (Image 3) */
+.auth-segmented-role-btn.active-technician {
+  background: #ea580c !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.28);
+}
+
+.auth-segmented-role-btn.active-technician svg {
+  color: #ffffff !important;
+}
+
+/* Active Admin State (Image 4) */
+.auth-segmented-role-btn.active-admin {
+  background: #059669 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.28);
+}
+
+.auth-segmented-role-btn.active-admin svg {
+  color: #ffffff !important;
+}
+
+/* Header & Avatar */
+.auth-header-bay {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-avatar-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+.auth-badge-pill {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.auth-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse 1.8s infinite;
+}
+
+.auth-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.auth-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Quick Fill Demo Credential Box */
+.auth-demo-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed var(--border-light);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+.auth-demo-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-light);
+  color: #fff;
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.auth-demo-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Form Styles */
+.auth-form-group {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.auth-form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.auth-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 11px 14px 11px 40px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 164, 228, 0.15);
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* Error / Success Banners */
+.auth-banner-error {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-banner-success {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Submit Action Button */
+.auth-submit-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-submit-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Switch links */
+.auth-switch-row {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.auth-switch-link {
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.auth-switch-link:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Password Requirements Box (High-Contrast accessible Light & Dark modes)
+   ========================================================================== */
+.auth-pw-requirements {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--bg-surface-elevated, #f8fafc);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 10px;
+}
+
+[data-theme="dark"] .auth-pw-requirements {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.auth-pw-requirements-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-main, #1e293b);
+  margin-bottom: 6px;
+}
+
+[data-theme="dark"] .auth-pw-requirements-title {
+  color: #f1f5f9;
+}
+
+.auth-pw-requirements-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 0.72rem;
+}
+
+.auth-pw-req-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.auth-pw-req-item.valid {
+  color: #059669;
+}
+
+[data-theme="dark"] .auth-pw-req-item.valid {
+  color: #34d399;
+}
+
+.auth-pw-req-item.invalid {
+  color: #dc2626;
+}
+
+[data-theme="dark"] .auth-pw-req-item.invalid {
+  color: #f87171;
+}
+
+.auth-pw-req-item-full {
+  grid-column: span 2;
+}
+
+/* ==========================================================================
+   Comprehensive Mobile View Optimization (< 640px)
+   ========================================================================== */
+@media (max-width: 640px) {
+  .auth-page-root {
+    padding: 16px 12px 32px;
+    min-height: auto;
+  }
+
+  .auth-card {
+    padding: 22px 16px 18px;
+    border-radius: 18px;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .auth-card h1 {
+    font-size: 1.35rem !important;
+  }
+
+  .auth-card p {
+    font-size: 0.8rem !important;
+  }
+
+  /* Segmented Role Switcher: Ensure all 3 roles (Customer, Technician, Admin) fit cleanly without overflow */
+  .auth-segmented-role-bar {
+    padding: 3px;
+    gap: 3px;
+    margin-bottom: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .auth-segmented-role-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 7px 4px;
+    font-size: 0.76rem;
+    gap: 4px;
+    border-radius: 7px;
+  }
+
+  .auth-segmented-role-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0;
+  }
+
+  .auth-segmented-role-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Password Requirements: stack to 1 column on narrow screens */
+  .auth-pw-requirements-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .auth-pw-req-item-full {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 380px) {
+  .auth-page-root {
+    padding: 12px 8px 24px;
+  }
+
+  .auth-card {
+    padding: 18px 12px 16px;
+    border-radius: 14px;
+  }
+
+  .auth-segmented-role-btn {
+    font-size: 0.7rem;
+    padding: 6px 2px;
+  }
+}
+

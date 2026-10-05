@@ -1,0 +1,114 @@
+/* ==========================================================================
+   SearchableDropdown.css - Standard Form Select Dropdown
+   Matches Brand Selection Design Pattern Exactly
+   ========================================================================== */
+
+.searchable-dropdown-root {
+  position: relative;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchable-dropdown-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+
+.searchable-dropdown-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+  margin: 0;
+}
+
+.searchable-dropdown-sublabel {
+  font-size: 0.78rem;
+  color: var(--text-dim, #64748b);
+  font-weight: 500;
+}
+
+.searchable-select-wrapper {
+  position: relative;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.searchable-native-select {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 50px;
+  padding: 0 42px 0 16px;
+  border-radius: 10px;
+  background: var(--bg-surface-elevated, #ffffff);
+  border: 1.5px solid var(--border-medium, #cbd5e1);
+  color: var(--text-main, #0f172a);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-sizing: border-box !important;
+  outline: none;
+  transition: all 0.18s ease;
+  line-height: 50px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.searchable-native-select:hover {
+  border-color: var(--primary, #2563eb);
+}
+
+.searchable-native-select:focus {
+  border-color: var(--primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.searchable-native-select option {
+  background: var(--bg-surface-elevated, #ffffff);
+  color: var(--text-main, #0f172a);
+  font-size: 0.92rem;
+  padding: 10px;
+}
+
+[data-theme="dark"] .searchable-native-select {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .searchable-native-select:hover {
+  border-color: #3b82f6;
+  background: rgba(30, 41, 59, 0.9);
+}
+
+[data-theme="dark"] .searchable-native-select:focus {
+  border-color: #3b82f6;
+  background: rgba(30, 41, 59, 0.98);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+[data-theme="dark"] .searchable-native-select option {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+/* Responsive adjustments for Mobile */
+@media (max-width: 640px) {
+  .searchable-native-select {
+    height: 48px;
+    line-height: 48px;
+    font-size: 0.88rem;
+    padding: 0 38px 0 12px;
+  }
+}
