@@ -4,6 +4,7 @@ import { Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { LAPTOP_PROBLEM_CATEGORIES, ALL_PROBLEMS_FLAT } from '../../data/laptopProblems';
 import { Step1, Step2, Step3, Step4 } from './steps';
+import { scrollToFirstError } from '../../utils/validation';
 import './BookRepair.css';
 
 export default function BookRepair({ onBookingSuccess, onCancel }) {
@@ -301,6 +302,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setError('');
+      setTimeout(() => scrollToFirstError(errors), 50);
       return;
     }
 
@@ -324,6 +326,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setError('');
+      setTimeout(() => scrollToFirstError(errors), 50);
       return;
     }
 
@@ -344,7 +347,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     const pincodeClean = (formData.pickup_pincode || '').trim();
     if (!pincodeClean) {
       errors.pickup_pincode = 'Please enter your 6-digit postal pincode.';
-    } else if (!/^\d{6}$/.test(pincodeClean)) {
+    } else if (!/^[1-9]\d{5}$/.test(pincodeClean)) {
       errors.pickup_pincode = 'Pincode must be exactly 6 numeric digits (e.g. 500081).';
     }
     if (!formData.chassis_open_consent) {
@@ -354,6 +357,7 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setError('');
+      setTimeout(() => scrollToFirstError(errors), 50);
       return;
     }
 

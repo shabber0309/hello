@@ -65,10 +65,10 @@ export default function Step1({
         {/* Left: Input Specifications */}
         <div className="book-device-inputs-col">
           {/* Brand Selection Dropdown */}
-          <div>
+          <div id="field-brand">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>
               <label className="form-label" htmlFor="laptop-brand-select" style={{ margin: 0 }}>
-                Brand
+                Brand <span style={{ color: '#ef4444' }}>*</span>
               </label>
               {customBrandMode && (
                 <button
@@ -142,7 +142,7 @@ export default function Step1({
             {customBrandMode && (
               <div style={{ marginTop: '12px' }}>
                 <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--primary)', marginBottom: '5px' }}>
-                  Type Laptop Brand Name
+                  Type Laptop Brand Name <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -170,7 +170,7 @@ export default function Step1({
           </div>
 
           {/* Model Name / Number (Full width for clean readability) */}
-          <div>
+          <div id="field-model">
             <ModelSearchDropdown
               brand={formData.laptop_brand}
               selectedModel={formData.laptop_model}
@@ -215,7 +215,7 @@ export default function Step1({
       {/* Intake Manifest Card (Photos & Accessories) */}
       <div className="intake-manifest-card">
         {/* 1. Upload problem photo * */}
-        <div>
+        <div id="field-photos">
           <div className="intake-manifest-row">
             <div className="intake-manifest-label">
               <span className="intake-manifest-number">1.</span>
@@ -301,7 +301,7 @@ export default function Step1({
         <div className="intake-manifest-divider" />
 
         {/* 2. Charger Model / Wattage & Photo Proof */}
-        <div>
+        <div id="field-chargerPhotos">
           <div className="intake-manifest-row">
             <div className="intake-manifest-label">
               <span className="intake-manifest-number">2.</span>

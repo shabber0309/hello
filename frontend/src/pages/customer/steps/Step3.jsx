@@ -22,7 +22,7 @@ export default function Step3({
         Our verified courier arrives at your doorstep to inspect and securely dispatch your laptop to the cleanroom bench.
       </p>
 
-      <div>
+      <div id="field-pickup_address">
         <label className="form-label">
           Complete Doorstep Address (Flat, House No., Building, Street) <span style={{ color: '#ef4444' }}>*</span>
         </label>
@@ -45,7 +45,7 @@ export default function Step3({
       </div>
 
       <div className="book-form-grid-3">
-        <div>
+        <div id="field-pickup_area">
           <label className="form-label">
             Area / Locality <span style={{ color: '#ef4444' }}>*</span>
           </label>
@@ -80,19 +80,21 @@ export default function Step3({
           </select>
         </div>
 
-        <div>
+        <div id="field-pickup_pincode">
           <label className="form-label">
             Pincode <span style={{ color: '#ef4444' }}>*</span>
           </label>
           <input
             type="text"
+            inputMode="numeric"
             maxLength={6}
             className="form-input"
             placeholder="e.g. 500081"
             value={formData.pickup_pincode}
             onChange={(e) => {
               if (onClearError) onClearError('pickup_pincode');
-              setFormData({ ...formData, pickup_pincode: e.target.value });
+              const cleanDigits = e.target.value.replace(/\D/g, '').slice(0, 6);
+              setFormData({ ...formData, pickup_pincode: cleanDigits });
             }}
             style={pincodeError ? { borderColor: '#ef4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.15)' } : undefined}
           />
@@ -119,7 +121,7 @@ export default function Step3({
       </div>
 
       {/* Data Backup Waiver & Chassis Open Authorization */}
-      <div>
+      <div id="field-chassis_open_consent">
         <label
           className="book-consent-card"
           style={consentError ? { borderColor: '#ef4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.15)' } : undefined}

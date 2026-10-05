@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   ShieldCheck, 
@@ -21,6 +21,16 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { 
+  EMAIL_REGEX, 
+  PHONE_REGEX, 
+  PASSWORD_REGEX, 
+  getPasswordValidationState, 
+  sanitizeDigits, 
+  validatePhone, 
+  validateEmail, 
+  scrollToFirstError 
+} from '../../utils/validation';
 import './AuthPage.css';
 
 export default function AuthPage({ initialRole = 'customer', initialMode = 'login' }) {
@@ -79,8 +89,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   // Status & feedback
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
   const [formFieldErrors, setFormFieldErrors] = useState({});
+
+  const regPwValidation = useMemo(() => getPasswordValidationState(regPassword), [regPassword]);
+  const forgotPwValidation = useMemo(() => getPasswordValidationState(forgotNewPassword), [forgotNewPassword]);
 
   const clearFormFieldError = (field) => {
     setFormFieldErrors((prev) => {
@@ -171,6 +183,10 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     if (Object.keys(errors).length > 0) {
       setFormFieldErrors(errors);
       setError('');
+      setTimeout(() => scrollToFirstError(errors, {
+        identifier: 'field-identifier',
+        password: 'field-password'
+      }), 50);
       return;
     }
 
@@ -196,13 +212,11 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
   const handleSendLoginOtp = async (e) => {
     e?.preventDefault();
-    const emailClean = otpEmail.trim();
-    if (!emailClean) {
-      setFormFieldErrors({ otpEmail: 'Please enter your email address' });
-      return;
-    }
-    if (!emailClean.includes('@') || !emailClean.includes('.')) {
-      setFormFieldErrors({ otpEmail: 'Please provide a valid email address (e.g. name@example.com)' });
+    const emailResult = validateEmail(otpEmail);
+    if (!emailResult.isValid) {
+      const errors = { otpEmail: emailResult.error };
+      setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, { otpEmail: 'field-otpEmail' }), 50);
       return;
     }
     setFormFieldErrors({});
@@ -210,12 +224,12 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     setError('');
     setSuccessMsg('');
 
-    const res = await sendOtp(emailClean, role);
+    const res = await sendOtp(otpEmail.trim(), role);
     setLoading(false);
     if (res.success) {
       setOtpStep(2);
       setOtpCooldown(60);
-      setSuccessMsg(`Sign-in verification code sent to ${emailClean}`);
+      setSuccessMsg(`Sign-in verification code sent to ${otpEmail.trim()}`);
       if (res.data?.dev_otp) {
         setOtpDevCode(res.data.dev_otp);
       }
@@ -226,8 +240,16 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
   const handleVerifyLoginOtp = async (e) => {
     e?.preventDefault();
-    if (!otpCode.trim()) {
-      setFormFieldErrors({ otpCode: 'Please enter the 6-digit verification code' });
+    const cleanOtp = sanitizeDigits(otpCode, 6);
+    if (!cleanOtp) {
+      const errors = { otpCode: 'Please enter the 6-digit verification code' };
+      setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, { otpCode: 'field-otpCode' }), 50);
+      return;
+    } else if (cleanOtp.length !== 6) {
+      const errors = { otpCode: 'Verification code must be exactly 6 digits' };
+      setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, { otpCode: 'field-otpCode' }), 50);
       return;
     }
     setFormFieldErrors({});
@@ -235,7 +257,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     setError('');
     setSuccessMsg('');
 
-    const res = await loginWithOtp(otpEmail.trim(), otpCode.trim());
+    const res = await loginWithOtp(otpEmail.trim(), cleanOtp);
     setLoading(false);
     if (res.success) {
       const u = res.user;
@@ -253,26 +275,35 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   const handleRegisterSubmit = async (e) => {
     e?.preventDefault();
     const errors = {};
-    if (!regName.trim()) {
+
+    // 1. Name validation
+    const nameClean = regName.trim();
+    if (!nameClean) {
       errors.regName = 'Please enter your full name';
+    } else if (!/^[a-zA-Z\s]{2,50}$/.test(nameClean)) {
+      errors.regName = 'Name must contain only letters and spaces (min 2 characters)';
     }
-    const emailClean = regEmail.trim();
-    if (!emailClean) {
-      errors.regEmail = 'Please enter your email address';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean)) {
-      errors.regEmail = 'Please enter a valid email address (e.g. alex@example.com)';
+
+    // 2. Email validation (RFC regex)
+    const emailResult = validateEmail(regEmail);
+    if (!emailResult.isValid) {
+      errors.regEmail = emailResult.error;
     }
-    const phoneClean = regPhone.trim();
-    if (!phoneClean) {
-      errors.regPhone = 'Please enter your 10-digit mobile number';
-    } else if (!/^\d{10}$/.test(phoneClean.replace(/[^0-9]/g, ''))) {
-      errors.regPhone = 'Mobile number must be 10 numeric digits';
+
+    // 3. Phone validation (Indian 10-digits starting with 6,7,8,9)
+    const phoneResult = validatePhone(regPhone);
+    if (!phoneResult.isValid) {
+      errors.regPhone = phoneResult.error;
     }
-    if (!regPassword) {
-      errors.regPassword = 'Password is required';
-    } else if (regPassword.length < 6) {
-      errors.regPassword = 'Password must be at least 6 characters long';
+
+    // 4. Strict Password Validation:
+    // 8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+    const passResult = getPasswordValidationState(regPassword);
+    if (!passResult.isValid) {
+      errors.regPassword = passResult.errorMessage;
     }
+
+    // 5. Confirm Password matching
     if (!regConfirmPassword) {
       errors.regConfirmPassword = 'Please confirm your password';
     } else if (regPassword !== regConfirmPassword) {
@@ -282,6 +313,13 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     if (Object.keys(errors).length > 0) {
       setFormFieldErrors(errors);
       setError('');
+      setTimeout(() => scrollToFirstError(errors, {
+        regName: 'field-regName',
+        regEmail: 'field-regEmail',
+        regPhone: 'field-regPhone',
+        regPassword: 'field-regPassword',
+        regConfirmPassword: 'field-regConfirmPassword'
+      }), 50);
       return;
     }
 
@@ -291,9 +329,9 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     setSuccessMsg('');
 
     const res = await register({
-      name: regName.trim(),
-      email: emailClean,
-      phone: phoneClean,
+      name: nameClean,
+      email: regEmail.trim(),
+      phone: sanitizeDigits(regPhone, 10),
       password: regPassword,
       role: regRole || 'customer'
     });
@@ -312,7 +350,9 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   const handleRequestOtp = async (e) => {
     e?.preventDefault();
     if (!forgotIdentifier.trim()) {
-      setFormFieldErrors({ forgotIdentifier: 'Please provide your registered email or phone number' });
+      const errors = { forgotIdentifier: 'Please provide your registered email or phone number' };
+      setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, { forgotIdentifier: 'field-forgotIdentifier' }), 50);
       return;
     }
     setFormFieldErrors({});
@@ -354,14 +394,18 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
   const handleResetSubmit = async (e) => {
     e?.preventDefault();
     const errors = {};
-    if (!forgotOtp.trim()) {
+    const cleanOtp = sanitizeDigits(forgotOtp, 6);
+    if (!cleanOtp) {
       errors.forgotOtp = 'Please enter the 6-digit OTP code';
+    } else if (cleanOtp.length !== 6) {
+      errors.forgotOtp = 'OTP code must be exactly 6 digits';
     }
-    if (!forgotNewPassword) {
-      errors.forgotNewPassword = 'New password is required';
-    } else if (forgotNewPassword.length < 6) {
-      errors.forgotNewPassword = 'New password must be at least 6 characters long';
+
+    const passResult = getPasswordValidationState(forgotNewPassword);
+    if (!passResult.isValid) {
+      errors.forgotNewPassword = passResult.errorMessage;
     }
+
     if (!forgotConfirmPassword) {
       errors.forgotConfirmPassword = 'Please confirm your new password';
     } else if (forgotNewPassword !== forgotConfirmPassword) {
@@ -371,6 +415,11 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     if (Object.keys(errors).length > 0) {
       setFormFieldErrors(errors);
       setError('');
+      setTimeout(() => scrollToFirstError(errors, {
+        forgotOtp: 'field-forgotOtp',
+        forgotNewPassword: 'field-forgotNewPassword',
+        forgotConfirmPassword: 'field-forgotConfirmPassword'
+      }), 50);
       return;
     }
 
@@ -379,11 +428,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     setError('');
     setSuccessMsg('');
 
-    setLoading(true);
-    setError('');
-    setSuccessMsg('');
-
-    const res = await resetPassword(forgotIdentifier.trim(), forgotOtp.trim(), forgotNewPassword);
+    const res = await resetPassword(forgotIdentifier.trim(), cleanOtp, forgotNewPassword);
     setLoading(false);
     if (res.success) {
       setSuccessMsg('Password updated successfully! You can now sign in with your new credentials.');
@@ -592,6 +637,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="field-identifier"
                       type="text"
                       value={identifier}
                       onChange={(e) => {
@@ -645,6 +691,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   </div>
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="field-password"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => {
@@ -729,6 +776,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                       </label>
                       <div style={{ position: 'relative' }}>
                         <input
+                          id="field-otpEmail"
                           type="email"
                           value={otpEmail}
                           onChange={(e) => {
@@ -794,12 +842,14 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                         </span>
                       </div>
                       <input
+                        id="field-otpCode"
                         type="text"
+                        inputMode="numeric"
                         maxLength={6}
                         value={otpCode}
                         onChange={(e) => {
                           clearFormFieldError('otpCode');
-                          setOtpCode(e.target.value);
+                          setOtpCode(sanitizeDigits(e.target.value, 6));
                         }}
                         placeholder="••••••"
                         style={{
@@ -915,6 +965,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-regName"
                   type="text"
                   value={regName}
                   onChange={(e) => {
@@ -950,6 +1001,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-regEmail"
                   type="email"
                   value={regEmail}
                   onChange={(e) => {
@@ -980,17 +1032,20 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
 
             <div>
               <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                Phone Number
+                Phone Number (10 Digits, starts with 6-9)
               </label>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="text"
+                  id="field-regPhone"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={regPhone}
                   onChange={(e) => {
                     clearFormFieldError('regPhone');
-                    setRegPhone(e.target.value);
+                    setRegPhone(sanitizeDigits(e.target.value, 10));
                   }}
-                  placeholder="+91 98765 43210"
+                  placeholder="e.g. 9876543210"
                   style={{
                     width: '100%',
                     paddingLeft: '32px',
@@ -1018,19 +1073,20 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
                   Password
                 </label>
-                {regPassword && regPassword.length < 6 && (
-                  <span style={{ fontSize: '0.72rem', color: '#f87171' }}>Minimum 6 characters</span>
+                {regPassword && regPassword.length < 8 && (
+                  <span style={{ fontSize: '0.72rem', color: '#f87171' }}>Minimum 8 characters</span>
                 )}
               </div>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-regPassword"
                   type={showRegPassword ? 'text' : 'password'}
                   value={regPassword}
                   onChange={(e) => {
                     clearFormFieldError('regPassword');
                     setRegPassword(e.target.value);
                   }}
-                  placeholder="Create password (min 6 characters)"
+                  placeholder="Create strong password"
                   style={{
                     width: '100%',
                     paddingLeft: '36px',
@@ -1053,6 +1109,38 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   {showRegPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+
+              {/* Live Password Rules Breakdown */}
+              {regPassword.length > 0 && (
+                <div style={{ marginTop: '6px', padding: '8px 10px', background: 'rgba(15, 23, 42, 0.45)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                    Password Requirements:
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '0.71rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.minLength ? '#10b981' : '#ef4444' }}>
+                      {regPwValidation.rules.minLength ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      8+ Characters
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasUpper ? '#10b981' : '#ef4444' }}>
+                      {regPwValidation.rules.hasUpper ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      1 Uppercase (A-Z)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasLower ? '#10b981' : '#ef4444' }}>
+                      {regPwValidation.rules.hasLower ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      1 Lowercase (a-z)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasNumber ? '#10b981' : '#ef4444' }}>
+                      {regPwValidation.rules.hasNumber ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      1 Number (0-9)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: regPwValidation.rules.hasSpecial ? '#10b981' : '#ef4444', gridColumn: 'span 2' }}>
+                      {regPwValidation.rules.hasSpecial ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                      1 Special Char (!@#$%^&*)
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {formFieldErrors.regPassword && (
                 <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
                   <AlertCircle size={13} /> {formFieldErrors.regPassword}
@@ -1089,6 +1177,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
               </div>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="field-regConfirmPassword"
                   type={showRegConfirmPassword ? 'text' : 'password'}
                   value={regConfirmPassword}
                   onChange={(e) => {
@@ -1161,6 +1250,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="field-forgotIdentifier"
                       type="text"
                       value={forgotIdentifier}
                       onChange={(e) => {
@@ -1232,12 +1322,14 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                     </span>
                   </div>
                   <input
+                    id="field-forgotOtp"
                     type="text"
+                    inputMode="numeric"
                     maxLength={6}
                     value={forgotOtp}
                     onChange={(e) => {
                       clearFormFieldError('forgotOtp');
-                      setForgotOtp(e.target.value);
+                      setForgotOtp(sanitizeDigits(e.target.value, 6));
                     }}
                     placeholder="••••••"
                     style={{
@@ -1309,13 +1401,14 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="field-forgotNewPassword"
                       type={showForgotNewPassword ? 'text' : 'password'}
                       value={forgotNewPassword}
                       onChange={(e) => {
                         clearFormFieldError('forgotNewPassword');
                         setForgotNewPassword(e.target.value);
                       }}
-                      placeholder="Enter new password (min 6 characters)"
+                      placeholder="Enter new strong password"
                       style={{
                         width: '100%',
                         paddingLeft: '36px',
@@ -1338,6 +1431,38 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                       {showForgotNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+
+                  {/* Live Password Rules Breakdown */}
+                  {forgotNewPassword.length > 0 && (
+                    <div style={{ marginTop: '6px', padding: '8px 10px', background: 'rgba(15, 23, 42, 0.45)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                        Password Requirements:
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '0.71rem' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.minLength ? '#10b981' : '#ef4444' }}>
+                          {forgotPwValidation.rules.minLength ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          8+ Characters
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.hasUpper ? '#10b981' : '#ef4444' }}>
+                          {forgotPwValidation.rules.hasUpper ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          1 Uppercase (A-Z)
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.hasLower ? '#10b981' : '#ef4444' }}>
+                          {forgotPwValidation.rules.hasLower ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          1 Lowercase (a-z)
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.hasNumber ? '#10b981' : '#ef4444' }}>
+                          {forgotPwValidation.rules.hasNumber ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          1 Number (0-9)
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: forgotPwValidation.rules.hasSpecial ? '#10b981' : '#ef4444', gridColumn: 'span 2' }}>
+                          {forgotPwValidation.rules.hasSpecial ? <CheckCircle2 size={12} color="#10b981" /> : <AlertCircle size={12} color="#ef4444" />}
+                          1 Special Char (!@#$%^&*)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   {formFieldErrors.forgotNewPassword && (
                     <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
                       <AlertCircle size={13} /> {formFieldErrors.forgotNewPassword}
@@ -1374,6 +1499,7 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                   </div>
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="field-forgotConfirmPassword"
                       type={showForgotConfirmPassword ? 'text' : 'password'}
                       value={forgotConfirmPassword}
                       onChange={(e) => {

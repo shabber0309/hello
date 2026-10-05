@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Phone, Lock, X, CheckCircle2, AlertCircle, Camera, Upload, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { sanitizeDigits, validatePhone, getPasswordValidationState, scrollToFirstError } from '../../utils/validation';
 import './Modals.css';
 
 export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) {
@@ -59,13 +60,31 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
     const errors = {};
     if (!name.trim()) {
       errors.name = 'Full name is required';
+    } else if (!/^[a-zA-Z\s]{2,50}$/.test(name.trim())) {
+      errors.name = 'Name must contain only letters and spaces (min 2 characters)';
     }
-    if (password && password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+
+    if (phone) {
+      const phoneRes = validatePhone(phone);
+      if (!phoneRes.isValid) {
+        errors.phone = phoneRes.error;
+      }
+    }
+
+    if (password) {
+      const passRes = getPasswordValidationState(password);
+      if (!passRes.isValid) {
+        errors.password = passRes.errorMessage;
+      }
     }
 
     if (Object.keys(errors).length > 0) {
       setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, {
+        name: 'field-profile-name',
+        phone: 'field-profile-phone',
+        password: 'field-profile-password'
+      }), 50);
       return;
     }
 
@@ -345,6 +364,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
               Full Name
             </label>
             <input 
+              id="field-profile-name"
               type="text" 
               value={name} 
               onChange={(e) => {
@@ -366,15 +386,30 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
 
           <div>
             <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-              Phone Number
+              Phone Number (10 Digits, starts with 6-9)
             </label>
             <input 
-              type="text" 
+              id="field-profile-phone"
+              type="tel" 
+              inputMode="numeric"
+              maxLength={10}
               value={phone} 
-              onChange={(e) => setPhone(e.target.value)} 
-              placeholder="+91 98765 43210"
-              style={{ width: '100%' }}
+              onChange={(e) => {
+                clearFormFieldError('phone');
+                setPhone(sanitizeDigits(e.target.value, 10));
+              }} 
+              placeholder="e.g. 9876543210"
+              style={{ 
+                width: '100%',
+                border: formFieldErrors.phone ? '1.5px solid #ef4444' : undefined,
+                boxShadow: formFieldErrors.phone ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
+              }}
             />
+            {formFieldErrors.phone && (
+              <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                <AlertCircle size={13} style={{ flexShrink: 0 }} /> {formFieldErrors.phone}
+              </span>
+            )}
           </div>
 
           <div>
@@ -382,6 +417,7 @@ export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) 
               New Password (leave blank to keep current)
             </label>
             <input 
+              id="field-profile-password"
               type="password" 
               value={password} 
               onChange={(e) => {

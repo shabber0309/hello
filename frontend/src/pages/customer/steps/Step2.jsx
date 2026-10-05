@@ -30,31 +30,35 @@ export default function Step2({
       {/* 2-Column Searchable Dropdowns for Laptop View, Stacked on Mobile */}
       <div className="book-dropdowns-stack">
         {/* 1. Category Dropdown */}
-        <SearchableDropdown
-          label="1. Issue Category (20 Categories)"
-          sublabel="Select primary diagnostic domain"
-          value={selectedCatId}
-          options={categoryOptions}
-          placeholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
-          searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
-          icon={Layers}
-          onChange={handleCategorySelect}
-          error={categoryError}
-        />
+        <div id="field-category" style={{ flex: 1 }}>
+          <SearchableDropdown
+            label="1. Issue Category (20 Categories)"
+            sublabel="Select primary diagnostic domain"
+            value={selectedCatId}
+            options={categoryOptions}
+            placeholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
+            searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
+            icon={Layers}
+            onChange={handleCategorySelect}
+            error={categoryError}
+          />
+        </div>
 
         {/* 2. Specific Problem / Service Dropdown */}
-        <SearchableDropdown
-          label="2. Specific Problem / Service"
-          sublabel={currentCategory ? `Showing ${currentCategory.problems.length} services in ${currentCategory.shortName} (or type to search all 200)` : 'Search across all 200 laptop problems'}
-          value={selectedProbId}
-          options={problemOptions}
-          fallbackAllOptions={allProblemsOptions}
-          placeholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
-          searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
-          icon={Wrench}
-          onChange={handleProblemSelect}
-          error={problemError}
-        />
+        <div id="field-problem" style={{ flex: 1 }}>
+          <SearchableDropdown
+            label="2. Specific Problem / Service"
+            sublabel={currentCategory ? `Showing ${currentCategory.problems.length} services in ${currentCategory.shortName} (or type to search all 200)` : 'Search across all 200 laptop problems'}
+            value={selectedProbId}
+            options={problemOptions}
+            fallbackAllOptions={allProblemsOptions}
+            placeholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
+            searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
+            icon={Wrench}
+            onChange={handleProblemSelect}
+            error={problemError}
+          />
+        </div>
       </div>
 
       {/* Problem Description in Words */}

@@ -13,6 +13,7 @@ import {
   MapPin,
   AlertCircle
 } from 'lucide-react';
+import { sanitizeDigits, validatePhone, validateEmail, scrollToFirstError } from '../../utils/validation';
 import './TechOnboardingModal.css';
 
 export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess }) {
@@ -42,23 +43,35 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = {};
-    if (!formData.name.trim()) {
+    const nameClean = formData.name.trim();
+    if (!nameClean) {
       errors.name = 'Full name is required';
+    } else if (!/^[a-zA-Z\s]{2,50}$/.test(nameClean)) {
+      errors.name = 'Name must contain only letters and spaces (min 2 characters)';
     }
-    if (!formData.email.trim()) {
-      errors.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      errors.email = 'Please enter a valid email address';
+
+    const emailRes = validateEmail(formData.email);
+    if (!emailRes.isValid) {
+      errors.email = emailRes.error;
     }
-    if (!formData.phone.trim()) {
-      errors.phone = 'Phone number is required';
+
+    const phoneRes = validatePhone(formData.phone);
+    if (!phoneRes.isValid) {
+      errors.phone = phoneRes.error;
     }
+
     if (!formData.city.trim()) {
       errors.city = 'City / coverage area is required';
     }
 
     if (Object.keys(errors).length > 0) {
       setFormFieldErrors(errors);
+      setTimeout(() => scrollToFirstError(errors, {
+        name: 'field-tech-name',
+        email: 'field-tech-email',
+        phone: 'field-tech-phone',
+        city: 'field-tech-city'
+      }), 50);
       return;
     }
 
@@ -170,6 +183,7 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
                   Full Name / Workshop Name
                 </label>
                 <input 
+                  id="field-tech-name"
                   type="text" 
                   placeholder="e.g. Vikram Verma"
                   value={formData.name}
@@ -196,6 +210,7 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
                     Email Address
                   </label>
                   <input 
+                    id="field-tech-email"
                     type="email" 
                     placeholder="vikram@tech.com"
                     value={formData.email}
@@ -218,15 +233,18 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
 
                 <div>
                   <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                    Phone Number
+                    Phone Number (10 Digits, starts with 6-9)
                   </label>
                   <input 
+                    id="field-tech-phone"
                     type="tel" 
-                    placeholder="+91 98111 22334"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="e.g. 9811122334"
                     value={formData.phone}
                     onChange={(e) => {
                       clearFormFieldError('phone');
-                      setFormData({ ...formData, phone: e.target.value });
+                      setFormData({ ...formData, phone: sanitizeDigits(e.target.value, 10) });
                     }}
                     style={{
                       width: '100%',
@@ -263,6 +281,7 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
                     City / Coverage Area
                   </label>
                   <input 
+                    id="field-tech-city"
                     type="text" 
                     placeholder="e.g. Hyderabad / Hitec City"
                     value={formData.city}
