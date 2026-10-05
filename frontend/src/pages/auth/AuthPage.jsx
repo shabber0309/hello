@@ -1069,9 +1069,6 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
                   Password
                 </label>
-                {regPassword && regPassword.length < 8 && (
-                  <span style={{ fontSize: '0.72rem', color: '#f87171' }}>Minimum 8 characters</span>
-                )}
               </div>
               <div style={{ position: 'relative' }}>
                 <input
@@ -1106,41 +1103,37 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 </button>
               </div>
 
-              {/* Live Password Rules Breakdown */}
-              {regPassword.length > 0 && (
-                <div className="auth-pw-requirements">
-                  <div className="auth-pw-requirements-title">
-                    Password Requirements:
-                  </div>
-                  <div className="auth-pw-requirements-grid">
-                    <span className={`auth-pw-req-item ${regPwValidation.rules.minLength ? 'valid' : 'invalid'}`}>
-                      {regPwValidation.rules.minLength ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                      8+ Characters
-                    </span>
-                    <span className={`auth-pw-req-item ${regPwValidation.rules.hasUpper ? 'valid' : 'invalid'}`}>
-                      {regPwValidation.rules.hasUpper ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                      1 Uppercase (A-Z)
-                    </span>
-                    <span className={`auth-pw-req-item ${regPwValidation.rules.hasLower ? 'valid' : 'invalid'}`}>
-                      {regPwValidation.rules.hasLower ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                      1 Lowercase (a-z)
-                    </span>
-                    <span className={`auth-pw-req-item ${regPwValidation.rules.hasNumber ? 'valid' : 'invalid'}`}>
-                      {regPwValidation.rules.hasNumber ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                      1 Number (0-9)
-                    </span>
-                    <span className={`auth-pw-req-item auth-pw-req-item-full ${regPwValidation.rules.hasSpecial ? 'valid' : 'invalid'}`}>
-                      {regPwValidation.rules.hasSpecial ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                      1 Special Char (!@#$%^&*)
-                    </span>
-                  </div>
-                </div>
-              )}
-
+              {/* Flash Error Popup: Appears only when user password didn't match the requirements */}
               {formFieldErrors.regPassword && (
-                <span style={{ color: '#ef4444', fontSize: '0.76rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
-                  <AlertCircle size={13} /> {formFieldErrors.regPassword}
-                </span>
+                <div 
+                  id="error-popup-regPassword"
+                  style={{
+                    marginTop: '8px',
+                    padding: '10px 12px',
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1.5px solid rgba(239, 68, 68, 0.35)',
+                    borderRadius: '10px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '0.78rem', marginBottom: '6px', color: '#ef4444' }}>
+                    <AlertCircle size={14} style={{ flexShrink: 0 }} />
+                    <span>Password Requirements Missing:</span>
+                  </div>
+                  {regPwValidation.missingList?.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.74rem' }}>
+                      {regPwValidation.missingList.map((item, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontWeight: 500 }}>
+                          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+                          <span>Missing: {item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span style={{ color: '#ef4444', fontSize: '0.76rem', fontWeight: 500 }}>
+                      {formFieldErrors.regPassword}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
 

@@ -35,24 +35,24 @@ export function getPasswordValidationState(password = '') {
 
   const isValid = minLength && hasUpper && hasLower && hasNumber && hasSpecial;
 
+  const missingList = [];
+  if (!minLength) missingList.push('At least 8 characters');
+  if (!hasUpper) missingList.push('1 uppercase letter (A-Z)');
+  if (!hasLower) missingList.push('1 lowercase letter (a-z)');
+  if (!hasNumber) missingList.push('1 number (0-9)');
+  if (!hasSpecial) missingList.push('1 special character (!@#$%^&*)');
+
   let errorMessage = '';
   if (!password) {
     errorMessage = 'Password is required';
-  } else if (!minLength) {
-    errorMessage = 'Password must be at least 8 characters long';
-  } else if (!hasUpper) {
-    errorMessage = 'Password must include at least 1 uppercase letter (A-Z)';
-  } else if (!hasLower) {
-    errorMessage = 'Password must include at least 1 lowercase letter (a-z)';
-  } else if (!hasNumber) {
-    errorMessage = 'Password must include at least 1 number (0-9)';
-  } else if (!hasSpecial) {
-    errorMessage = 'Password must include at least 1 special character (e.g. !@#$%^&*)';
+  } else if (missingList.length > 0) {
+    errorMessage = `Password missing: ${missingList.join(', ')}`;
   }
 
   return {
     isValid,
     errorMessage,
+    missingList,
     rules: {
       minLength,
       hasUpper,
