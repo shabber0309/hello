@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
   Laptop, 
@@ -20,37 +20,55 @@ import {
 } from 'lucide-react';
 import { SearchableDropdown } from '../common';
 import { LAPTOP_PROBLEM_CATEGORIES, ALL_PROBLEMS_FLAT } from '../../data/laptopProblems';
+import { getMandalsForPincode, getSavedAddress, saveCustomerAddress } from '../../data/pincodeLocations';
 import './RepairRequestModal.css';
 
 export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess }) {
   const [currentStep, setCurrentStep] = useState(1);
   const fileInputRef = useRef(null);
 
-  const [selectedCatId, setSelectedCatId] = useState('software');
-  const [selectedProbId, setSelectedProbId] = useState(1);
+  const [selectedCatId, setSelectedCatId] = useState('');
+  const [selectedProbId, setSelectedProbId] = useState('');
   const [photoError, setPhotoError] = useState('');
   const [photos, setPhotos] = useState([]);
+  const [availableMandals, setAvailableMandals] = useState([]);
 
-  const currentCategory = LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === selectedCatId) || LAPTOP_PROBLEM_CATEGORIES[0];
-  const currentProblem = currentCategory.problems.find(p => p.id === selectedProbId) || currentCategory.problems[0];
+  const currentCategory = selectedCatId ? LAPTOP_PROBLEM_CATEGORIES.find(c => c.id === selectedCatId) : null;
+  const currentProblem = currentCategory && selectedProbId ? currentCategory.problems.find(p => p.id === selectedProbId) : null;
 
-  const [formData, setFormData] = useState({
-    brand: 'Dell',
-    model: '',
-    serial_number: '',
-    os: 'Windows 11',
-    description: '',
-    budgetMin: currentProblem.basePrice,
-    budgetMax: currentProblem.maxPrice,
-    customer_selected_price: Math.round((currentProblem.basePrice + currentProblem.maxPrice) / 2),
-    address: '',
-    area: '',
-    city: 'Hyderabad',
-    pincode: '',
-    preferredTime: 'On-Demand Dispatch',
-    phone: '',
-    name: ''
+  const [formData, setFormData] = useState(() => {
+    const savedAddr = getSavedAddress();
+    return {
+      brand: 'Dell',
+      model: '',
+      serial_number: '',
+      os: 'Windows 11',
+      description: '',
+      budgetMin: currentProblem ? currentProblem.basePrice : 0,
+      budgetMax: currentProblem ? currentProblem.maxPrice : 0,
+      customer_selected_price: currentProblem ? Math.round((currentProblem.basePrice + currentProblem.maxPrice) / 2) : 0,
+      address: savedAddr?.pickup_address || '',
+      area: savedAddr?.pickup_area || '',
+      city: savedAddr?.pickup_city || 'Hyderabad',
+      pincode: savedAddr?.pickup_pincode || '',
+      preferredTime: 'On-Demand Dispatch',
+      phone: '',
+      name: ''
+    };
   });
+
+  // Preload mandals if saved address has pincode
+  useEffect(() => {
+    if (!isOpen) return;
+    const savedAddr = getSavedAddress();
+    if (savedAddr?.pickup_pincode && savedAddr.pickup_pincode.length === 6) {
+      getMandalsForPincode(savedAddr.pickup_pincode).then(res => {
+        if (res && res.mandals && res.mandals.length > 0) {
+          setAvailableMandals(res.mandals);
+        }
+      });
+    }
+  }, [isOpen]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdOrder, setCreatedOrder] = useState(null);
@@ -211,6 +229,13 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
       customer_selected_price: formData.customer_selected_price,
       pickup_address: `${formData.address}, ${formData.area}, ${formData.city}`
     };
+
+    saveCustomerAddress({
+      pickup_address: formData.address,
+      pickup_pincode: formData.pincode,
+      pickup_area: formData.area,
+      pickup_city: formData.city
+    });
 
     setIsSubmitting(false);
     setCreatedOrder(finalOrder);
@@ -479,7 +504,7 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                   sublabel="Select diagnostic domain"
                   value={selectedCatId}
                   options={categoryOptions}
-                  placeholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
+                  placeholder="Select Issue Category"
                   searchPlaceholder="Search 20 repair categories (e.g. Screen, Motherboard, Battery, Liquid)..."
                   icon={Layers}
                   onChange={handleCategorySelect}
@@ -492,7 +517,7 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                   value={selectedProbId}
                   options={problemOptions}
                   fallbackAllOptions={allProblemsOptions}
-                  placeholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
+                  placeholder="Select Problem / Service"
                   searchPlaceholder="Search 200 laptop problems (e.g. BSOD, flickering, liquid spill, fan, hinge)..."
                   icon={Wrench}
                   onChange={handleProblemSelect}
@@ -541,37 +566,8 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  <div>
-                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                      Area / Locality
-                    </label>
-                    <input 
-                      type="text" 
-                      value={formData.area}
-                      onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                      style={{ width: '100%' }}
-                      placeholder="e.g. Madhapur"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                      City
-                    </label>
-                    <select 
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      style={{ width: '100%' }}
-                    >
-                      <option value="Hyderabad">Hyderabad</option>
-                      <option value="Bengaluru">Bengaluru</option>
-                      <option value="Pune">Pune</option>
-                    </select>
-                  </div>
-
-                  <div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px', width: '100%', boxSizing: 'border-box' }}>
+                  <div style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
                     <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                       Pincode
                     </label>
@@ -579,11 +575,101 @@ export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess })
                       type="text" 
                       maxLength={6}
                       value={formData.pincode}
-                      onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                      style={{ width: '100%' }}
-                      placeholder="500081"
+                      onChange={(e) => {
+                        const cleanDigits = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setFormData(prev => ({ ...prev, pincode: cleanDigits }));
+                        if (cleanDigits.length === 6) {
+                          getMandalsForPincode(cleanDigits).then((res) => {
+                            if (res && res.mandals && res.mandals.length > 0) {
+                              setAvailableMandals(res.mandals);
+                              setFormData(prev => ({
+                                ...prev,
+                                pincode: cleanDigits,
+                                area: res.mandals[0],
+                                city: res.city || prev.city
+                              }));
+                            } else {
+                              setAvailableMandals([]);
+                            }
+                          }).catch(() => {
+                            setAvailableMandals([]);
+                          });
+                        } else {
+                          setAvailableMandals([]);
+                          setFormData(prev => ({ ...prev, area: '' }));
+                        }
+                      }}
+                      style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                       required
                     />
+                  </div>
+
+                  <div style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                      Mandal
+                    </label>
+                    <select
+                      value={formData.area}
+                      onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '100%', 
+                        minWidth: 0, 
+                        height: '42px', 
+                        borderRadius: '8px',
+                        boxSizing: 'border-box',
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                      required
+                    >
+                      {availableMandals.length === 0 ? (
+                        <option value="">
+                          {formData.pincode?.length === 6 ? 'No mandal found for this pincode' : 'Enter pincode first'}
+                        </option>
+                      ) : (
+                        <>
+                          <option value="">Select Mandal</option>
+                          {availableMandals.map((m) => (
+                            <option key={m} value={m}>
+                              {m}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  <div style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                      City
+                    </label>
+                    <select 
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '100%', 
+                        minWidth: 0, 
+                        height: '42px', 
+                        borderRadius: '8px',
+                        boxSizing: 'border-box',
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <option value="Hyderabad">Hyderabad</option>
+                      <option value="Secunderabad">Secunderabad</option>
+                      <option value="Rangareddy">Rangareddy</option>
+                      <option value="Medchal-Malkajgiri">Medchal-Malkajgiri</option>
+                      <option value="Bengaluru">Bengaluru</option>
+                      <option value="Pune">Pune</option>
+                      {formData.city && !['Hyderabad', 'Secunderabad', 'Rangareddy', 'Medchal-Malkajgiri', 'Bengaluru', 'Pune'].includes(formData.city) && (
+                        <option value={formData.city}>{formData.city}</option>
+                      )}
+                    </select>
                   </div>
                 </div>
 
