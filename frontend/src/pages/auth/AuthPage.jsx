@@ -521,16 +521,11 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
             {mode === 'forgot' && <KeyRound size={28} color="#6366f1" />}
           </div>
 
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.02em', color: 'var(--text-main, #ffffff)' }}>
+          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-main, #ffffff)' }}>
             {mode === 'login' && 'Sign In'}
             {mode === 'register' && 'Create Free Account'}
             {mode === 'forgot' && 'Reset Account Password'}
           </h1>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            {mode === 'login' && 'Enter your credentials to access your dashboard'}
-            {mode === 'register' && 'Join Live Fix for live-camera verified hardware and software service'}
-            {mode === 'forgot' && 'Enter your registered email or phone to reset your password'}
-          </p>
         </div>
 
 
