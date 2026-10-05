@@ -532,6 +532,72 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
           </p>
         </div>
 
+        {/* Dedicated Sign In / Register Tab Bar */}
+        <div style={{
+          display: 'flex',
+          background: 'var(--bg-surface-elevated, rgba(15, 23, 42, 0.5))',
+          border: '1.5px solid var(--border-light, rgba(255,255,255,0.1))',
+          borderRadius: '12px',
+          padding: '4px',
+          marginBottom: '20px',
+          gap: '4px'
+        }}>
+          <button
+            type="button"
+            onClick={() => {
+              navigate('/login');
+              setMode('login');
+              setError('');
+              setFormFieldErrors({});
+            }}
+            style={{
+              flex: 1,
+              padding: '9px 12px',
+              borderRadius: '8px',
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              background: mode === 'login' ? 'var(--primary, #2563eb)' : 'transparent',
+              color: mode === 'login' ? '#ffffff' : 'var(--text-muted)'
+            }}
+          >
+            <Lock size={15} />
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              navigate('/register');
+              setMode('register');
+              setError('');
+              setFormFieldErrors({});
+            }}
+            style={{
+              flex: 1,
+              padding: '9px 12px',
+              borderRadius: '8px',
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              background: mode === 'register' ? 'var(--primary, #2563eb)' : 'transparent',
+              color: mode === 'register' ? '#ffffff' : 'var(--text-muted)'
+            }}
+          >
+            <UserCheck size={15} />
+            Create Account
+          </button>
+        </div>
+
         {/* Error Alert */}
         {error && (
           <div style={{
@@ -1550,8 +1616,21 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
         )}
 
         {/* Footer Navigation */}
-        {mode !== 'login' && (
-          <div style={{ marginTop: '22px', textAlign: 'center', fontSize: '0.82rem' }}>
+        <div style={{ marginTop: '22px', textAlign: 'center', fontSize: '0.82rem' }}>
+          {mode === 'login' && (
+            <p style={{ margin: '0 0 12px 0', color: 'var(--text-muted)' }}>
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={() => { navigate('/register'); setError(''); setSuccessMsg(''); setMode('register'); }}
+                style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+              >
+                Create Free Account &rarr;
+              </button>
+            </p>
+          )}
+
+          {mode === 'register' && (
             <p style={{ margin: '0 0 12px 0', color: 'var(--text-muted)' }}>
               Already have an account?{' '}
               <button
@@ -1562,8 +1641,21 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
                 Sign In to Account &rarr;
               </button>
             </p>
-          </div>
-        )}
+          )}
+
+          {mode === 'forgot' && (
+            <p style={{ margin: '0 0 12px 0', color: 'var(--text-muted)' }}>
+              Remember your password?{' '}
+              <button
+                type="button"
+                onClick={() => { navigate('/login'); setError(''); setSuccessMsg(''); setMode('login'); }}
+                style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+              >
+                Back to Sign In &rarr;
+              </button>
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

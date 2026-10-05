@@ -158,54 +158,26 @@ function MainApp() {
           <Route path="/signup" element={<Navigate to="/register" replace />} />
 
           <Route path="/book" element={
-            user ? (
-              <BookRepair
-                onBookingSuccess={(newOrder) => {
-                  navigate('/dashboard');
-                }}
-                onCancel={() => navigate('/')}
-              />
-            ) : (
-              <Navigate to="/login" replace state={{ from: '/book' }} />
-            )
+            <BookRepair
+              onBookingSuccess={(newOrder) => {
+                navigate('/dashboard');
+              }}
+              onCancel={() => navigate('/')}
+            />
           } />
 
           {/* Role Protected / Dedicated Portals */}
           <Route path="/dashboard" element={
-            !user ? (
-              <Navigate to="/login" replace state={{ from: '/dashboard' }} />
-            ) : user.role === 'technician' ? (
-              <Navigate to="/technician" replace />
-            ) : user.role === 'admin' ? (
-              <Navigate to="/admin" replace />
-            ) : (
-              <CustomerDashboard onNewBooking={() => navigate('/book')} />
-            )
+            <CustomerDashboard onNewBooking={() => navigate('/book')} />
           } />
 
           <Route path="/technician" element={
-            !user ? (
-              <Navigate to="/login" replace state={{ from: '/technician' }} />
-            ) : user.role === 'customer' ? (
-              <Navigate to="/dashboard" replace />
-            ) : user.role === 'admin' ? (
-              <Navigate to="/admin" replace />
-            ) : (
-              <TechDashboard />
-            )
+            <TechDashboard />
           } />
           <Route path="/tech" element={<Navigate to="/technician" replace />} />
 
           <Route path="/admin" element={
-            !user ? (
-              <Navigate to="/login" replace state={{ from: '/admin' }} />
-            ) : user.role === 'customer' ? (
-              <Navigate to="/dashboard" replace />
-            ) : user.role === 'technician' ? (
-              <Navigate to="/technician" replace />
-            ) : (
-              <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(null)} />
-            )
+            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
           } />
 
           {/* Catch-all */}
