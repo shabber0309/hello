@@ -38,7 +38,8 @@ import {
   Award,
   MessageCircle,
   Eye,
-  LayoutDashboard
+  LayoutDashboard,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { StreamModal, OrderConversationModal } from '../../components/modals';
@@ -53,21 +54,8 @@ export default function AdminDashboard({ onOpenLiveStream }) {
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
-  // Sync activeTab with URL query param ?tab=
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tabParam = params.get('tab');
-    if (tabParam && ['overview', 'users', 'orders', 'streams', 'custody', 'escrow', 'database'].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-    if (params.get('action') === 'add-user') {
-      setIsAddUserOpen(true);
-    }
-  }, [location.search]);
-
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    navigate(`/admin?tab=${tabId}`, { replace: true });
   };
   const [overview, setOverview] = useState(null);
   const [usersList, setUsersList] = useState([]);
@@ -87,7 +75,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
 
   // Forms state
   const [userForm, setUserForm] = useState({ name: '', username: '', email: '', phone: '', role: 'customer', password: '' });
-  const [orderForm, setOrderForm] = useState({ status: '', quote_amount: 0, quote_approved: false, tamper_seal_code: '', technician_id: '', technician_notes: '' });
+  const [orderForm, setOrderForm] = useState({ status: '', quote_amount: 0, quote_approved: false, technician_id: '', technician_notes: '' });
 
   const getAuthHeaders = () => {
     const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || '';
@@ -117,7 +105,20 @@ export default function AdminDashboard({ onOpenLiveStream }) {
       }
       if (ordersRes.ok) {
         const ordData = await ordersRes.json();
-        setOrdersList(ordData.orders || []);
+        const apiOrders = ordData.orders || [];
+        try {
+          const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+          const existingKeys = new Set(apiOrders.map(o => String(o.order_number || o.id)));
+          const missingLocal = localSaved.filter(o => !existingKeys.has(String(o.order_number || o.id)));
+          setOrdersList([...missingLocal, ...apiOrders]);
+        } catch {
+          setOrdersList(apiOrders);
+        }
+      } else {
+        try {
+          const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+          if (localSaved.length > 0) setOrdersList(localSaved);
+        } catch {}
       }
     } catch (err) {
       console.error('Failed to fetch admin data:', err);
@@ -229,7 +230,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
       status: ord.status,
       quote_amount: ord.quote_amount,
       quote_approved: ord.quote_approved,
-      tamper_seal_code: ord.tamper_seal_code || '',
+      tracking_number: ord.tracking_number || '',
       technician_id: ord.technician_id || '',
       technician_notes: ord.technician_notes || ''
     });
@@ -341,7 +342,6 @@ export default function AdminDashboard({ onOpenLiveStream }) {
       (o.laptop_model && o.laptop_model.toLowerCase().includes(q)) ||
       (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
       (o.technician_name && o.technician_name.toLowerCase().includes(q)) ||
-      (o.tamper_seal_code && o.tamper_seal_code.toLowerCase().includes(q)) ||
       (o.issue_category && o.issue_category.toLowerCase().includes(q));
     return matchesStatus && matchesSearch;
   });
@@ -416,56 +416,44 @@ export default function AdminDashboard({ onOpenLiveStream }) {
           </div>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="admin-tabs-nav">
-          <button
-            onClick={() => handleTabChange('overview')}
-            className={`admin-tab-btn ${activeTab === 'overview' ? 'admin-tab-btn-active' : ''}`}
-          >
-            <LayoutDashboard size={16} /> Overview
-          </button>
-
-          <button
-            onClick={() => handleTabChange('users')}
-            className={`admin-tab-btn ${activeTab === 'users' ? 'admin-tab-btn-active' : ''}`}
-          >
-            <Users size={16} /> All Users <span className="admin-tab-pill-count">{usersList.length}</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange('orders')}
-            className={`admin-tab-btn ${activeTab === 'orders' ? 'admin-tab-btn-active' : ''}`}
-          >
-            <Laptop size={16} /> All Repair Orders <span className="admin-tab-pill-count">{ordersList.length}</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange('streams')}
-            className={`admin-tab-btn ${activeTab === 'streams' ? 'admin-tab-btn-active' : ''}`}
-          >
-            <Radio size={16} /> Live Cleanroom Feeds
-          </button>
-
-          <button
-            onClick={() => handleTabChange('custody')}
-            className={`admin-tab-btn ${activeTab === 'custody' ? 'admin-tab-btn-active' : ''}`}
-          >
-            <Lock size={16} /> Tamper Seals <span className="admin-tab-pill-count">{ordersList.filter(o => o.tamper_seal_code).length}</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange('escrow')}
-            className={`admin-tab-btn ${activeTab === 'escrow' ? 'admin-tab-btn-active' : ''}`}
-          >
-            <DollarSign size={16} /> Escrow & Financials
-          </button>
-
-          <button
-            onClick={() => handleTabChange('database')}
-            className={`admin-tab-btn ${activeTab === 'database' ? 'admin-tab-btn-active' : ''}`}
-          >
-            <Database size={16} /> System & Health
-          </button>
+        {/* Admin Navigation Tabs */}
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '20px' }}>
+          {[
+            { id: 'overview', label: 'Overview', icon: BarChart3 },
+            { id: 'users', label: `Users (${usersList.length})`, icon: Users },
+            { id: 'orders', label: `Orders (${ordersList.length})`, icon: Laptop },
+            { id: 'streams', label: `Live Streams (${ordersList.filter(o => o.stream_session?.is_live || o.stream_session || ['In Repair', 'Delivered to Bench', 'Quality Check'].includes(o.status)).length})`, icon: Video },
+            { id: 'custody', label: `Custody & Logistics`, icon: ShieldCheck },
+            { id: 'escrow', label: `Escrow Vault`, icon: DollarSign },
+            { id: 'database', label: `DB Inspector`, icon: Database }
+          ].map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  padding: '9px 16px',
+                  borderRadius: '10px',
+                  fontSize: '0.84rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: isActive ? '1px solid var(--primary)' : '1px solid var(--border-light)',
+                  background: isActive ? 'var(--primary)' : 'var(--bg-surface)',
+                  color: isActive ? '#ffffff' : 'var(--text-main)',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.18s ease'
+                }}
+              >
+                <Icon size={14} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* ========================================================
@@ -1012,7 +1000,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                     <th style={{ padding: '12px 16px' }}>Customer & Device</th>
                     <th style={{ padding: '12px 16px' }}>Issue & Logistics</th>
                     <th style={{ padding: '12px 16px' }}>Price Range & Agreed</th>
-                    <th style={{ padding: '12px 16px' }}>Tamper Seal & Custody</th>
+                    <th style={{ padding: '12px 16px' }}>Intake & Custody</th>
                     <th style={{ padding: '12px 16px' }}>Assigned Tech</th>
                     <th style={{ padding: '12px 16px' }}>Status</th>
                     <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
@@ -1061,12 +1049,10 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                         </td>
                         <td style={{ padding: '14px 16px' }}>
                           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: '#10b981', fontWeight: 800 }}>
-                            {ord.tamper_seal_code || 'TC-VERIFIED'}
+                            {ord.order_number}
                           </div>
                           <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
-                            {ord.unseal_status === 'unsealed' ? 'Unsealed (Authorized)' :
-                             ord.reseal_status === 'resealed' ? `Resealed: ${ord.reseal_tamper_code || 'Yes'}` :
-                             ord.pickup_status === 'collected' ? 'In Bench Custody' : 'Sealed Intact'}
+                            {ord.pickup_status === 'collected' ? 'In Bench Custody' : 'Verified Intake'}
                           </div>
                         </td>
                         <td style={{ padding: '14px 16px', color: 'var(--text-main)', fontWeight: 600 }}>
@@ -1219,7 +1205,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                                     </a>
                                   )}
                                   <span className="badge badge-verified" style={{ fontSize: '0.75rem' }}>
-                                    Seal: {ord.tamper_seal_code || 'VERIFIED'}
+                                    Verified Intake
                                   </span>
                                 </div>
                               </div>
@@ -1259,7 +1245,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                                     ⚠️ {Array.isArray(ord.pre_existing_damage) ? ord.pre_existing_damage.join(', ') : (ord.pre_existing_damage || 'None Declared')}
                                   </div>
                                   <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                                    Customer verified condition prior to tamper-proof courier seal.
+                                    Customer verified condition prior to courier handover.
                                   </div>
                                 </div>
 
@@ -1337,7 +1323,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                         </div>
                         <div style={{ position: 'absolute', bottom: '10px', left: '10px', right: '10px', background: 'rgba(15, 23, 42, 0.88)', padding: '6px 10px', borderRadius: '8px', fontSize: '0.75rem', color: '#fff', display: 'flex', justifyContent: 'space-between' }}>
                           <span>Order: {ord.order_number}</span>
-                          <span style={{ color: '#10b981' }}>Seal: {ord.tamper_seal_code || 'VERIFIED'}</span>
+                          <span style={{ color: '#10b981' }}>Intake: Verified</span>
                         </div>
                       </div>
 
@@ -1427,15 +1413,15 @@ export default function AdminDashboard({ onOpenLiveStream }) {
         )}
 
         {/* ========================================================
-            TAB 4: TAMPER SEALS & CHAIN OF CUSTODY
+            TAB 4: DEVICE CUSTODY & LOGISTICS
            ======================================================== */}
         {activeTab === 'custody' && (
           <div className="tech-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
-                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>Serialized Tamper Seal Custody Ledger</h2>
+                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>Device Custody & Logistics Ledger</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '4px 0 0' }}>
-                  Anti-tamper holographic barcode registry protecting customer devices during transit & repair
+                  Chain-of-custody tracking registry protecting customer devices during transit & cleanroom repair
                 </p>
               </div>
               <span className="badge badge-verified">
@@ -1447,10 +1433,10 @@ export default function AdminDashboard({ onOpenLiveStream }) {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-main)', borderBottom: '1px solid var(--border-light)' }}>
-                    <th style={{ padding: '12px 16px' }}>Seal Barcode</th>
+                    <th style={{ padding: '12px 16px' }}>Tracking Barcode</th>
                     <th style={{ padding: '12px 16px' }}>Order Number</th>
                     <th style={{ padding: '12px 16px' }}>Device Details</th>
-                    <th style={{ padding: '12px 16px' }}>Current Seal Status</th>
+                    <th style={{ padding: '12px 16px' }}>Current Intake Status</th>
                     <th style={{ padding: '12px 16px' }}>Handoff Integrity</th>
                     <th style={{ padding: '12px 16px', textAlign: 'right' }}>Audit</th>
                   </tr>
@@ -1459,7 +1445,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                   {ordersList.map((ord, idx) => (
                     <tr key={ord.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
                       <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#10b981' }}>
-                        {ord.tamper_seal_code || `SEAL-TX-09${idx}84`}
+                        {ord.tracking_number || `TRK-TX-09${idx}84`}
                       </td>
                       <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>
                         {ord.order_number}
@@ -1471,21 +1457,19 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                       <td style={{ padding: '14px 16px' }}>
                         <span className={`badge ${
                           ['resealed', 'dispatched'].includes(ord.reseal_status) ? 'badge-verified' :
-                          ord.unseal_status === 'unsealed' ? 'badge-orange' :
-                          ord.unseal_status === 'unseal_requested' ? 'badge-primary' :
+                          ord.status === 'In Repair' ? 'badge-primary' :
                           'badge-verified'
                         }`} style={{ fontSize: '0.72rem' }}>
-                          {['resealed', 'dispatched'].includes(ord.reseal_status) ? `RESEALED (${ord.reseal_tamper_code || 'VERIFIED'})` :
-                           ord.unseal_status === 'unsealed' ? 'UNSEALED AT BENCH' :
-                           ord.unseal_status === 'unseal_requested' ? 'UNSEAL REQUESTED' :
-                           ord.pickup_status === 'collected' ? 'SEALED IN CUSTODY' :
-                           'SEAL INTACT & VERIFIED'}
+                          {['resealed', 'dispatched'].includes(ord.reseal_status) ? 'READY FOR DELIVERY' :
+                           ord.status === 'In Repair' ? 'ACTIVE ON BENCH' :
+                           ord.pickup_status === 'collected' ? 'IN BENCH CUSTODY' :
+                           'INTAKE VERIFIED'}
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px', color: '#10b981', fontWeight: 700, fontSize: '0.82rem' }}>
-                        {ord.reseal_status === 'resealed' ? 'Re-sealed with Tamper Code' :
-                         ord.unseal_status === 'unsealed' ? 'Authorized by Customer' :
-                         '100% Secure • Unbroken'}
+                        {ord.status === 'Delivered' ? 'Delivered with OTP' :
+                         ord.status === 'In Repair' ? 'Camera Monitored' :
+                         '100% Secure • Verified'}
                       </td>
                       <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                         <button
@@ -1559,7 +1543,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                 <div>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Escrow Settlements & Payout Registry</h3>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', margin: '4px 0 0' }}>
-                    Transparent 90/10 escrow split protecting customer payments until tamper seal verification
+                    Transparent 90/10 escrow split protecting customer payments until delivery verification
                   </p>
                 </div>
                 <span className="badge badge-primary">
@@ -2241,13 +2225,14 @@ export default function AdminDashboard({ onOpenLiveStream }) {
 
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                  Tamper Seal Code
+                  Logistics Tracking ID
                 </label>
                 <input 
                   type="text" 
-                  value={orderForm.tamper_seal_code} 
-                  onChange={(e) => setOrderForm({ ...orderForm, tamper_seal_code: e.target.value })} 
+                  value={orderForm.tracking_number || ''} 
+                  onChange={(e) => setOrderForm({ ...orderForm, tracking_number: e.target.value })} 
                   style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                  placeholder="e.g. TRK-HYD-9812"
                 />
               </div>
 

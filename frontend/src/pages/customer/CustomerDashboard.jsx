@@ -121,13 +121,46 @@ export default function CustomerDashboard({ onNewBooking }) {
       <main className="customer-main-content">
         <div className="customer-content-container">
           {/* Dashboard Heading (Section 9) */}
-          <div className="customer-greeting-header">
-            <h1 className="customer-greeting-h1">
-              Hello, {user?.name?.split(' ')[0] || 'User'} 👋
-            </h1>
-            <p className="customer-greeting-sub">
-              What would you like to do today?
-            </p>
+          <div className="customer-greeting-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+            <div>
+              <h1 className="customer-greeting-h1">
+                Hello, {user?.name?.split(' ')[0] || 'User'} 👋
+              </h1>
+              <p className="customer-greeting-sub">
+                What would you like to do today?
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setIsNotificationsOpen(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                position: 'relative'
+              }}
+            >
+              <Bell size={16} />
+              <span>Notifications</span>
+              {activeRepairs.some(r => r.stream_session?.is_live || r.status === 'Quote Pending') && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-3px',
+                  right: '-3px',
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#ef4444',
+                  boxShadow: '0 0 6px #ef4444'
+                }} />
+              )}
+            </button>
           </div>
 
           {/* Large Card: Need a laptop repair? */}
@@ -233,8 +266,8 @@ export default function CustomerDashboard({ onNewBooking }) {
                       <strong>{r.technician?.name || r.technician_name || 'Verified Specialist'}</strong>
                     </div>
                     <div>
-                      <span style={{ color: 'var(--text-dim)' }}>Tamper Seal: </span>
-                      <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>{r.tamper_seal_code || 'Pending'}</strong>
+                      <span style={{ color: 'var(--text-dim)' }}>Pickup Slot: </span>
+                      <strong style={{ color: 'var(--primary)' }}>{r.pickup_slot || 'Standard Pickup'}</strong>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-dim)' }}>Target Budget: </span>
@@ -343,8 +376,7 @@ export default function CustomerDashboard({ onNewBooking }) {
             laptop_brand: 'Workbench',
             laptop_model: 'Cleanroom Station 4',
             issue_category: 'Diagnostic Video Stream',
-            status: 'In Progress',
-            tamper_seal_code: 'SEAL-TX-VERIFIED'
+            status: 'In Progress'
           }}
           onClose={() => setIsStreamOpen(false)}
         />
@@ -353,7 +385,15 @@ export default function CustomerDashboard({ onNewBooking }) {
       <RepairReportModal isOpen={isReportOpen} onClose={() => setIsReportOpen(false)} />
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       <PaymentsModal isOpen={isPaymentsOpen} onClose={() => setIsPaymentsOpen(false)} />
-      <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} onActionClick={() => setIsStreamOpen(true)} />
+      <NotificationsModal 
+        isOpen={isNotificationsOpen} 
+        onClose={() => setIsNotificationsOpen(false)} 
+        orders={repairs}
+        onActionClick={(action) => {
+          if (action === 'Join Live') setIsStreamOpen(true);
+          else if (action === 'Review Issue' || action === 'Track Pickup') setIsTrackOpen(true);
+        }} 
+      />
       <HelpSupportModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
       {conversationOrder && (
         <OrderConversationModal

@@ -82,24 +82,20 @@ export default function Navbar({
 
   // Nav links: Customer portal navbar matches the 8 menu items
   const getNavLinks = () => {
-    if (isAdmin && location.pathname.startsWith('/admin')) {
+    if (isAdmin || (user && user.role === 'admin')) {
       return [
-        { name: 'Overview', path: '/admin?tab=overview', basePath: '/admin', tab: 'overview' },
-        { name: 'All Users', path: '/admin?tab=users', basePath: '/admin', tab: 'users' },
-        { name: 'Repair Orders', path: '/admin?tab=orders', basePath: '/admin', tab: 'orders' },
-        { name: 'Cleanrooms', path: '/admin?tab=streams', basePath: '/admin', tab: 'streams' },
-        { name: 'Tamper Seals', path: '/admin?tab=custody', basePath: '/admin', tab: 'custody' },
-        { name: 'Financials', path: '/admin?tab=escrow', basePath: '/admin', tab: 'escrow' },
-        { name: 'System Health', path: '/admin?tab=database', basePath: '/admin', tab: 'database' }
+        { id: 'dashboard', name: 'Admin Console', path: '/admin/dashboard', icon: Shield },
+        { id: 'track-repair', name: 'Track Repair', path: '/track-repair', icon: Package },
+        { id: 'services', name: 'Services', path: '/services', icon: Laptop },
+        { id: 'pricing', name: 'Pricing', path: '/pricing', icon: DollarSign }
       ];
     }
-    if (isTech && location.pathname.startsWith('/technician')) {
+    if (isTech || (user && user.role === 'technician')) {
       return [
-        { name: 'Workbench', path: '/technician?tab=dashboard', basePath: '/technician', tab: 'dashboard' },
-        { name: 'Requests', path: '/technician?tab=requests', basePath: '/technician', tab: 'requests' },
-        { name: 'Active Repairs', path: '/technician?tab=active', basePath: '/technician', tab: 'active' },
-        { name: 'My Jobs', path: '/technician?tab=my-jobs', basePath: '/technician', tab: 'my-jobs' },
-        { name: 'ESD Certs', path: '/technician?tab=verification', basePath: '/technician', tab: 'verification' }
+        { id: 'dashboard', name: 'Technician Workbench', path: '/technician/dashboard', icon: Wrench },
+        { id: 'track-repair', name: 'Track Repair', path: '/track-repair', icon: Package },
+        { id: 'services', name: 'Services', path: '/services', icon: Laptop },
+        { id: 'pricing', name: 'Pricing', path: '/pricing', icon: DollarSign }
       ];
     }
     if (isCustomer || (user && user.role === 'customer')) {
@@ -107,7 +103,7 @@ export default function Navbar({
         { 
           id: 'dashboard', 
           name: 'Dashboard', 
-          path: '/dashboard', 
+          path: '/customer/dashboard', 
           icon: Home 
         },
         { 
@@ -117,36 +113,22 @@ export default function Navbar({
           icon: PlusCircle 
         },
         { 
-          id: 'my-repairs', 
-          name: 'My Repairs', 
-          path: '/dashboard?tab=repairs', 
-          icon: Laptop 
-        },
-        { 
           id: 'track-pickup', 
-          name: 'Track Pickup', 
+          name: 'Track Repair', 
           path: '/track-repair', 
           icon: Package 
         },
         { 
-          id: 'payments', 
-          name: 'Payments', 
-          path: '/dashboard?tab=payments', 
-          icon: CreditCard,
-          action: () => {
-            if (onOpenPayments) onOpenPayments();
-            else navigate('/dashboard?tab=payments');
-          }
+          id: 'services', 
+          name: 'Services', 
+          path: '/services', 
+          icon: Laptop 
         },
         { 
-          id: 'notifications', 
-          name: 'Notifications', 
-          path: '/dashboard?tab=notifications', 
-          icon: Bell,
-          action: () => {
-            if (onOpenNotifications) onOpenNotifications();
-            else navigate('/dashboard?tab=notifications');
-          }
+          id: 'pricing', 
+          name: 'Pricing', 
+          path: '/pricing', 
+          icon: DollarSign 
         }
       ];
     }
@@ -163,48 +145,15 @@ export default function Navbar({
   };
 
   const isLinkActive = (link) => {
-    if (isCustomer || (user && user.role === 'customer')) {
-      const params = new URLSearchParams(location.search);
-      const currentTab = params.get('tab');
-
-      if (link.id === 'new') {
-        return location.pathname === '/book';
-      }
-      if (link.id === 'track-pickup') {
-        return location.pathname === '/track-repair';
-      }
-      if (link.id === 'my-repairs') {
-        return location.pathname === '/dashboard' && currentTab === 'repairs';
-      }
-      if (link.id === 'messages') {
-        return currentTab === 'messages';
-      }
-      if (link.id === 'payments') {
-        return currentTab === 'payments';
-      }
-      if (link.id === 'notifications') {
-        return currentTab === 'notifications';
-      }
-      if (link.id === 'help') {
-        return currentTab === 'help';
-      }
-      if (link.id === 'dashboard') {
-        return location.pathname === '/dashboard' && (!currentTab || currentTab === 'dashboard');
-      }
+    if (link.path === '/admin/dashboard') {
+      return location.pathname === '/admin/dashboard' || location.pathname === '/admin';
     }
-
-    if (link.tab && link.basePath) {
-      if (location.pathname !== link.basePath) return false;
-      const params = new URLSearchParams(location.search);
-      const currentTab = params.get('tab');
-      if (!currentTab) {
-        if (link.basePath === '/admin' && link.tab === 'overview') return true;
-        if (link.basePath === '/technician' && link.tab === 'dashboard') return true;
-        return false;
-      }
-      return currentTab === link.tab;
+    if (link.path === '/technician/dashboard') {
+      return location.pathname === '/technician/dashboard' || location.pathname === '/technician';
     }
-
+    if (link.path === '/customer/dashboard') {
+      return location.pathname === '/customer/dashboard' || location.pathname === '/dashboard';
+    }
     if (link.path === '/') {
       return location.pathname === '/' || location.pathname === '/home';
     }
@@ -233,7 +182,12 @@ export default function Navbar({
           {/* Brand Bay - Live Fix (Official 3D Gemstone Logo) */}
           <div 
             className="silicone-bay-brand"
-            onClick={() => navigate(isCustomer ? '/dashboard' : (isTech ? '/technician' : (isAdmin ? '/admin' : '/')))}
+            onClick={() => {
+              if (user?.role === 'admin') navigate('/admin/dashboard');
+              else if (user?.role === 'technician') navigate('/technician/dashboard');
+              else if (user?.role === 'customer') navigate('/customer/dashboard');
+              else navigate('/');
+            }}
             title="Live Fix - Home"
           >
             <img 
@@ -278,6 +232,35 @@ export default function Navbar({
               {theme === 'light' ? <Moon size={17} strokeWidth={2.2} /> : <Sun size={17} strokeWidth={2.2} />}
             </button>
           </div>
+
+          {/* BAY 7.5: Notification Bell Bay (Customer, Technician & Admin) */}
+          {user && (
+            <div className="silicone-bay silicone-bay-theme" style={{ position: 'relative' }}>
+              <button
+                className="silicone-theme-btn"
+                onClick={() => {
+                  if (onOpenNotifications) onOpenNotifications();
+                }}
+                title="Notifications & Alerts"
+                aria-label="View notifications"
+                style={{ position: 'relative' }}
+              >
+                <Bell size={17} strokeWidth={2.2} />
+                <span 
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '8px',
+                    width: '7px',
+                    height: '7px',
+                    borderRadius: '50%',
+                    background: '#ef4444',
+                    boxShadow: '0 0 6px #ef4444'
+                  }} 
+                />
+              </button>
+            </div>
+          )}
 
           {/* BAY 8: Login Bay OR User Profile Dropdown */}
           <div className="silicone-bay silicone-bay-login" ref={profileMenuRef}>
@@ -385,7 +368,7 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/technician?tab=dashboard');
+                          navigate('/technician/dashboard');
                         }}
                       >
                         <Wrench size={14} color="var(--cta-orange)" />
@@ -396,7 +379,7 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/technician?tab=active');
+                          navigate('/technician/dashboard');
                         }}
                       >
                         <Laptop size={14} color="var(--primary)" />
@@ -407,7 +390,7 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/technician?tab=earnings');
+                          navigate('/technician/dashboard');
                         }}
                       >
                         <DollarSign size={14} color="var(--cta-orange)" />
@@ -418,7 +401,8 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/technician?tab=messages');
+                          if (onOpenMessages) onOpenMessages();
+                          else navigate('/technician/dashboard');
                         }}
                       >
                         <MessageSquare size={14} color="var(--primary)" />
@@ -429,11 +413,22 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/technician?tab=settings');
+                          navigate('/technician/dashboard');
                         }}
                       >
                         <Settings size={14} color="var(--primary)" />
                         <span>Station Settings</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenNotifications) onOpenNotifications();
+                        }}
+                      >
+                        <Bell size={14} color="var(--cta-orange)" />
+                        <span>Bench Notifications</span>
                       </button>
 
                       <button
@@ -453,7 +448,7 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/admin?tab=overview');
+                          navigate('/admin/dashboard');
                         }}
                       >
                         <Shield size={14} color="#10b981" />
@@ -464,7 +459,7 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/admin?tab=orders');
+                          navigate('/admin/dashboard');
                         }}
                       >
                         <Laptop size={14} color="#10b981" />
@@ -475,11 +470,22 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/admin?tab=database');
+                          navigate('/admin/dashboard');
                         }}
                       >
                         <Settings size={14} color="#10b981" />
                         <span>System Health</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenNotifications) onOpenNotifications();
+                        }}
+                      >
+                        <Bell size={14} color="#10b981" />
+                        <span>System Alerts</span>
                       </button>
 
                       <button
@@ -499,7 +505,7 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/dashboard');
+                          navigate('/customer/dashboard');
                         }}
                       >
                         <Home size={14} color="var(--primary)" />
@@ -510,7 +516,7 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/dashboard?tab=repairs');
+                          navigate('/customer/dashboard');
                         }}
                       >
                         <Laptop size={14} color="var(--primary)" />
@@ -522,7 +528,7 @@ export default function Navbar({
                         onClick={() => {
                           setShowProfileMenu(false);
                           if (onOpenMessages) onOpenMessages();
-                          else navigate('/dashboard?tab=messages');
+                          else navigate('/customer/dashboard');
                         }}
                       >
                         <MessageSquare size={14} color="var(--primary)" />
@@ -534,11 +540,22 @@ export default function Navbar({
                         onClick={() => {
                           setShowProfileMenu(false);
                           if (onOpenHelp) onOpenHelp();
-                          else navigate('/dashboard?tab=help');
+                          else navigate('/customer/dashboard');
                         }}
                       >
                         <HelpCircle size={14} color="var(--primary)" />
                         <span>Help & Support</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          if (onOpenNotifications) onOpenNotifications();
+                        }}
+                      >
+                        <Bell size={14} color="var(--primary)" />
+                        <span>Repair Notifications</span>
                       </button>
 
                       <button
@@ -671,7 +688,7 @@ export default function Navbar({
                       className="silicone-mobile-nav-btn"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        navigate('/technician?tab=earnings');
+                        navigate('/technician/dashboard');
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -683,7 +700,8 @@ export default function Navbar({
                       className="silicone-mobile-nav-btn"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        navigate('/technician?tab=messages');
+                        if (onOpenMessages) onOpenMessages();
+                        else navigate('/technician/dashboard');
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -695,12 +713,12 @@ export default function Navbar({
                       className="silicone-mobile-nav-btn"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        navigate('/technician?tab=settings');
+                        if (onOpenNotifications) onOpenNotifications();
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Settings size={16} color="var(--primary)" />
-                        <span>Station Settings</span>
+                        <Bell size={16} color="var(--primary)" />
+                        <span>Notifications</span>
                       </div>
                     </button>
                   </>
@@ -711,7 +729,7 @@ export default function Navbar({
                       onClick={() => {
                         setMobileMenuOpen(false);
                         if (onOpenMessages) onOpenMessages();
-                        else navigate('/dashboard?tab=messages');
+                        else navigate('/customer/dashboard');
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -724,13 +742,12 @@ export default function Navbar({
                       className="silicone-mobile-nav-btn"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        if (onOpenHelp) onOpenHelp();
-                        else navigate('/dashboard?tab=help');
+                        if (onOpenNotifications) onOpenNotifications();
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <HelpCircle size={16} color="var(--primary)" />
-                        <span>Help & Support</span>
+                        <Bell size={16} color="var(--primary)" />
+                        <span>Notifications</span>
                       </div>
                     </button>
 

@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import './HowItWorksPage.css';
 
-export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo, onOpenTamperSeal }) {
+export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
   const [activeStep, setActiveStep] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -62,21 +62,21 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo, onOpen
     },
     {
       num: '04',
-      title: 'Serialized Tamper-Evident Pickup',
+      title: 'Secure Doorstep Device Collection',
       tag: 'Step 4: Doorstep Collection',
-      summary: 'Your device is placed in a serialized tamper-evident security bag at your doorstep.',
-      detail: 'Our secure logistics agent arrives at your door. You inspect the bag together, match serial numbers, and seal the laptop with a tamper-evident barcode seal. The unique seal code is recorded in your live dashboard.',
-      highlight: 'No unauthorized opening during transportation. Zero risk of part swapping.',
+      summary: 'Your device is securely collected at your doorstep by our verified courier.',
+      detail: 'Our logistics agent arrives at your door, performs an initial visual verification, logs the pickup in your live dashboard, and safely transports it to the cleanroom lab.',
+      highlight: 'Secure padded transit with live status tracking to the technician workbench.',
       icon: Lock,
       color: '#f97316',
-      badge: 'TAMPER SEAL'
+      badge: 'DOORSTEP PICKUP'
     },
     {
       num: '05',
       title: 'Watch the Repair Live on Camera',
       tag: 'Step 5: Cleanroom Broadcast',
       summary: 'Tune in to a live 1080p/4K camera feed and watch your laptop repaired under the microscope.',
-      detail: 'Receive a live link when your laptop arrives at the cleanroom bench. Watch the technician verify your tamper seal, open the chassis, probe voltage rails on camera, and perform precision soldering under an optical microscope.',
+      detail: 'Receive a live link when your laptop arrives at the cleanroom bench. Watch the technician inspect your device, open the chassis, probe voltage rails on camera, and perform precision soldering under an optical microscope.',
       highlight: 'Real-time chat with the technician. See serial numbers matched live on video.',
       icon: Video,
       color: '#10b981',
@@ -86,8 +86,8 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo, onOpen
       num: '06',
       title: 'OTP Delivery & 6-Month Warranty',
       tag: 'Step 6: Return Handoff',
-      summary: 'Delivered back sealed. Test your device and release payment via secure OTP.',
-      detail: 'Your laptop is tested through a 24-point quality check, sealed with a warranty tamper badge, and delivered back to your doorstep. Turn it on, test the repair, and only then provide the delivery OTP to release payment.',
+      summary: 'Delivered back safely. Test your device and release payment via secure OTP.',
+      detail: 'Your laptop is tested through a 24-point quality check, certified with a 6-month platform warranty, and delivered back to your doorstep. Turn it on, test the repair, and only then provide the delivery OTP to release payment.',
       highlight: 'Includes 6-month Live Fix warranty on all replaced hardware parts.',
       icon: ShieldCheck,
       color: '#2563eb',
@@ -104,7 +104,7 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo, onOpen
     {
       aspect: 'Component Security',
       traditional: 'Frequent risk of working parts swapped for used ones',
-      livefix: 'Serialized tamper-evident seal verified live on video'
+      livefix: 'Live continuous camera monitoring throughout diagnosis and repair'
     },
     {
       aspect: 'Pricing Transparency',
@@ -126,11 +126,11 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo, onOpen
   const faqs = [
     {
       q: 'How does the Live Video Monitoring actually work?',
-      a: 'When your laptop reaches the technician workbench, you receive an SMS and email notification with an encrypted private meeting link. You can watch the technician verify your tamper bag seal, unscrew the chassis, test circuits with multimeters, and perform micro-soldering under an optical microscope in real time.'
+      a: 'When your laptop reaches the technician workbench, you receive an SMS and email notification with an encrypted private meeting link. You can watch the technician inspect your device condition, unscrew the chassis, test circuits with multimeters, and perform micro-soldering under an optical microscope in real time.'
     },
     {
-      q: 'What is a serialized tamper-evident seal?',
-      a: 'It is an industrial-grade security seal engineered with tamper-destruct adhesive. Once applied at your doorstep, any attempt to peel or open the bag leaves an irreversible VOID honeycomb pattern. The technician shows this intact barcode on camera before opening it.'
+      q: 'How are my components kept safe without swapping?',
+      a: 'Every repair is conducted under high-resolution overhead and optical microscope cameras. The entire process from opening the chassis to replacing chips is streamed live directly to your dashboard so you have complete visibility.'
     },
     {
       q: 'What happens if my laptop cannot be repaired?',
@@ -161,7 +161,7 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo, onOpen
           </h1>
 
           <p className="how-subtitle">
-            Discover how Live Fix protects your device through serialized tamper seals, live microscope camera streaming, and escrow-secured payments.
+            Discover how Live Fix protects your device through live microscope camera streaming, verified technicians, and escrow-secured payments.
           </p>
 
           <div className="how-cta-row">

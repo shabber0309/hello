@@ -48,7 +48,6 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
         body: JSON.stringify({
           device_pin: providedPin,
           bitlocker_status: providedBitlocker,
-          tamper_seal_code: searchedOrder.tamper_seal_code,
           order_number: searchedOrder.order_number
         })
       });
@@ -84,12 +83,12 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
     const baseStages = [
       { id: 1, name: 'Repair Request Created', time: 'Completed', desc: 'Customer requested repair and target budget specified' },
       { id: 2, name: 'Technician Accepted', time: currentStepIndex >= 2 ? 'Completed' : 'Pending', desc: 'Verified hardware technician assigned to the repair job' },
-      { id: 3, name: 'Pickup Scheduled', time: currentStepIndex >= 3 ? 'Completed' : 'Pending', desc: 'Doorstep pickup agent assigned with serialized tamper bag' },
-      { id: 4, name: 'Laptop Picked Up', time: currentStepIndex >= 4 ? 'Completed' : 'Pending', desc: 'Device sealed with tamper-evident security barcode' },
-      { id: 5, name: 'Delivered to Technician', time: currentStepIndex >= 5 ? 'Completed' : 'Pending', desc: 'Delivered to cleanroom bench; seal verified intact' },
+      { id: 3, name: 'Pickup Scheduled', time: currentStepIndex >= 3 ? 'Completed' : 'Pending', desc: 'Doorstep pickup agent assigned for secure device collection' },
+      { id: 4, name: 'Laptop Picked Up', time: currentStepIndex >= 4 ? 'Completed' : 'Pending', desc: 'Device inspected and securely received for transit' },
+      { id: 5, name: 'Delivered to Technician', time: currentStepIndex >= 5 ? 'Completed' : 'Pending', desc: 'Delivered to cleanroom bench and assigned to technician' },
       { id: 6, name: 'Repair In Progress', time: currentStepIndex >= 6 ? (currentStepIndex === 6 ? 'Live Now' : 'Completed') : 'Pending', desc: 'Technician diagnostic, micro-soldering, and part rework' },
       { id: 7, name: 'Quality Check', time: currentStepIndex >= 7 ? 'Completed' : 'Pending', desc: 'Stress test, thermal validation, and hardware calibration' },
-      { id: 8, name: 'Return Pickup', time: currentStepIndex >= 8 ? 'Completed' : 'Pending', desc: 'Re-sealed with warranty tamper protection and dispatched' },
+      { id: 8, name: 'Return Pickup', time: currentStepIndex >= 8 ? 'Completed' : 'Pending', desc: 'Cleanroom certified and dispatched for doorstep return delivery' },
       { id: 9, name: 'Delivered', time: currentStepIndex >= 9 ? 'Completed' : 'Pending', desc: 'Doorstep return delivery verified with customer OTP handoff' }
     ];
 
@@ -141,7 +140,7 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
             Track Your Repair
           </h1>
           <p className="track-header-sub">
-            Track pickup, cleanroom arrival, live workbench repair session, and tamper-sealed return delivery in real-time.
+            Track pickup, cleanroom arrival, live workbench repair session, and secure return delivery in real-time.
           </p>
         </div>
 
@@ -206,7 +205,7 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
               Track Your Repair Without Logging In
             </h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '480px', margin: '0 auto', lineHeight: 1.5 }}>
-              Enter your Repair ID (e.g., EOF-2026-XXXXX), laptop serial number, tamper seal code, or registered phone/email above.
+              Enter your Repair ID (e.g., EOF-2026-XXXXX), laptop serial number, or registered phone/email above.
             </p>
           </div>
         )}
@@ -348,20 +347,7 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
                   </div>
                 </div>
 
-                {searchedOrder.tamper_seal_code && (
-                  <div style={{ background: 'var(--bg-main)', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>
-                        Tamper-Seal Security
-                      </span>
-                      <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700 }}>VERIFIED INTACT</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: 800, fontFamily: 'monospace', fontSize: '0.95rem' }}>
-                      <Lock size={15} color="#10b981" />
-                      <span>{searchedOrder.tamper_seal_code}</span>
-                    </div>
-                  </div>
-                )}
+
 
                 {searchedOrder.stream_session?.is_live && (
                   <button

@@ -6,7 +6,8 @@ import {
   Wrench, 
   ArrowRight, 
   Radio, 
-  DollarSign
+  DollarSign,
+  Eye
 } from 'lucide-react';
 import './LandingPage.css';
 
@@ -41,9 +42,9 @@ export default function LandingPage({
       glow: '0 4px 14px rgba(139, 92, 246, 0.4)'
     },
     {
-      icon: Lock,
-      title: 'Tamper-Seal Protection',
-      desc: 'Know when your device is opened',
+      icon: Eye,
+      title: 'Live Camera Oversight',
+      desc: 'Full transparency during diagnosis & rework',
       bgGrad: 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
       topBorder: '#0284c7',
       glow: '0 4px 14px rgba(6, 182, 212, 0.4)'
@@ -54,9 +55,9 @@ export default function LandingPage({
     { num: '1', title: 'Describe Your Problem', desc: 'Tell us your laptop brand, model, issue, and expected repair budget.', grad: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' },
     { num: '2', title: 'Get Matched With Technicians', desc: 'Your request is shared with verified technicians who can service your device.', grad: 'linear-gradient(135deg, #06b6d4, #0284c7)' },
     { num: '3', title: 'Compare & Accept Offers', desc: 'Technicians can accept your budget or send their own repair quote.', grad: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
-    { num: '4', title: 'Secure Pickup', desc: 'Your laptop is collected, sealed, and tracked during transportation.', grad: 'linear-gradient(135deg, #f97316, #ea580c)' },
+    { num: '4', title: 'Secure Pickup', desc: 'Your laptop is safely collected and tracked during transportation.', grad: 'linear-gradient(135deg, #f97316, #ea580c)' },
     { num: '5', title: 'Watch the Repair Live', desc: 'Join a video session and watch the technician diagnose and repair your laptop.', grad: 'linear-gradient(135deg, #10b981, #059669)' },
-    { num: '6', title: 'Get It Back Safely', desc: 'Your repaired laptop is sealed again and delivered back to you.', grad: 'linear-gradient(135deg, #6366f1, #4338ca)' }
+    { num: '6', title: 'Get It Back Safely', desc: 'Your repaired laptop is quality certified and delivered back to you.', grad: 'linear-gradient(135deg, #6366f1, #4338ca)' }
   ];
 
   return (

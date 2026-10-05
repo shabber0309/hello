@@ -211,8 +211,6 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.78rem', color: 'var(--text-dim, #64748b)' }}>
                 <span>Order: <strong style={{ color: 'var(--primary, #2563eb)' }}>#{order.order_number}</strong></span>
                 <span>•</span>
-                <span>Tamper Seal: <strong style={{ fontFamily: 'var(--font-mono)' }}>{order.tamper_seal_code}</strong></span>
-                <span>•</span>
                 <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>{order.status}</span>
               </div>
             </div>
@@ -413,7 +411,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                       Pickup Scheduled: {order.pickup_scheduled_time}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                      Tamper-evident Pouch: <strong>{order.tamper_seal_code}</strong> • Address: {order.pickup_address}
+                      Address: {order.pickup_address}
                     </div>
                   </div>
                   {(isCustomer || isAdmin) && (
@@ -443,8 +441,8 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <p style={{ margin: 0, fontSize: '0.88rem' }}>
-                  The laptop is sealed inside tamper pouch <strong>{order.tamper_seal_code}</strong>.
-                  {isTechnician || isAdmin ? ' Once the courier hands over the parcel at your workbench, confirm collection below:' : ' Courier is en route to cleanroom bench.'}
+                  The laptop is currently with the courier en route to the cleanroom bench.
+                  {isTechnician || isAdmin ? ' Once the courier hands over the device at your workbench, confirm collection below:' : ' Courier is en route to cleanroom bench.'}
                 </p>
                 {(isTechnician || isAdmin) && (
                   <button 
@@ -466,26 +464,26 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
               <div className="action-card-title">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Lock size={18} color="#d97706" />
-                  Step 4: Tamper Seal Verification & Opening Authorization
+                  Step 4: Bench Session & Disassembly Authorization
                 </span>
-                <span className="badge badge-warning">Seal Intact: {order.tamper_seal_code}</span>
+                <span className="badge badge-warning">Bench Intake Ready</span>
               </div>
 
               {!isUnsealRequested ? (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                   <p style={{ margin: 0, fontSize: '0.88rem' }}>
                     {isTechnician || isAdmin 
-                      ? 'The device is securely sealed. Request customer authorization to cut the tamper seal:' 
-                      : 'Laptop is at technician bench. Waiting for technician to request unsealing.'}
+                      ? 'The device is at your bench. Request customer authorization to begin the live repair session:' 
+                      : 'Laptop is at technician bench. Waiting for technician to request session authorization.'}
                   </p>
                   {(isTechnician || isAdmin) && (
                     <button 
                       className="btn-primary"
                       disabled={submittingAction}
-                      onClick={() => executeWorkflowAction('request-unseal', {}, 'Unseal authorization requested')}
+                      onClick={() => executeWorkflowAction('request-unseal', {}, 'Session authorization requested')}
                       style={{ padding: '8px 18px', fontSize: '0.86rem' }}
                     >
-                      Request Seal Opening Authorization
+                      Request Session Authorization
                     </button>
                   )}
                 </div>
@@ -493,7 +491,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#b45309' }}>
-                      Authorization Request: Technician is ready to cut Tamper Seal {order.tamper_seal_code}
+                      Authorization Request: Technician is ready to start live diagnostics on workbench
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
                       Authorizing will automatically activate the Google Meet live repair camera session.
@@ -572,15 +570,15 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
               <div className="action-card-title">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <ShieldCheck size={18} color="#2563eb" />
-                  Step 6: Repair Complete & Device Re-Sealed
+                  Step 6: Repair Complete & Quality Certified
                 </span>
                 <span className="badge badge-verified">
-                  Warranty Seal: {order.reseal_tamper_code}
+                  Quality Certified
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <p style={{ margin: 0, fontSize: '0.88rem' }}>
-                  Hardware repair completed. Device has been packed with high-security return seal <strong>{order.reseal_tamper_code}</strong>.
+                  Hardware repair completed. Device has been packaged with 6-month warranty certification.
                 </p>
                 {(isTechnician || isAdmin) && (
                   <button 
@@ -589,7 +587,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                     onClick={() => executeWorkflowAction('dispatch', {}, 'Device marked as dispatched to customer')}
                     style={{ padding: '8px 20px', fontSize: '0.86rem' }}
                   >
-                    <Truck size={15} /> Dispatch Sealed Device to Customer
+                    <Truck size={15} /> Dispatch Repaired Device to Customer
                   </button>
                 )}
               </div>
@@ -602,14 +600,14 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
               <div className="action-card-title">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Truck size={18} color="#d97706" />
-                  Step 7: Sealed Parcel In Transit to Customer
+                  Step 7: Repaired Device In Transit to Customer
                 </span>
-                <span className="badge badge-warning">Verify Seal on Delivery</span>
+                <span className="badge badge-warning">Verify Device on Delivery</span>
               </div>
               {(isCustomer || isAdmin) ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ fontSize: '0.86rem' }}>
-                    Once you receive the package, inspect Tamper Seal <strong>{order.reseal_tamper_code}</strong>, test your laptop, and submit your final review:
+                    Once you receive the package, test your laptop, and submit your final review:
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', gap: '4px' }}>

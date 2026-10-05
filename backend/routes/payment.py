@@ -72,12 +72,11 @@ def get_invoice(current_user, order_id):
         'breakdown': {
             'parts_cost': parts_total,
             'technician_lab_fee': service_charge,
-            'tamper_proof_courier': 0.0,  # Free Doorstep Pickup & Delivery
+            'express_secure_courier': 0.0,  # Free Doorstep Pickup & Delivery
             'total_amount': order.quote_amount
         },
         'warranty': {
             'validity': '6 Months Free Replacement & Labor',
-            'tamper_seal_recorded': order.tamper_seal_code,
             'code': order.payment.warranty_code if order.payment else None
         }
     }), 200

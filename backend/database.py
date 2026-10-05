@@ -71,7 +71,7 @@ def init_database(app):
 
 
 def seed_clean_admin():
-    """Initializes an administrative account if none exists, with zero dummy/demo orders."""
+    """Initializes administrator, technician, and customer accounts if none exist, with zero dummy orders."""
     admin_user = User.query.filter_by(role="admin").first()
     if not admin_user:
         admin = User(
@@ -83,10 +83,41 @@ def seed_clean_admin():
         )
         admin.set_password("admin123")
         db.session.add(admin)
-        db.session.commit()
         print("[Live Fix DB] Clean Administrator account initialized.")
+
+    tech_user = User.query.filter_by(role="technician").first()
+    if not tech_user:
+        tech = User(
+            name="SHABBER HUSSAIN",
+            username="technician",
+            email="tech@livefix.com",
+            phone="+91 98765 43210",
+            role="technician",
+            bench_station="Cleanroom Bench #4 (Micro-Soldering)",
+            specialization="Motherboard Micro-soldering, GPU Reballing, Liquid Damage Clean",
+            is_verified=True
+        )
+        tech.set_password("tech123")
+        db.session.add(tech)
+        print("[Live Fix DB] Clean Technician account initialized.")
+
+    cust_user = User.query.filter_by(role="customer").first()
+    if not cust_user:
+        cust = User(
+            name="Shabber Customer",
+            username="customer",
+            email="customer@livefix.com",
+            phone="+91 91234 56789",
+            role="customer"
+        )
+        cust.set_password("customer123")
+        db.session.add(cust)
+        print("[Live Fix DB] Clean Customer account initialized.")
+
+    db.session.commit()
 
 
 # Aliases for backward compatibility
 seed_demo_data = seed_clean_admin
 seed_admin_user = seed_clean_admin
+

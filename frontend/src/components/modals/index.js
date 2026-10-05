@@ -10,7 +10,6 @@ export { default as QualityCheckDeliveryModal } from './QualityCheckDeliveryModa
 export { default as RepairReportModal } from './RepairReportModal';
 export { default as RepairRequestModal } from './RepairRequestModal';
 export { default as StreamModal } from './StreamModal';
-export { default as TamperSealModal } from './TamperSealModal';
 export { default as TechOnboardingModal } from './TechOnboardingModal';
 export { default as TrackRepairModal } from './TrackRepairModal';
 export { default as OrderConversationModal } from './OrderConversationModal';

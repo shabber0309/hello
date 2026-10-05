@@ -198,7 +198,7 @@ export default function RepairReportModal({ isOpen, onClose }) {
         {/* Actions */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-            Includes 6-Month Anti-Tamper Hardware Warranty
+            Includes 6-Month Comprehensive Hardware Warranty
           </div>
 
           <button className="btn-cta" onClick={handleDownload} style={{ fontSize: '0.85rem' }}>
