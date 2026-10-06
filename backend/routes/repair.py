@@ -577,16 +577,43 @@ def post_chat_message(current_user, order_id):
 
     data = request.get_json() or {}
     text_content = data.get('content', '').strip()
+    msg_type = data.get('message_type', 'text')
+    metadata = data.get('metadata') or {}
+
+    # Image attachments or price quotes may have empty content but contain payload
     if not text_content:
-        return jsonify({'error': 'Message content cannot be empty'}), 400
+        if msg_type == 'image':
+            text_content = 'Photo attachment'
+        elif msg_type == 'price_quote':
+            amount = metadata.get('amount') or metadata.get('quote_amount') or 0
+            text_content = f"Price Quote: ₹{amount}"
+        else:
+            return jsonify({'error': 'Message content cannot be empty'}), 400
+
+    # Handle price quote synchronization with repair order
+    if msg_type == 'price_quote':
+        quote_amt = float(metadata.get('amount') or metadata.get('quote_amount') or 0)
+        if quote_amt > 0:
+            if current_user.role == 'technician':
+                order.quote_amount = quote_amt
+                if text_content and 'Price Quote:' not in text_content:
+                    order.technician_notes = text_content
+                elif metadata.get('notes'):
+                    order.technician_notes = metadata.get('notes')
+                order.quote_approved = False
+                order.status = 'Quote Pending'
+            elif current_user.role == 'customer':
+                order.customer_selected_price = quote_amt
+                order.price_status = 'customer_proposed'
 
     msg = OrderMessage(
         order_id=order.id,
         sender_id=current_user.id,
         sender_name=current_user.name,
         sender_role=current_user.role,
-        message_type='text',
-        content=text_content
+        message_type=msg_type,
+        content=text_content,
+        metadata_json=json.dumps(metadata) if metadata else None
     )
     db.session.add(msg)
     db.session.commit()

@@ -252,8 +252,14 @@ function MainApp() {
             />
           } />
 
-          {/* Customer Dashboard */}
+          {/* Customer Dashboard & Chat Routes */}
           <Route path="/customer/dashboard" element={
+            <CustomerDashboard onNewBooking={() => navigate('/book')} />
+          } />
+          <Route path="/customer/chat" element={
+            <CustomerDashboard onNewBooking={() => navigate('/book')} />
+          } />
+          <Route path="/customer/messages" element={
             <CustomerDashboard onNewBooking={() => navigate('/book')} />
           } />
           <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />

@@ -109,25 +109,49 @@ export default function CustomerDashboard({ onNewBooking }) {
     String(r.id || r.order_number) !== String(dismissedNoticeId)
   );
 
-  // Sync tab state with URL search params
+  // Sync tab state with URL search params and routes (such as /customer/chat)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    if (tab === 'repairs') {
-      setActiveSidebarNav('my-repairs');
-      const el = document.getElementById('customer-active-repairs');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (tab === 'track') {
-      setIsTrackOpen(true);
-    } else if (tab === 'messages' || tab === 'chat') {
+    const isChatRoute = location.pathname === '/customer/chat' || location.pathname === '/customer/messages';
+
+    // If accessed via /customer/dashboard?tab=chat, redirect to /customer/chat cleanly
+    if (location.pathname === '/customer/dashboard' && (tab === 'chat' || tab === 'messages')) {
+      navigate('/customer/chat', { replace: true });
+      return;
+    }
+
+    if (isChatRoute || tab === 'messages' || tab === 'chat') {
       if (repairs.length > 0) {
         setConversationOrder(repairs[0]);
       } else {
         try {
           const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
-          if (localSaved.length > 0) setConversationOrder(localSaved[0]);
+          if (localSaved.length > 0) {
+            setConversationOrder(localSaved[0]);
+          } else {
+            setConversationOrder({
+              id: 1,
+              order_number: 'EOF-2026-07350',
+              customer_name: user?.name || 'Rahul',
+              technician_name: 'Shabber Hussain',
+              laptop_brand: 'Asus TUF Gaming',
+              laptop_model: 'A15 (FA506 / FA507)',
+              issue_category: 'Hinge & Chassis: Broken hinge',
+              customer_selected_price: 800,
+              quote_amount: 1800,
+              technician_notes: 'hello',
+              quote_approved: false
+            });
+          }
         } catch {}
       }
+    } else if (tab === 'repairs') {
+      setActiveSidebarNav('my-repairs');
+      const el = document.getElementById('customer-active-repairs');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else if (tab === 'track') {
+      setIsTrackOpen(true);
     } else if (tab === 'payments') {
       setIsPaymentsOpen(true);
     } else if (tab === 'notifications') {
@@ -137,7 +161,7 @@ export default function CustomerDashboard({ onNewBooking }) {
     } else if (!tab || tab === 'dashboard') {
       setActiveSidebarNav('dashboard');
     }
-  }, [location.search]);
+  }, [location.pathname, location.search, repairs]);
 
   const fetchRepairs = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -245,6 +269,7 @@ export default function CustomerDashboard({ onNewBooking }) {
                     onClick={() => {
                       handleDismissNotice(pendingTechNotice.id || pendingTechNotice.order_number);
                       setConversationOrder(pendingTechNotice);
+                      navigate('/customer/chat');
                     }}
                     style={{
                       background: '#ffffff',
@@ -480,6 +505,7 @@ export default function CustomerDashboard({ onNewBooking }) {
                       onClick={() => {
                         handleDismissNotice(r.id || r.order_number);
                         setConversationOrder(r);
+                        navigate('/customer/chat');
                       }} 
                       style={{ fontSize: '0.85rem', background: '#008069', borderColor: '#008069', display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
@@ -566,7 +592,12 @@ export default function CustomerDashboard({ onNewBooking }) {
         <OrderConversationModal
           isOpen={Boolean(conversationOrder)}
           initialOrder={conversationOrder}
-          onClose={() => setConversationOrder(null)}
+          onClose={() => {
+            setConversationOrder(null);
+            if (location.pathname === '/customer/chat' || location.pathname === '/customer/messages') {
+              navigate('/customer/dashboard');
+            }
+          }}
           onOpenLiveStream={(ord) => {
             setConversationOrder(null);
             setIsStreamOpen(true);

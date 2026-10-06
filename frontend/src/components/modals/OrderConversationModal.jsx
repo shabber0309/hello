@@ -11,7 +11,12 @@ import {
   CheckCheck, 
   ShieldCheck,
   Minus,
-  ChevronUp
+  ChevronUp,
+  Paperclip,
+  Image as ImageIcon,
+  IndianRupee,
+  Tag,
+  Camera
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './OrderConversationModal.css';
@@ -27,7 +32,18 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
   const [isApprovingQuote, setIsApprovingQuote] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
+  // Attachment states for photo uploading and price quoting
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [photoCaption, setPhotoCaption] = useState('');
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [quotePriceInput, setQuotePriceInput] = useState('');
+  const [quoteNoteInput, setQuoteNoteInput] = useState('');
+  const [lightboxImage, setLightboxImage] = useState(null);
+
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const attachMenuRef = useRef(null);
 
   // Sync initial order
   useEffect(() => {
@@ -222,6 +238,199 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
         }
       } catch (err) {
         console.warn('Network message sent locally:', err);
+      }
+    }
+  };
+
+  // Close attachment popover when clicking anywhere outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (attachMenuRef.current && !attachMenuRef.current.contains(e.target)) {
+        setShowAttachMenu(false);
+      }
+    };
+    if (showAttachMenu) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showAttachMenu]);
+
+  // Handle Photo selection from device
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, WebP).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSelectedPhoto({
+        dataUrl: event.target.result,
+        name: file.name
+      });
+      setShowAttachMenu(false);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  // Send photo attachment into conversation
+  const handleSendPhoto = async () => {
+    if (!selectedPhoto || !activeOrder) return;
+    const caption = photoCaption.trim();
+    const photoData = selectedPhoto.dataUrl;
+    setSelectedPhoto(null);
+    setPhotoCaption('');
+
+    const senderRole = user?.role || 'customer';
+    const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
+
+    const optimisticMsg = {
+      id: Date.now(),
+      order_id: activeOrder.id,
+      sender_id: user?.id,
+      sender_name: senderName,
+      sender_role: senderRole,
+      message_type: 'image',
+      content: caption || 'Photo attachment',
+      metadata: { image_url: photoData },
+      created_at: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    // Save to local cache
+    try {
+      const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+      const updated = localSaved.map(o => {
+        if (String(o.order_number || o.id) === String(activeOrder.order_number || activeOrder.id)) {
+          return {
+            ...o,
+            messages: [...(o.messages || []), optimisticMsg]
+          };
+        }
+        return o;
+      });
+      localStorage.setItem('livefix_all_orders', JSON.stringify(updated));
+    } catch {}
+
+    // Send to backend
+    if (activeOrder.id) {
+      try {
+        const activeToken = getActiveToken();
+        const res = await fetch(`/api/repairs/${activeOrder.id}/conversation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${activeToken}`
+          },
+          body: JSON.stringify({
+            message_type: 'image',
+            content: caption,
+            metadata: { image_url: photoData }
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.chat_message) {
+            setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? data.chat_message : m));
+          }
+        }
+      } catch (err) {
+        console.warn('Photo message sent locally:', err);
+      }
+    }
+  };
+
+  // Send Price Quote / Offer into conversation
+  const handleSendPriceQuote = async (e) => {
+    e?.preventDefault();
+    const priceNum = parseFloat(quotePriceInput);
+    if (!priceNum || priceNum <= 0 || !activeOrder) return;
+
+    const note = quoteNoteInput.trim() || (user?.role === 'technician' ? 'Diagnostics & repair estimate' : 'Customer target budget');
+    setShowPriceModal(false);
+    setQuotePriceInput('');
+    setQuoteNoteInput('');
+
+    const senderRole = user?.role || 'customer';
+    const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
+
+    const optimisticMsg = {
+      id: Date.now(),
+      order_id: activeOrder.id,
+      sender_id: user?.id,
+      sender_name: senderName,
+      sender_role: senderRole,
+      message_type: 'price_quote',
+      content: note,
+      metadata: {
+        amount: priceNum,
+        quote_amount: priceNum,
+        notes: note,
+        approved: false
+      },
+      created_at: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    // Update active order state
+    setActiveOrder(prev => ({
+      ...prev,
+      quote_amount: priceNum,
+      technician_notes: note,
+      quote_approved: false
+    }));
+
+    // Save to local cache
+    try {
+      const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+      const updated = localSaved.map(o => {
+        if (String(o.order_number || o.id) === String(activeOrder.order_number || activeOrder.id)) {
+          return {
+            ...o,
+            quote_amount: priceNum,
+            technician_notes: note,
+            quote_approved: false,
+            messages: [...(o.messages || []), optimisticMsg]
+          };
+        }
+        return o;
+      });
+      localStorage.setItem('livefix_all_orders', JSON.stringify(updated));
+    } catch {}
+
+    // Send to backend
+    if (activeOrder.id) {
+      try {
+        const activeToken = getActiveToken();
+        const res = await fetch(`/api/repairs/${activeOrder.id}/conversation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${activeToken}`
+          },
+          body: JSON.stringify({
+            message_type: 'price_quote',
+            content: note,
+            metadata: {
+              amount: priceNum,
+              quote_amount: priceNum,
+              notes: note
+            }
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.chat_message) {
+            setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? data.chat_message : m));
+          }
+          if (data.order) setActiveOrder(data.order);
+        }
+      } catch (err) {
+        console.warn('Price quote sent locally:', err);
       }
     }
   };
@@ -549,11 +758,11 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
             </div>
 
             {/* ===========================================================
-                SUBSEQUENT CHAT MESSAGES
+                SUBSEQUENT CHAT MESSAGES (Text, Photos, and Price Quotes)
                 =========================================================== */}
             {messages.map((m) => {
               const isOutgoing = m.sender_id === user?.id || (m.sender_role === user?.role && m.sender_role !== 'system');
-              if (m.message_type === 'price_negotiation' && (m.metadata?.quote_amount || m.content?.includes('Quote'))) {
+              if (m.message_type === 'price_negotiation' && !m.metadata?.amount && (m.metadata?.quote_amount || m.content?.includes('Quote'))) {
                 // Already represented by Message 2 above unless additional negotiation happens
                 return null;
               }
@@ -561,6 +770,10 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
               const senderLabel = isOutgoing 
                 ? 'You' 
                 : (m.sender_role === 'technician' ? `${cleanTechName(m.sender_name)} (technician)` : `${m.sender_name || 'Customer'} (customer)`);
+
+              const hasImage = m.message_type === 'image' || Boolean(m.metadata?.image_url);
+              const isQuoteMsg = m.message_type === 'price_quote' || (Boolean(m.metadata?.amount || m.metadata?.quote_amount) && m.message_type !== 'text');
+              const quoteAmt = m.metadata?.amount || m.metadata?.quote_amount;
 
               return (
                 <div 
@@ -572,9 +785,62 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                       {senderLabel}
                     </div>
 
-                    <div className="wa-bubble-text">
-                      {m.content}
-                    </div>
+                    {/* PHOTO ATTACHMENT */}
+                    {hasImage && (
+                      <div className="wa-bubble-img-wrap">
+                        <img 
+                          src={m.metadata?.image_url} 
+                          alt="Photo attachment" 
+                          className="wa-bubble-image" 
+                          onClick={() => setLightboxImage(m.metadata?.image_url)}
+                          title="Click to view full photo"
+                        />
+                      </div>
+                    )}
+
+                    {/* PRICE QUOTE ATTACHMENT CARD */}
+                    {isQuoteMsg ? (
+                      <div className="wa-bubble-quote-card">
+                        <div className="wa-bubble-quote-header">
+                          <span className="wa-bubble-quote-badge">
+                            🏷️ {m.sender_role === 'technician' ? 'Price Quote' : 'Price Proposal'}
+                          </span>
+                          <span className="wa-bubble-quote-price">
+                            ₹{quoteAmt}
+                          </span>
+                        </div>
+
+                        {m.content && m.content !== 'Price proposal' && !m.content.startsWith('Price Quote: ₹') && (
+                          <div className="wa-bubble-quote-note">
+                            "{m.content || m.metadata?.notes}"
+                          </div>
+                        )}
+
+                        {isCustomer && m.sender_role === 'technician' && !activeOrder.quote_approved && (
+                          <button 
+                            type="button" 
+                            className="wa-approve-quote-btn"
+                            style={{ marginTop: '8px', padding: '6px 12px', fontSize: '0.8rem' }}
+                            disabled={isApprovingQuote}
+                            onClick={handleApproveQuote}
+                          >
+                            <CheckCircle2 size={15} /> Approve ₹{quoteAmt} Quote
+                          </button>
+                        )}
+
+                        {activeOrder.quote_approved && (
+                          <div className="wa-approved-tag" style={{ marginTop: '6px', fontSize: '0.78rem' }}>
+                            <CheckCircle2 size={14} /> Quote Approved
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      m.content && (!hasImage || m.content !== 'Photo attachment') && (
+                        <div className="wa-bubble-text">
+                          {m.content}
+                        </div>
+                      )
+                    )}
 
                     <div className="wa-bubble-meta">
                       <span>{formatMsgTime(m.created_at)}</span>
@@ -590,28 +856,208 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
             <div ref={messagesEndRef} />
           </div>
 
-          {/* WhatsApp Text Input Bar (Pure text only - NO photos) */}
-          <form className="wa-chat-footer" onSubmit={handleSendMessage}>
+          {/* WhatsApp Text Input Bar with Paperclip Attachments */}
+          <div className="wa-footer-wrapper">
+            
+            {/* Attachment Menu Popover (WhatsApp Style) */}
+            {showAttachMenu && (
+              <div className="wa-attach-popover" ref={attachMenuRef}>
+                <button 
+                  type="button" 
+                  className="wa-attach-option-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="wa-attach-icon-circle media">
+                    <ImageIcon size={20} />
+                  </div>
+                  <div className="wa-attach-option-text">
+                    <span className="wa-attach-option-title">Photos & Media</span>
+                    <span className="wa-attach-option-sub">Upload laptop fault photos or proof</span>
+                  </div>
+                </button>
+
+                <button 
+                  type="button" 
+                  className="wa-attach-option-btn"
+                  onClick={() => {
+                    setShowAttachMenu(false);
+                    setQuotePriceInput(activeOrder.quote_amount || activeOrder.customer_selected_price || '');
+                    setQuoteNoteInput(activeOrder.technician_notes || '');
+                    setShowPriceModal(true);
+                  }}
+                >
+                  <div className="wa-attach-icon-circle price">
+                    <IndianRupee size={20} />
+                  </div>
+                  <div className="wa-attach-option-text">
+                    <span className="wa-attach-option-title">
+                      {isCustomer ? 'Propose Price / Offer' : 'Submit Price Quote'}
+                    </span>
+                    <span className="wa-attach-option-sub">
+                      {isCustomer ? 'Propose your target repair budget' : 'Send diagnostic estimate & notes'}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {/* Hidden File Input for Photos */}
             <input 
-              type="text" 
-              className="wa-chat-input" 
-              value={newText} 
-              onChange={e => setNewText(e.target.value)} 
-              placeholder="Type a message..." 
-              autoFocus 
+              type="file" 
+              ref={fileInputRef} 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+              onChange={handlePhotoSelect} 
             />
-            <button 
-              type="submit" 
-              className="wa-send-btn" 
-              disabled={!newText.trim()} 
-              title="Send Message"
-            >
-              <Send size={18} />
-            </button>
-          </form>
+
+            <form className="wa-chat-footer" onSubmit={handleSendMessage}>
+              <button 
+                type="button" 
+                className={`wa-attach-btn ${showAttachMenu ? 'active' : ''}`}
+                onClick={() => setShowAttachMenu(prev => !prev)}
+                title="Attach photo or propose price"
+              >
+                <Paperclip size={20} />
+              </button>
+
+              <input 
+                type="text" 
+                className="wa-chat-input" 
+                value={newText} 
+                onChange={e => setNewText(e.target.value)} 
+                placeholder="Type a message..." 
+                autoFocus 
+              />
+
+              <button 
+                type="submit" 
+                className="wa-send-btn" 
+                disabled={!newText.trim()} 
+                title="Send Message"
+              >
+                <Send size={18} />
+              </button>
+            </form>
+          </div>
 
         </main>
         </>
+        )}
+
+        {/* PHOTO PREVIEW MODAL */}
+        {selectedPhoto && (
+          <div className="wa-modal-suboverlay" onClick={() => setSelectedPhoto(null)}>
+            <div className="wa-photo-preview-card" onClick={e => e.stopPropagation()}>
+              <div className="wa-submodal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.96rem' }}>
+                  <ImageIcon size={18} color="#008069" />
+                  <span>Send Photo Attachment</span>
+                </div>
+                <button type="button" className="wa-submodal-close" onClick={() => setSelectedPhoto(null)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="wa-photo-preview-body">
+                <img src={selectedPhoto.dataUrl} alt="Preview" className="wa-preview-img" />
+                <div className="wa-photo-filename">{selectedPhoto.name}</div>
+              </div>
+
+              <div className="wa-photo-preview-footer">
+                <input 
+                  type="text"
+                  className="wa-caption-input"
+                  placeholder="Add a caption... (optional)"
+                  value={photoCaption}
+                  onChange={e => setPhotoCaption(e.target.value)}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') handleSendPhoto(); }}
+                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button type="button" className="wa-cancel-btn" onClick={() => setSelectedPhoto(null)}>
+                    Cancel
+                  </button>
+                  <button type="button" className="wa-send-photo-btn" onClick={handleSendPhoto}>
+                    <Send size={16} /> Send Photo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PRICE QUOTE MODAL */}
+        {showPriceModal && (
+          <div className="wa-modal-suboverlay" onClick={() => setShowPriceModal(false)}>
+            <div className="wa-price-quote-card" onClick={e => e.stopPropagation()}>
+              <div className="wa-submodal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.96rem' }}>
+                  <Tag size={18} color="#008069" />
+                  <span>{isCustomer ? 'Propose Target Budget' : 'Send Repair Price Quote'}</span>
+                </div>
+                <button type="button" className="wa-submodal-close" onClick={() => setShowPriceModal(false)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSendPriceQuote} className="wa-price-form">
+                <div className="wa-form-group">
+                  <label className="wa-form-label">
+                    {isCustomer ? 'Your Proposed Budget (₹)' : 'Diagnostic Estimate / Quote Amount (₹)'}
+                  </label>
+                  <div className="wa-input-with-symbol">
+                    <span className="wa-rupee-symbol">₹</span>
+                    <input 
+                      type="number"
+                      min="50"
+                      step="50"
+                      required
+                      className="wa-price-number-input"
+                      value={quotePriceInput}
+                      onChange={e => setQuotePriceInput(e.target.value)}
+                      placeholder="e.g. 1800"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="wa-form-group">
+                  <label className="wa-form-label">
+                    {isCustomer ? 'Notes / Condition (optional)' : 'Diagnostics & Repair Scope Note'}
+                  </label>
+                  <textarea 
+                    rows="3"
+                    className="wa-price-notes-input"
+                    value={quoteNoteInput}
+                    onChange={e => setQuoteNoteInput(e.target.value)}
+                    placeholder={isCustomer ? "e.g. Can proceed if screen replacement is included" : "e.g. OEM Hinge replacement + thermal repaste included"}
+                  />
+                </div>
+
+                <div className="wa-price-form-actions">
+                  <button type="button" className="wa-cancel-btn" onClick={() => setShowPriceModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="wa-send-quote-submit-btn">
+                    <CheckCircle2 size={16} /> 
+                    {isCustomer ? `Propose ₹${quotePriceInput || '0'}` : `Send ₹${quotePriceInput || '0'} Quote`}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* LIGHTBOX FULL VIEW */}
+        {lightboxImage && (
+          <div className="wa-lightbox-overlay" onClick={() => setLightboxImage(null)}>
+            <div className="wa-lightbox-content" onClick={e => e.stopPropagation()}>
+              <button type="button" className="wa-lightbox-close" onClick={() => setLightboxImage(null)} title="Close image">
+                <X size={24} />
+              </button>
+              <img src={lightboxImage} alt="Attachment full view" className="wa-lightbox-img" />
+            </div>
+          </div>
         )}
 
       </div>
