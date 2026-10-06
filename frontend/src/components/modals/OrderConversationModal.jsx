@@ -9,7 +9,9 @@ import {
   Laptop, 
   Clock, 
   CheckCheck, 
-  ShieldCheck 
+  ShieldCheck,
+  Minus,
+  ChevronUp
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './OrderConversationModal.css';
@@ -23,6 +25,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
   const [loading, setLoading] = useState(false);
   const [searchTech, setSearchTech] = useState('');
   const [isApprovingQuote, setIsApprovingQuote] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -258,14 +261,24 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
   const isCustomer = user?.role === 'customer';
   const isTechnician = user?.role === 'technician';
 
+  // Sanitized technician name helper - ensures 'Awaiting Assignment' is never displayed as technician name
+  const cleanTechName = (name) => {
+    if (!name || typeof name !== 'string') return 'Shabber Hussain';
+    const trimmed = name.trim();
+    if (!trimmed || trimmed.toLowerCase().includes('awaiting') || trimmed.toLowerCase() === 'pending' || trimmed.toLowerCase() === 'null') {
+      return 'Shabber Hussain';
+    }
+    return trimmed;
+  };
+
   // Active contact details on the right
-  const activeTechName = activeOrder.technician_name || activeOrder.technician?.name || 'Shabber Hussain';
+  const activeTechName = cleanTechName(activeOrder.technician_name || activeOrder.technician?.name);
   const activeCustomerName = activeOrder.customer_name || activeOrder.customer?.name || 'Customer';
 
   // Filter technicians on left sidebar
   const filteredOrders = allOrdersList.filter(o => {
     const q = searchTech.toLowerCase();
-    const tech = (o.technician_name || 'Technician').toLowerCase();
+    const tech = cleanTechName(o.technician_name || o.technician?.name).toLowerCase();
     const dev = (o.laptop_brand + ' ' + o.laptop_model).toLowerCase();
     return !q || tech.includes(q) || dev.includes(q);
   });
@@ -281,117 +294,170 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
 
   return (
     <div className="wa-chat-backdrop" onClick={onClose}>
-      <div className="wa-chat-card" onClick={e => e.stopPropagation()}>
+      <div 
+        className={`wa-chat-card ${isMinimized ? 'minimized' : ''}`} 
+        onClick={e => e.stopPropagation()}
+      >
         
         {/* =============================================================
-            LEFT SIDEBAR: ALL TECHNICIANS LIST (Beside (Technician))
+            MINIMIZED STATE: LINKEDIN-STYLE DOCKED BOTTOM-RIGHT BAR
             ============================================================= */}
-        <aside className="wa-sidebar">
-          <div className="wa-sidebar-header">
-            <h2 className="wa-sidebar-title">
-              <span>Chats</span>
-              <span className="wa-sidebar-badge">
-                {isCustomer ? `${allOrdersList.length} Technicians` : `${allOrdersList.length} Customers`}
-              </span>
-            </h2>
-          </div>
-
-          <div className="wa-search-wrap">
-            <input 
-              type="text"
-              className="wa-search-input"
-              placeholder={isCustomer ? "Search technicians..." : "Search repairs..."}
-              value={searchTech}
-              onChange={e => setSearchTech(e.target.value)}
-            />
-          </div>
-
-          <div className="wa-chat-list">
-            {filteredOrders.map(item => {
-              const techDisplayName = `${item.technician_name || 'Shabber Hussain'} (technician)`;
-              const custDisplayName = `${item.customer_name || 'Customer'} (customer)`;
-              const displayName = isCustomer ? techDisplayName : custDisplayName;
-              const isActive = String(item.order_number || item.id) === String(activeOrder.order_number || activeOrder.id);
-              const initialLetter = (isCustomer ? (item.technician_name || 'T') : (item.customer_name || 'C')).charAt(0).toUpperCase();
-
-              return (
-                <div 
-                  key={item.id || item.order_number}
-                  className={`wa-chat-item ${isActive ? 'active' : ''}`}
-                  onClick={() => setActiveOrder(item)}
-                >
-                  <div className="wa-chat-item-avatar">
-                    {initialLetter}
-                    <span className="wa-chat-item-dot" />
-                  </div>
-
-                  <div className="wa-chat-item-info">
-                    <div className="wa-chat-item-top">
-                      <span className="wa-chat-item-name">{displayName}</span>
-                      <span className="wa-chat-item-time">
-                        {formatMsgTime(item.created_at)}
-                      </span>
-                    </div>
-
-                    <div className="wa-chat-item-snippet">
-                      <span>{item.laptop_brand} {item.laptop_model}</span>
-                      {item.quote_amount ? (
-                        <span className="wa-quote-badge-chip">
-                          ₹{item.quote_amount}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </aside>
-
-        {/* =============================================================
-            RIGHT SIDE: ACTIVE CHAT WINDOW
-            ============================================================= */}
-        <main className="wa-chat-window">
-          
-          {/* WhatsApp Window Header */}
-          <header className="wa-window-header">
-            <div className="wa-header-contact">
-              <div className="wa-header-avatar">
+        {isMinimized ? (
+          <div className="wa-minimized-bar" onClick={() => setIsMinimized(false)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+              <div className="wa-minimized-avatar">
                 {(isCustomer ? activeTechName : activeCustomerName).charAt(0).toUpperCase()}
-                <span className="wa-header-online-dot" />
               </div>
-
-              <div style={{ minWidth: 0 }}>
-                <h3 className="wa-contact-name">
+              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: '#ffffff' }}>
                   {isCustomer ? `${activeTechName} (technician)` : `${activeCustomerName} (customer)`}
-                </h3>
-                <div className="wa-contact-sub">
-                  Online • {activeOrder.laptop_brand} {activeOrder.laptop_model} • Order #{activeOrder.order_number}
+                </div>
+                <div style={{ fontSize: '0.72rem', opacity: 0.85, fontWeight: 500, color: '#ffffff' }}>
+                  Online • #{activeOrder.order_number}
                 </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {activeOrder.stream_session?.is_live && (
-                <button 
-                  type="button" 
-                  className="wa-header-btn" 
-                  onClick={() => onOpenLiveStream && onOpenLiveStream(activeOrder)}
-                  title="Join Cleanroom Video Meet"
-                >
-                  <Video size={19} />
-                </button>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <button 
                 type="button" 
                 className="wa-header-btn" 
-                onClick={onClose}
+                onClick={(e) => { e.stopPropagation(); setIsMinimized(false); }}
+                title="Expand Chat"
+              >
+                <ChevronUp size={18} />
+              </button>
+              <button 
+                type="button" 
+                className="wa-header-btn" 
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
                 title="Close Chat"
               >
-                <X size={22} />
+                <X size={18} />
               </button>
             </div>
-          </header>
+          </div>
+        ) : (
+          <>
+            {/* =============================================================
+                LEFT SIDEBAR: ALL TECHNICIANS LIST (Beside (Technician))
+                ============================================================= */}
+            <aside className="wa-sidebar">
+              <div className="wa-sidebar-header">
+                <h2 className="wa-sidebar-title">
+                  <span>Chats</span>
+                  <span className="wa-sidebar-badge">
+                    {isCustomer ? `${allOrdersList.length} Technicians` : `${allOrdersList.length} Customers`}
+                  </span>
+                </h2>
+              </div>
+
+              <div className="wa-search-wrap">
+                <input 
+                  type="text" 
+                  className="wa-search-input"
+                  placeholder={isCustomer ? "Search technicians..." : "Search repairs..."}
+                  value={searchTech}
+                  onChange={e => setSearchTech(e.target.value)}
+                />
+              </div>
+
+              <div className="wa-chat-list">
+                {filteredOrders.map(item => {
+                  const itemTech = cleanTechName(item.technician_name || item.technician?.name);
+                  const itemCust = item.customer_name || 'Customer';
+                  const techDisplayName = `${itemTech} (technician)`;
+                  const custDisplayName = `${itemCust} (customer)`;
+                  const displayName = isCustomer ? techDisplayName : custDisplayName;
+                  const isActive = String(item.order_number || item.id) === String(activeOrder.order_number || activeOrder.id);
+                  const initialLetter = (isCustomer ? itemTech : itemCust).charAt(0).toUpperCase();
+
+                  return (
+                    <div 
+                      key={item.id || item.order_number}
+                      className={`wa-chat-item ${isActive ? 'active' : ''}`}
+                      onClick={() => setActiveOrder(item)}
+                    >
+                      <div className="wa-chat-item-avatar">
+                        {initialLetter}
+                        <span className="wa-chat-item-dot" />
+                      </div>
+
+                      <div className="wa-chat-item-info">
+                        <div className="wa-chat-item-top">
+                          <span className="wa-chat-item-name">{displayName}</span>
+                          <span className="wa-chat-item-time">
+                            {formatMsgTime(item.created_at)}
+                          </span>
+                        </div>
+
+                        <div className="wa-chat-item-snippet">
+                          <span>{item.laptop_brand} {item.laptop_model}</span>
+                          {item.quote_amount ? (
+                            <span className="wa-quote-badge-chip">
+                              ₹{item.quote_amount}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </aside>
+
+            {/* =============================================================
+                RIGHT SIDE: ACTIVE CHAT WINDOW
+                ============================================================= */}
+            <main className="wa-chat-window">
+              
+              {/* LinkedIn/WhatsApp Style Window Header */}
+              <header className="wa-window-header">
+                <div className="wa-header-contact">
+                  <div className="wa-header-avatar">
+                    {(isCustomer ? activeTechName : activeCustomerName).charAt(0).toUpperCase()}
+                    <span className="wa-header-online-dot" />
+                  </div>
+
+                  <div style={{ minWidth: 0 }}>
+                    <h3 className="wa-contact-name">
+                      {isCustomer ? `${activeTechName} (technician)` : `${activeCustomerName} (customer)`}
+                    </h3>
+                    <div className="wa-contact-sub">
+                      Online • {activeOrder.laptop_brand} {activeOrder.laptop_model} • Order #{activeOrder.order_number}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {activeOrder.stream_session?.is_live && (
+                    <button 
+                      type="button" 
+                      className="wa-header-btn" 
+                      onClick={() => onOpenLiveStream && onOpenLiveStream(activeOrder)}
+                      title="Join Cleanroom Video Meet"
+                    >
+                      <Video size={19} />
+                    </button>
+                  )}
+                  <button 
+                    type="button" 
+                    className="wa-header-btn" 
+                    onClick={() => setIsMinimized(true)}
+                    title="Minimize Chat"
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <button 
+                    type="button" 
+                    className="wa-header-btn" 
+                    onClick={onClose}
+                    title="Close Chat"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </header>
 
           {/* Messages Scroll Area */}
           <div className="wa-window-body">
@@ -492,7 +558,9 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                 return null;
               }
 
-              const senderLabel = isOutgoing ? 'You' : `${m.sender_name || 'Technician'} (${m.sender_role || 'technician'})`;
+              const senderLabel = isOutgoing 
+                ? 'You' 
+                : (m.sender_role === 'technician' ? `${cleanTechName(m.sender_name)} (technician)` : `${m.sender_name || 'Customer'} (customer)`);
 
               return (
                 <div 
@@ -525,17 +593,17 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
           {/* WhatsApp Text Input Bar (Pure text only - NO photos) */}
           <form className="wa-chat-footer" onSubmit={handleSendMessage}>
             <input 
-              type="text"
-              className="wa-chat-input"
-              value={newText}
-              onChange={e => setNewText(e.target.value)}
-              placeholder="Type a message..."
-              autoFocus
+              type="text" 
+              className="wa-chat-input" 
+              value={newText} 
+              onChange={e => setNewText(e.target.value)} 
+              placeholder="Type a message..." 
+              autoFocus 
             />
             <button 
               type="submit" 
-              className="wa-send-btn"
-              disabled={!newText.trim()}
+              className="wa-send-btn" 
+              disabled={!newText.trim()} 
               title="Send Message"
             >
               <Send size={18} />
@@ -543,6 +611,8 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
           </form>
 
         </main>
+        </>
+        )}
 
       </div>
     </div>
