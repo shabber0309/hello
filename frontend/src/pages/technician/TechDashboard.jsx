@@ -39,9 +39,40 @@ import { StreamModal, OrderConversationModal, NotificationsModal } from '../../c
 import './TechDashboard.css';
 
 export default function TechDashboard() {
-  const { user, logout, token } = useAuth();
+  const { user, logout, token, login, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Technician auth guard states
+  const [techIdentifier, setTechIdentifier] = useState('tech@livefix.com');
+  const [techPassword, setTechPassword] = useState('tech123');
+  const [techAuthError, setTechAuthError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showSwitchLoginForm, setShowSwitchLoginForm] = useState(false);
+
+  const handleTechLogin = async (e) => {
+    if (e) e.preventDefault();
+    setTechAuthError('');
+    setIsAuthenticating(true);
+    try {
+      const res = await login(techIdentifier, techPassword);
+      if (res.success) {
+        if (res.user?.role !== 'technician') {
+          setTechAuthError(`Account "${res.user?.name}" is a ${res.user?.role}. Technician authorization required.`);
+          return;
+        }
+        setShowSwitchLoginForm(false);
+        fetchTechJobs();
+      } else {
+        setTechAuthError(res.error || 'Invalid credentials. Please verify your technician login.');
+      }
+    } catch {
+      setTechAuthError('Network error while authenticating technician.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
   const [activeSidebarNav, setActiveSidebarNav] = useState('dashboard');
   const [isLiveStreamOpen, setIsLiveStreamOpen] = useState(false);
   const [streamOrder, setStreamOrder] = useState(null);
@@ -120,15 +151,17 @@ export default function TechDashboard() {
   };
 
   useEffect(() => {
-    fetchTechJobs();
+    if (user && user.role === 'technician') {
+      fetchTechJobs();
 
-    // 4-second real-time polling so customer requests appear immediately
-    const interval = setInterval(() => {
-      fetchTechJobs(true);
-    }, 4000);
+      // 4-second real-time polling so customer requests appear immediately
+      const interval = setInterval(() => {
+        fetchTechJobs(true);
+      }, 4000);
 
-    return () => clearInterval(interval);
-  }, [token]);
+      return () => clearInterval(interval);
+    }
+  }, [token, user]);
 
   // Filtered order groups
   const nearbyRequests = orders.filter(o => o.status === 'Order Placed');
@@ -342,6 +375,302 @@ export default function TechDashboard() {
     'Repaired & Awaiting Payment': 'Return Pickup',
     'Return Pickup': 'Delivered'
   };
+
+  // 1. If NOT authenticated or user requested to switch accounts: Show Technician Authentication Gate
+  if (!user || showSwitchLoginForm) {
+    return (
+      <div className="tech-dashboard-root" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div style={{
+          maxWidth: '460px',
+          width: '100%',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-light)',
+          borderRadius: '16px',
+          padding: '36px 32px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+          backdropFilter: 'blur(16px)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              background: 'rgba(234, 88, 12, 0.12)',
+              border: '1px solid rgba(234, 88, 12, 0.3)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '14px'
+            }}>
+              <Wrench size={28} color="#ea580c" />
+            </div>
+            <div style={{
+              display: 'inline-block',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              letterSpacing: '0.6px',
+              color: '#ea580c',
+              background: 'rgba(234, 88, 12, 0.1)',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              marginBottom: '8px'
+            }}>
+              CLEANROOM WORKBENCH • AUTH REQUIRED
+            </div>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '6px 0 8px', color: 'var(--text-main)' }}>
+              Technician Workbench Login
+            </h2>
+            <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', margin: 0 }}>
+              Authentication required. Sign in with cleanroom technician credentials to manage diagnostics & live streams.
+            </p>
+          </div>
+
+          {techAuthError && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              marginBottom: '18px',
+              fontSize: '0.84rem',
+              color: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+              <span>{techAuthError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleTechLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                Technician Email or Username
+              </label>
+              <input
+                type="text"
+                value={techIdentifier}
+                onChange={(e) => setTechIdentifier(e.target.value)}
+                placeholder="tech@livefix.com"
+                required
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-light)',
+                  background: 'var(--bg-main)',
+                  color: 'var(--text-main)',
+                  fontSize: '0.92rem'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                Password
+              </label>
+              <input
+                type="password"
+                value={techPassword}
+                onChange={(e) => setTechPassword(e.target.value)}
+                placeholder="••••••••••••"
+                required
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-light)',
+                  background: 'var(--bg-main)',
+                  color: 'var(--text-main)',
+                  fontSize: '0.92rem'
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isAuthenticating}
+              className="btn-primary"
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                marginTop: '4px',
+                background: '#ea580c',
+                borderColor: '#ea580c',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isAuthenticating ? (
+                <>
+                  <RefreshCw size={16} className="spin" /> Verifying...
+                </>
+              ) : (
+                <>
+                  <Wrench size={16} /> Authenticate to Workbench
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Quick Demo Helper */}
+          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-light)', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={async () => {
+                setTechIdentifier('tech@livefix.com');
+                setTechPassword('tech123');
+                await switchRole('technician');
+                setShowSwitchLoginForm(false);
+                fetchTechJobs();
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#ea580c',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              ⚡ Quick Demo 1-Click: Sign in as Technician
+            </button>
+            <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/for-technicians')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-main)',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Join as Technician
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer'
+                }}
+              >
+                ← Return Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. If signed in as non-technician (e.g. customer or admin), show Role Notice Gate
+  if (user.role !== 'technician') {
+    return (
+      <div className="tech-dashboard-root" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div style={{
+          maxWidth: '520px',
+          width: '100%',
+          background: 'var(--bg-surface)',
+          border: '1px solid rgba(234, 88, 12, 0.3)',
+          borderRadius: '16px',
+          padding: '36px 32px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '16px',
+            background: 'rgba(234, 88, 12, 0.12)',
+            border: '1px solid rgba(234, 88, 12, 0.3)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '16px'
+          }}>
+            <Wrench size={30} color="#ea580c" />
+          </div>
+          <div style={{
+            display: 'inline-block',
+            fontSize: '0.72rem',
+            fontWeight: 800,
+            letterSpacing: '0.6px',
+            color: '#ea580c',
+            background: 'rgba(234, 88, 12, 0.1)',
+            padding: '4px 10px',
+            borderRadius: '20px',
+            marginBottom: '10px'
+          }}>
+            WORKBENCH ROLE NOTICE
+          </div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '6px 0 10px', color: 'var(--text-main)' }}>
+            Signed in as {user.role?.toUpperCase()}
+          </h2>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '24px' }}>
+            You are currently signed in as <strong>{user.name}</strong> ({user.role?.toUpperCase()}). The Cleanroom Workbench requires an active technician account.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => setShowSwitchLoginForm(true)}
+              style={{ padding: '12px', fontSize: '0.9rem', fontWeight: 700, background: '#ea580c', borderColor: '#ea580c' }}
+            >
+              🔧 Sign in with Technician Account
+            </button>
+            {user.role === 'customer' && (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => navigate('/customer/dashboard')}
+                style={{ padding: '11px', fontSize: '0.88rem', fontWeight: 600 }}
+              >
+                👤 Go to Customer Dashboard
+              </button>
+            )}
+            {user.role === 'admin' && (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => navigate('/admin/dashboard')}
+                style={{ padding: '11px', fontSize: '0.88rem', fontWeight: 600 }}
+              >
+                🛡️ Go to Admin Console
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={logout}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-dim)',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                marginTop: '6px'
+              }}
+            >
+              Sign out of current account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="tech-dashboard-root">

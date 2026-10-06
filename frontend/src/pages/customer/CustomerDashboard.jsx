@@ -41,9 +41,40 @@ import {
 import './CustomerDashboard.css';
 
 export default function CustomerDashboard({ onNewBooking }) {
-  const { user, logout, token } = useAuth();
+  const { user, logout, token, login, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Customer auth guard states
+  const [customerIdentifier, setCustomerIdentifier] = useState('customer@livefix.com');
+  const [customerPassword, setCustomerPassword] = useState('customer123');
+  const [customerAuthError, setCustomerAuthError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showSwitchLoginForm, setShowSwitchLoginForm] = useState(false);
+
+  const handleCustomerLogin = async (e) => {
+    if (e) e.preventDefault();
+    setCustomerAuthError('');
+    setIsAuthenticating(true);
+    try {
+      const res = await login(customerIdentifier, customerPassword);
+      if (res.success) {
+        if (res.user?.role !== 'customer') {
+          setCustomerAuthError(`Account "${res.user?.name}" is a ${res.user?.role}. Customer credentials required.`);
+          return;
+        }
+        setShowSwitchLoginForm(false);
+        fetchRepairs();
+      } else {
+        setCustomerAuthError(res.error || 'Invalid credentials. Please verify your email or phone.');
+      }
+    } catch {
+      setCustomerAuthError('Network error while logging in.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
   const [activeSidebarNav, setActiveSidebarNav] = useState('dashboard');
   const [isStreamOpen, setIsStreamOpen] = useState(false);
   const [isTrackOpen, setIsTrackOpen] = useState(false);
@@ -114,6 +145,300 @@ export default function CustomerDashboard({ onNewBooking }) {
 
   const activeRepairs = repairs.filter(r => r.status !== 'Delivered');
   const pastRepairs = repairs.filter(r => r.status === 'Delivered');
+
+  // 1. If NOT authenticated or user requested to switch accounts: Show Customer Authentication Gate
+  if (!user || showSwitchLoginForm) {
+    return (
+      <div className="customer-dashboard-root" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div style={{
+          maxWidth: '460px',
+          width: '100%',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-light)',
+          borderRadius: '16px',
+          padding: '36px 32px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+          backdropFilter: 'blur(16px)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              background: 'rgba(37, 99, 235, 0.12)',
+              border: '1px solid rgba(37, 99, 235, 0.3)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '14px'
+            }}>
+              <User size={28} color="#2563eb" />
+            </div>
+            <div style={{
+              display: 'inline-block',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              letterSpacing: '0.6px',
+              color: '#2563eb',
+              background: 'rgba(37, 99, 235, 0.1)',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              marginBottom: '8px'
+            }}>
+              CUSTOMER PORTAL • AUTH REQUIRED
+            </div>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '6px 0 8px', color: 'var(--text-main)' }}>
+              Sign in to Your Dashboard
+            </h2>
+            <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', margin: 0 }}>
+              Track active hardware repairs, watch 4K workbench streams & approve quotes.
+            </p>
+          </div>
+
+          {customerAuthError && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              marginBottom: '18px',
+              fontSize: '0.84rem',
+              color: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{customerAuthError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleCustomerLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                Email or Mobile Number
+              </label>
+              <input
+                type="text"
+                value={customerIdentifier}
+                onChange={(e) => setCustomerIdentifier(e.target.value)}
+                placeholder="customer@livefix.com"
+                required
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-light)',
+                  background: 'var(--bg-main)',
+                  color: 'var(--text-main)',
+                  fontSize: '0.92rem'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                Password
+              </label>
+              <input
+                type="password"
+                value={customerPassword}
+                onChange={(e) => setCustomerPassword(e.target.value)}
+                placeholder="••••••••••••"
+                required
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-light)',
+                  background: 'var(--bg-main)',
+                  color: 'var(--text-main)',
+                  fontSize: '0.92rem'
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isAuthenticating}
+              className="btn-primary"
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                marginTop: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isAuthenticating ? (
+                <>
+                  <RefreshCw size={16} className="spin" /> Signing in...
+                </>
+              ) : (
+                <>
+                  <Lock size={16} /> Sign in to Customer Dashboard
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Quick Demo Helper */}
+          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-light)', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={async () => {
+                setCustomerIdentifier('customer@livefix.com');
+                setCustomerPassword('customer123');
+                await switchRole('customer');
+                setShowSwitchLoginForm(false);
+                fetchRepairs();
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--primary)',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              ⚡ Quick Demo 1-Click: Sign in as Customer
+            </button>
+            <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-main)',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Create an account
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer'
+                }}
+              >
+                ← Return Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. If signed in as non-customer (e.g. technician or admin), show Role Notice Gate
+  if (user.role !== 'customer') {
+    return (
+      <div className="customer-dashboard-root" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div style={{
+          maxWidth: '520px',
+          width: '100%',
+          background: 'var(--bg-surface)',
+          border: '1px solid rgba(37, 99, 235, 0.3)',
+          borderRadius: '16px',
+          padding: '36px 32px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '16px',
+            background: 'rgba(37, 99, 235, 0.12)',
+            border: '1px solid rgba(37, 99, 235, 0.3)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '16px'
+          }}>
+            <User size={30} color="#2563eb" />
+          </div>
+          <div style={{
+            display: 'inline-block',
+            fontSize: '0.72rem',
+            fontWeight: 800,
+            letterSpacing: '0.6px',
+            color: '#2563eb',
+            background: 'rgba(37, 99, 235, 0.1)',
+            padding: '4px 10px',
+            borderRadius: '20px',
+            marginBottom: '10px'
+          }}>
+            PORTAL ROLE NOTICE
+          </div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '6px 0 10px', color: 'var(--text-main)' }}>
+            Signed in as {user.role?.toUpperCase()}
+          </h2>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '24px' }}>
+            You are currently signed in as <strong>{user.name}</strong> ({user.role?.toUpperCase()}). To manage your repairs as a customer, please switch accounts or return to your dedicated portal.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => setShowSwitchLoginForm(true)}
+              style={{ padding: '12px', fontSize: '0.9rem', fontWeight: 700 }}
+            >
+              👤 Sign in with Customer Account
+            </button>
+            {user.role === 'technician' && (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => navigate('/technician/dashboard')}
+                style={{ padding: '11px', fontSize: '0.88rem', fontWeight: 600 }}
+              >
+                🔧 Go to Technician Workbench
+              </button>
+            )}
+            {user.role === 'admin' && (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => navigate('/admin/dashboard')}
+                style={{ padding: '11px', fontSize: '0.88rem', fontWeight: 600 }}
+              >
+                🛡️ Go to Admin Console
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={logout}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-dim)',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                marginTop: '6px'
+              }}
+            >
+              Sign out of current account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="customer-dashboard-root">
