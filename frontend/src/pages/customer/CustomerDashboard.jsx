@@ -97,8 +97,15 @@ export default function CustomerDashboard({ onNewBooking }) {
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else if (tab === 'track') {
       setIsTrackOpen(true);
-    } else if (tab === 'messages') {
-      setIsStreamOpen(true);
+    } else if (tab === 'messages' || tab === 'chat') {
+      if (repairs.length > 0) {
+        setConversationOrder(repairs[0]);
+      } else {
+        try {
+          const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+          if (localSaved.length > 0) setConversationOrder(localSaved[0]);
+        } catch {}
+      }
     } else if (tab === 'payments') {
       setIsPaymentsOpen(true);
     } else if (tab === 'notifications') {
@@ -346,13 +353,56 @@ export default function CustomerDashboard({ onNewBooking }) {
                     </div>
                   )}
 
+                  {/* Technician Requested Higher Quote Notification */}
+                  {r.quote_amount && r.quote_amount > (r.customer_selected_price || 0) && !r.quote_approved && (
+                    <div style={{
+                      background: 'rgba(0, 128, 105, 0.1)',
+                      border: '1px solid #008069',
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      marginBottom: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '10px'
+                    }}>
+                      <div>
+                        <strong style={{ color: '#008069', fontSize: '0.88rem' }}>
+                          💰 Technician Requested Quote: ₹{r.quote_amount}
+                        </strong>
+                        {r.technician_notes && (
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            "{r.technician_notes}"
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setConversationOrder(r)}
+                        style={{
+                          background: '#008069',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 14px',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        💬 Chat & Approve
+                      </button>
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button 
                       className="btn-cta" 
                       onClick={() => setConversationOrder(r)} 
-                      style={{ fontSize: '0.85rem' }}
+                      style={{ fontSize: '0.85rem', background: '#008069', borderColor: '#008069', display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
-                      <MessageSquare size={16} /> Live Negotiation & Custody Thread
+                      <MessageSquare size={16} /> 💬 Chat with Technician
                     </button>
                     {r.stream_session?.is_live && (
                       <button className="btn-secondary" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.85rem' }}>

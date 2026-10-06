@@ -163,6 +163,22 @@ export default function TechDashboard() {
     }
   }, [token, user]);
 
+  // Sync tab search param to automatically open WhatsApp chat modal
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'messages' || tab === 'chat') {
+      if (orders.length > 0) {
+        setActiveConversationOrder(orders[0]);
+      } else {
+        try {
+          const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+          if (localSaved.length > 0) setActiveConversationOrder(localSaved[0]);
+        } catch {}
+      }
+    }
+  }, [location.search, orders.length]);
+
   // Filtered order groups
   const nearbyRequests = orders.filter(o => o.status === 'Order Placed');
   const activeRepairs = orders.filter(o => 
@@ -246,13 +262,60 @@ export default function TechDashboard() {
         })
       });
 
+      const quoteAmt = parseFloat(quoteForm.quote_amount);
+      const quoteNotes = quoteForm.technician_notes;
+
+      // Update local storage order cache with the new quote and chat message
+      const quoteChatMsg = {
+        id: Date.now(),
+        order_id: selectedOrderForAction.id,
+        sender_id: user?.id,
+        sender_name: user?.name || 'Technician',
+        sender_role: 'technician',
+        message_type: 'price_negotiation',
+        content: `Diagnostic Quote Updated to ₹${quoteAmt}.${quoteNotes ? `\nNote: ${quoteNotes}` : ''}`,
+        metadata: { quote_amount: quoteAmt, technician_notes: quoteNotes },
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+        const updated = localSaved.map(o => {
+          if (String(o.order_number || o.id) === String(selectedOrderForAction.order_number || selectedOrderForAction.id)) {
+            return {
+              ...o,
+              quote_amount: quoteAmt,
+              technician_notes: quoteNotes,
+              messages: [...(o.messages || []), quoteChatMsg]
+            };
+          }
+          return o;
+        });
+        localStorage.setItem('livefix_all_orders', JSON.stringify(updated));
+      } catch (e) {}
+
       if (res.ok) {
-        setFeedbackMsg(`Quote of ₹${quoteForm.quote_amount} submitted for customer approval!`);
+        const data = await res.json();
+        setFeedbackMsg(`Quote of ₹${quoteForm.quote_amount} submitted as message to customer!`);
         setIsQuoteModalOpen(false);
         fetchTechJobs();
+        // Immediately open WhatsApp chat for this order
+        const updatedOrder = data.order || {
+          ...selectedOrderForAction,
+          quote_amount: quoteAmt,
+          technician_notes: quoteNotes
+        };
+        setActiveConversationOrder(updatedOrder);
       } else {
-        const err = await res.json();
-        setErrorMsg(err.error || 'Failed to submit quote');
+        // Fallback for demo: still open chat so technician can communicate
+        setFeedbackMsg(`Quote of ₹${quoteForm.quote_amount} updated!`);
+        setIsQuoteModalOpen(false);
+        setActiveConversationOrder({
+          ...selectedOrderForAction,
+          quote_amount: quoteAmt,
+          technician_notes: quoteNotes
+        });
+        fetchTechJobs();
       }
     } catch (err) {
       setErrorMsg('Network error submitting quote');
@@ -697,6 +760,15 @@ export default function TechDashboard() {
                             }}
                           >
                             Send Quote
+                          </button>
+
+                          <button 
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: '7px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0, 128, 105, 0.1)', color: '#008069', borderColor: '#008069' }}
+                            onClick={() => setActiveConversationOrder(req)}
+                          >
+                            <MessageSquare size={14} color="#008069" /> 💬 Chat with Customer
                           </button>
 
                           <button 

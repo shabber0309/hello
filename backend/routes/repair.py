@@ -333,10 +333,31 @@ def set_quote(current_user, order_id):
     if notes:
         order.technician_notes = notes
 
+    # Automatically send chat message with technician name when quote amount is updated
+    tech_name = current_user.name or "Technician"
+    quote_text = f"Diagnostic Quote Updated to ₹{int(quote_amount):,}."
+    if notes:
+        quote_text += f"\nNote: {notes}"
+
+    quote_msg = OrderMessage(
+        order_id=order.id,
+        sender_id=current_user.id,
+        sender_name=tech_name,
+        sender_role="technician",
+        message_type="price_negotiation",
+        content=quote_text,
+        metadata_json=json.dumps({
+            "quote_amount": quote_amount,
+            "technician_notes": notes or ""
+        })
+    )
+    db.session.add(quote_msg)
     db.session.commit()
+
     return jsonify({
         'message': 'Quote submitted for customer approval',
-        'order': order.to_dict()
+        'order': order.to_dict(),
+        'chat_message': quote_msg.to_dict()
     }), 200
 
 
@@ -354,10 +375,24 @@ def approve_quote(current_user, order_id):
     approved = data.get('approved', True)
     order.quote_approved = approved
 
+    cust_name = current_user.name or "Customer"
+    status_text = f"Quote of ₹{int(order.quote_amount or 0):,} was APPROVED by {cust_name}. Proceeding with repair." if approved else f"Quote was declined by {cust_name}."
+    approval_msg = OrderMessage(
+        order_id=order.id,
+        sender_id=current_user.id,
+        sender_name=cust_name,
+        sender_role="customer",
+        message_type="price_agreed" if approved else "text",
+        content=status_text,
+        metadata_json=json.dumps({"quote_approved": approved, "quote_amount": order.quote_amount or 0})
+    )
+    db.session.add(approval_msg)
     db.session.commit()
+
     return jsonify({
         'message': 'Quote approved' if approved else 'Quote declined',
-        'order': order.to_dict()
+        'order': order.to_dict(),
+        'chat_message': approval_msg.to_dict()
     }), 200
 
 

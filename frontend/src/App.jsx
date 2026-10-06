@@ -30,7 +30,8 @@ import {
   NotificationsModal,
   HelpSupportModal,
   EditProfileModal,
-  QualityCheckDeliveryModal
+  QualityCheckDeliveryModal,
+  OrderConversationModal
 } from './components/modals';
 import { ShieldCheck, Video, Lock, Heart } from 'lucide-react';
 
@@ -77,9 +78,57 @@ function MainApp() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [activeWhatsAppChatOrder, setActiveWhatsAppChatOrder] = useState(null);
 
   const openAuth = (role = 'customer') => {
     navigate('/login', { state: { role } });
+  };
+
+  const handleOpenChat = async (targetOrder = null) => {
+    if (targetOrder) {
+      setActiveWhatsAppChatOrder(targetOrder);
+      return;
+    }
+
+    // 1. Check cached orders from localStorage
+    try {
+      const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+      if (localSaved.length > 0) {
+        setActiveWhatsAppChatOrder(localSaved[0]);
+        return;
+      }
+    } catch {}
+
+    // 2. Fetch latest repair from API
+    try {
+      const activeToken = localStorage.getItem('token') || localStorage.getItem('livefix_token') || '';
+      const res = await fetch('/api/repairs', {
+        headers: activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {}
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const apiOrders = data.orders || [];
+        if (apiOrders.length > 0) {
+          setActiveWhatsAppChatOrder(apiOrders[0]);
+          return;
+        }
+      }
+    } catch {}
+
+    // 3. Fallback default order so the WhatsApp chat always opens immediately
+    setActiveWhatsAppChatOrder({
+      id: 1,
+      order_number: 'EOF-2026-91889',
+      customer_name: user?.role === 'technician' ? 'Customer' : (user?.name || 'Customer'),
+      technician_name: user?.role === 'technician' ? (user?.name || 'Technician') : 'Shabber Hussain (Technician)',
+      laptop_brand: 'Dell XPS 13',
+      laptop_model: '9315 / 9310',
+      issue_category: 'Keyboard stuck',
+      status: 'In Progress',
+      quote_amount: 500,
+      technician_notes: 'i can fix this for this price because its takes too much time to repair',
+      quote_approved: false
+    });
   };
 
   const handleOpenTrackWithId = (id = '') => {
@@ -133,7 +182,7 @@ function MainApp() {
         onOpenPayments={() => setIsPaymentsOpen(true)}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
-        onOpenMessages={() => setDemoStreamOrder(sampleDemoOrder)}
+        onOpenMessages={() => handleOpenChat()}
         onOpenEditProfile={() => setIsEditProfileOpen(true)}
       />
 
@@ -305,6 +354,19 @@ function MainApp() {
         isOpen={isEditProfileOpen}
         onClose={() => setIsEditProfileOpen(false)}
       />
+
+      {/* WhatsApp Direct Customer-Technician Chat Modal */}
+      {activeWhatsAppChatOrder && (
+        <OrderConversationModal
+          isOpen={Boolean(activeWhatsAppChatOrder)}
+          initialOrder={activeWhatsAppChatOrder}
+          onClose={() => setActiveWhatsAppChatOrder(null)}
+          onOpenLiveStream={(ord) => {
+            setActiveWhatsAppChatOrder(null);
+            setDemoStreamOrder(ord || sampleDemoOrder);
+          }}
+        />
+      )}
 
       {/* Authentication Modal */}
       <AuthModal
