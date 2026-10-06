@@ -516,15 +516,6 @@ export default function CustomerDashboard({ onNewBooking }) {
                         <Video size={16} /> Join Live Repair
                       </button>
                     )}
-                    <button className="btn-secondary" onClick={() => setIsTrackOpen(true)} style={{ fontSize: '0.85rem' }}>
-                      Track Repair
-                    </button>
-                    <button className="btn-secondary" onClick={() => setIsReportOpen(true)} style={{ fontSize: '0.85rem' }}>
-                      View Repair Report
-                    </button>
-                    <button className="btn-secondary" onClick={() => setIsFeedbackOpen(true)} style={{ fontSize: '0.85rem' }}>
-                      Rate Repair
-                    </button>
                   </div>
                 </div>
               ))
