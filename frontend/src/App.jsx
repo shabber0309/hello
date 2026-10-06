@@ -214,6 +214,8 @@ function MainApp() {
             <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
           } />
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/administrator" element={<Navigate to="/admin/dashboard" replace />} />
 
           {/* Technician Dashboard */}
           <Route path="/technician/dashboard" element={

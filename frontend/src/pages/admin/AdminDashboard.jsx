@@ -46,7 +46,7 @@ import { StreamModal, OrderConversationModal } from '../../components/modals';
 import './AdminDashboard.css';
 
 export default function AdminDashboard({ onOpenLiveStream }) {
-  const { user, token } = useAuth();
+  const { user, token, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'users', 'orders', 'streams', 'custody', 'escrow', 'database'
@@ -365,7 +365,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
               Master Database & Admin Console
             </h1>
             <p className="admin-header-user-meta">
-              Logged in as <strong>{user?.name || 'Administrator'} (Admin)</strong> • <span className="admin-header-mono-tag">{user?.email || 'admin@livefix.com'}</span>
+              Logged in as <strong>{user?.name || 'Administrator'} {user?.role ? `(${user.role.toUpperCase()})` : '(ADMIN)'}</strong> • <span className="admin-header-mono-tag">{user?.email || 'admin@livefix.com'}</span>
             </p>
           </div>
 
@@ -403,6 +403,67 @@ export default function AdminDashboard({ onOpenLiveStream }) {
             </button>
           </div>
         </div>
+
+        {/* Notice if viewing while logged into Technician or Customer role */}
+        {user && user.role !== 'admin' && (
+          <div style={{
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            borderRadius: '12px',
+            padding: '14px 18px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <AlertTriangle size={20} color="#f59e0b" style={{ flexShrink: 0 }} />
+              <div>
+                <strong style={{ color: 'var(--text-main)', fontSize: '0.92rem' }}>
+                  Currently signed in as {user.name} ({user.role.toUpperCase()})
+                </strong>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  You are previewing the Admin Console. Switch to Administrator for full permissions or jump back to your workbench.
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={async () => {
+                  await switchRole('admin');
+                  fetchData();
+                }}
+                style={{ fontSize: '0.82rem', padding: '7px 14px', background: '#059669', borderColor: '#059669' }}
+              >
+                🛡️ Switch to Administrator
+              </button>
+              {user.role === 'technician' && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => navigate('/technician/dashboard')}
+                  style={{ fontSize: '0.82rem', padding: '7px 14px' }}
+                >
+                  🔧 Go to Technician Workbench
+                </button>
+              )}
+              {user.role === 'customer' && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => navigate('/customer/dashboard')}
+                  style={{ fontSize: '0.82rem', padding: '7px 14px' }}
+                >
+                  👤 Go to Customer Dashboard
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Feedback Alert */}
         {feedbackMsg && (
