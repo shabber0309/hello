@@ -85,11 +85,25 @@ export default function CustomerDashboard({ onNewBooking }) {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [conversationOrder, setConversationOrder] = useState(null);
   const [repairs, setRepairs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [dismissedNoticeId, setDismissedNoticeId] = useState(null);
+  const [dismissedNoticeId, setDismissedNoticeId] = useState(() => {
+    try {
+      return sessionStorage.getItem('livefix_dismissed_notice') || null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleDismissNotice = (id) => {
+    const idStr = String(id);
+    setDismissedNoticeId(idStr);
+    try {
+      sessionStorage.setItem('livefix_dismissed_notice', idStr);
+    } catch {}
+  };
 
   // Active flash notification when a technician wants to talk
-  const pendingTechNotice = repairs.find(r => 
+  // Disappears immediately if conversationOrder is open, or if user opened the messages or dismissed
+  const pendingTechNotice = !conversationOrder && repairs.find(r => 
     r.quote_amount > 0 && 
     !r.quote_approved && 
     String(r.id || r.order_number) !== String(dismissedNoticeId)
@@ -173,94 +187,102 @@ export default function CustomerDashboard({ onNewBooking }) {
         <div className="customer-content-container">
 
           {/* Flash Notification: Technician wants to talk to you */}
-          {pendingTechNotice && (
-            <div style={{
-              background: 'linear-gradient(135deg, #075e54 0%, #128c7e 100%)',
-              color: '#ffffff',
-              borderRadius: '14px',
-              padding: '14px 20px',
-              marginBottom: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
-              boxShadow: '0 8px 24px -4px rgba(7, 94, 84, 0.4)',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.25rem',
-                  flexShrink: 0
-                }}>
-                  🔔
-                </div>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.98rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span>Technician {pendingTechNotice.technician_name || 'Shabber Hussain'} wants to talk to you</span>
-                    <span style={{
-                      background: 'rgba(255, 255, 255, 0.25)',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontSize: '0.74rem',
-                      fontWeight: 700
-                    }}>
-                      Quote: ₹{pendingTechNotice.quote_amount}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.82rem', opacity: 0.9, marginTop: '2px' }}>
-                    "{pendingTechNotice.technician_notes || 'Technician submitted diagnostic repair estimate'}"
-                  </div>
-                </div>
-              </div>
+          {pendingTechNotice && (() => {
+            const rawTechName = pendingTechNotice.technician_name || pendingTechNotice.technician?.name || '';
+            const techDisplayName = (!rawTechName || rawTechName.toLowerCase().includes('awaiting')) ? 'Shabber Hussain' : rawTechName;
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => setConversationOrder(pendingTechNotice)}
-                  style={{
-                    background: '#ffffff',
-                    color: '#075e54',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '8px 18px',
-                    fontSize: '0.86rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            return (
+              <div style={{
+                background: 'linear-gradient(135deg, #075e54 0%, #128c7e 100%)',
+                color: '#ffffff',
+                borderRadius: '14px',
+                padding: '14px 20px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                boxShadow: '0 8px 24px -4px rgba(7, 94, 84, 0.4)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.2)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  💬 Open Messages
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDismissedNoticeId(pendingTechNotice.id || pendingTechNotice.order_number)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#ffffff',
-                    cursor: 'pointer',
-                    padding: '6px',
-                    opacity: 0.75,
-                    fontSize: '1.1rem'
-                  }}
-                  title="Dismiss"
-                >
-                  ✕
-                </button>
+                    justifyContent: 'center',
+                    fontSize: '1.25rem',
+                    flexShrink: 0
+                  }}>
+                    🔔
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '0.98rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>Technician {techDisplayName} wants to talk to you</span>
+                      <span style={{
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.74rem',
+                        fontWeight: 700
+                      }}>
+                        Quote: ₹{pendingTechNotice.quote_amount}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', opacity: 0.9, marginTop: '2px' }}>
+                      "{pendingTechNotice.technician_notes || 'Technician submitted diagnostic repair estimate'}"
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDismissNotice(pendingTechNotice.id || pendingTechNotice.order_number);
+                      setConversationOrder(pendingTechNotice);
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      color: '#075e54',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 18px',
+                      fontSize: '0.86rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    💬 Open Messages
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDismissNotice(pendingTechNotice.id || pendingTechNotice.order_number)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ffffff',
+                      cursor: 'pointer',
+                      padding: '6px',
+                      opacity: 0.75,
+                      fontSize: '1.1rem'
+                    }}
+                    title="Dismiss"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Dashboard Heading (Section 9) */}
           <div className="customer-greeting-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
@@ -455,7 +477,10 @@ export default function CustomerDashboard({ onNewBooking }) {
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button 
                       className="btn-cta" 
-                      onClick={() => setConversationOrder(r)} 
+                      onClick={() => {
+                        handleDismissNotice(r.id || r.order_number);
+                        setConversationOrder(r);
+                      }} 
                       style={{ fontSize: '0.85rem', background: '#008069', borderColor: '#008069', display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
                       <MessageSquare size={16} /> 💬 Chat with Technician
