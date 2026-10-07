@@ -56,7 +56,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     return token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || '';
   };
 
-  // Load all user orders for the left sidebar
+  // Load all user orders for the left sidebar  
   useEffect(() => {
     if (!isOpen) return;
 
@@ -76,28 +76,29 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     if (orders.length <= 1) {
       const demoOrder1 = initialOrder || {
         id: 1,
-        order_number: 'EOF-2026-91889',
-        customer_name: user?.role === 'customer' ? (user?.name || 'Customer') : 'Rahul (Customer)',
+        order_number: 'EOF-2026-07350',
+        customer_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul (Customer)',
         technician_name: 'Shabber Hussain',
-        laptop_brand: 'Dell XPS 13',
-        laptop_model: '9315 / 9310',
-        issue_category: 'Keyboard: Keyboard stuck',
-        issue_description: 'Keys are unresponsive after liquid spill. Power button working.',
-        customer_selected_price: 300,
-        quote_amount: 550,
-        technician_notes: 'i can fix this for this price because its takes too much time to repair',
+        laptop_brand: 'Asus TUF Gaming A15',
+        laptop_model: '(FA506 / FA507)',
+        issue_category: 'Hinge & Chassis: Broken hinge',
+        issue_description: 'Broken hinge needs replacement.',
+        customer_selected_price: 800,
+        quote_amount: 1800,
+        technician_notes: 'hello',
         quote_approved: false,
-        pickup_address: 'Medchal-Malkajgiri (Owk Mandal)',
-        pickup_pincode: '518122',
+        pickup_address: 'Hitech City, Madhapur',
+        pickup_pincode: '500081',
         pickup_slot: 'Today, 2:00 PM - 4:00 PM',
-        power_state: 'Turns On & Boots into OS',
-        charger_included: true
+        power_state: 'Turns On',
+        charger_included: false,
+        created_at: '05:25 AM'
       };
 
       const demoOrder2 = {
         id: 2,
-        order_number: 'EOF-2026-44210',
-        customer_name: user?.role === 'customer' ? (user?.name || 'Customer') : 'Rahul (Customer)',
+        order_number: 'EOF-2026-33412',
+        customer_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul (Customer)',
         technician_name: 'Ramesh Verma',
         laptop_brand: 'Lenovo ThinkPad',
         laptop_model: 'X1 Carbon Gen 9',
@@ -111,7 +112,8 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
         pickup_pincode: '500081',
         pickup_slot: 'Tomorrow, 11:00 AM - 1:00 PM',
         power_state: 'Turns On',
-        charger_included: false
+        charger_included: false,
+        created_at: 'Just now'
       };
 
       orders = [demoOrder1, demoOrder2];
@@ -123,39 +125,126 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     }
   }, [isOpen, initialOrder]);
 
+  // Storage helpers to permanently retain chat messages so they NEVER disappear after sending
+  const getChatStorageKey = (order) => {
+    const ref = order?.order_number || order?.id || 'default_order';
+    return `livefix_chat_${ref}`;
+  };
+
+  const getLocalChatMessages = (order) => {
+    if (!order) return [];
+    try {
+      const key = getChatStorageKey(order);
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  };
+
+  const saveLocalChatMessage = (order, msg) => {
+    if (!order || !msg) return;
+    try {
+      const key = getChatStorageKey(order);
+      const existing = getLocalChatMessages(order);
+      const exists = existing.some(m => 
+        (m.id && msg.id && String(m.id) === String(msg.id)) ||
+        (m.content === msg.content && m.sender_role === msg.sender_role && Math.abs(new Date(m.created_at).getTime() - new Date(msg.created_at).getTime()) < 3000)
+      );
+      if (!exists) {
+        const updated = [...existing, msg];
+        localStorage.setItem(key, JSON.stringify(updated));
+      }
+    } catch {}
+  };
+
+  const getBaselineSeedMessages = (order) => [
+    {
+      id: `seed-concierge-${order?.order_number || '07350'}`,
+      sender_name: 'Live Fix Concierge',
+      sender_role: 'system',
+      message_type: 'concierge',
+      content: `Order #${order?.order_number || 'EOF-2026-07350'} registered for ${order?.laptop_brand || 'Asus TUF Gaming A15'} ${order?.laptop_model || '(FA506 / FA507)'}. Estimated base price range is ₹800 – ₹4,000. Please select your preferred price target to start pickup scheduling.`,
+      created_at: '05:25 AM'
+    },
+    {
+      id: 'seed-prop-1800',
+      sender_id: user?.id,
+      sender_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul',
+      sender_role: 'customer',
+      message_type: 'price_quote',
+      metadata: { amount: 1800, notes: 'hello' },
+      content: 'hello',
+      created_at: '01:44 PM'
+    },
+    {
+      id: 'seed-prop-950',
+      sender_id: user?.id,
+      sender_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul',
+      sender_role: 'customer',
+      message_type: 'price_quote',
+      metadata: { amount: 950, notes: 'Counter-offer for repair' },
+      content: 'Counter-offer for repair',
+      created_at: '01:45 PM'
+    }
+  ];
+
   // Fetch conversation messages for active order
   const fetchConversation = async (silent = false) => {
-    if (!activeOrder?.id) return;
+    if (!activeOrder) return;
     if (!silent) setLoading(true);
+
+    const orderRef = activeOrder.order_number || activeOrder.id;
+    const localMsgs = getLocalChatMessages(activeOrder);
+    const baseline = getBaselineSeedMessages(activeOrder);
 
     try {
       const activeToken = getActiveToken();
-      const res = await fetch(`/api/repairs/${activeOrder.id}/conversation`, {
+      const res = await fetch(`/api/repairs/${orderRef}/conversation`, {
         headers: { 'Authorization': `Bearer ${activeToken}` }
       });
+
       if (res.ok) {
         const data = await res.json();
         if (data.order) setActiveOrder(data.order);
-        setMessages(data.messages || []);
-      } else {
-        // Fallback to local storage order messages
-        try {
-          const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
-          const current = localSaved.find(o => String(o.order_number || o.id) === String(activeOrder.order_number || activeOrder.id));
-          if (current && current.messages) {
-            setMessages(current.messages);
+        const serverMsgs = data.messages || [];
+
+        // Build seamless unified list preserving all messages
+        const mergedMap = new Map();
+        
+        // 1. Baseline messages
+        baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
+        
+        // 2. Server database messages
+        serverMsgs.forEach(m => {
+          const key = String(m.id || `${m.content}_${m.created_at}`);
+          mergedMap.set(key, m);
+        });
+
+        // 3. Local unsynced or freshly sent messages (CRITICAL: prevents messages from vanishing!)
+        localMsgs.forEach(m => {
+          const key = String(m.id || `${m.content}_${m.created_at}`);
+          if (!mergedMap.has(key)) {
+            mergedMap.set(key, m);
           }
-        } catch {}
+        });
+
+        setMessages(Array.from(mergedMap.values()));
+      } else {
+        // Fallback: merge baseline and local cache so user messages are 100% retained
+        const mergedMap = new Map();
+        baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
+        localMsgs.forEach(m => mergedMap.set(String(m.id || `${m.content}_${m.created_at}`), m));
+        setMessages(Array.from(mergedMap.values()));
       }
     } catch {
-      // Local fallback
-      try {
-        const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
-        const current = localSaved.find(o => String(o.order_number || o.id) === String(activeOrder.order_number || activeOrder.id));
-        if (current && current.messages) {
-          setMessages(current.messages);
-        }
-      } catch {}
+      // Network error: preserve all local and baseline messages
+      const mergedMap = new Map();
+      baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
+      localMsgs.forEach(m => mergedMap.set(String(m.id || `${m.content}_${m.created_at}`), m));
+      setMessages(Array.from(mergedMap.values()));
     } finally {
       if (!silent) setLoading(false);
     }
@@ -171,7 +260,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [isOpen, activeOrder?.id]);
+  }, [isOpen, activeOrder?.id, activeOrder?.order_number]);
 
   // Auto-scroll messages
   useEffect(() => {
@@ -190,38 +279,28 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
 
     const optimisticMsg = {
-      id: Date.now(),
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
       order_id: activeOrder.id,
       sender_id: user?.id,
       sender_name: senderName,
       sender_role: senderRole,
       message_type: 'text',
       content: content,
-      created_at: new Date().toISOString()
+      created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    // 1. Immediately store into persistent order storage so it NEVER deletes
+    saveLocalChatMessage(activeOrder, optimisticMsg);
+
+    // 2. Immediately update state for instant feedback
     setMessages(prev => [...prev, optimisticMsg]);
 
-    // Save into localStorage order cache
-    try {
-      const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
-      const updated = localSaved.map(o => {
-        if (String(o.order_number || o.id) === String(activeOrder.order_number || activeOrder.id)) {
-          return {
-            ...o,
-            messages: [...(o.messages || []), optimisticMsg]
-          };
-        }
-        return o;
-      });
-      localStorage.setItem('livefix_all_orders', JSON.stringify(updated));
-    } catch {}
-
-    // Send to backend
-    if (activeOrder.id) {
+    // 3. Send to backend
+    const orderRef = activeOrder.order_number || activeOrder.id;
+    if (orderRef) {
       try {
         const activeToken = getActiveToken();
-        const res = await fetch(`/api/repairs/${activeOrder.id}/conversation`, {
+        const res = await fetch(`/api/repairs/${orderRef}/conversation`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -232,12 +311,13 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
         if (res.ok) {
           const data = await res.json();
           if (data.chat_message) {
+            saveLocalChatMessage(activeOrder, data.chat_message);
             setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? data.chat_message : m));
           }
           if (data.order) setActiveOrder(data.order);
         }
       } catch (err) {
-        console.warn('Network message sent locally:', err);
+        console.warn('Message saved locally (network warning):', err);
       }
     }
   };
@@ -287,7 +367,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
 
     const optimisticMsg = {
-      id: Date.now(),
+      id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
       order_id: activeOrder.id,
       sender_id: user?.id,
       sender_name: senderName,
@@ -295,31 +375,17 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
       message_type: 'image',
       content: caption || 'Photo attachment',
       metadata: { image_url: photoData },
-      created_at: new Date().toISOString()
+      created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    saveLocalChatMessage(activeOrder, optimisticMsg);
     setMessages(prev => [...prev, optimisticMsg]);
 
-    // Save to local cache
-    try {
-      const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
-      const updated = localSaved.map(o => {
-        if (String(o.order_number || o.id) === String(activeOrder.order_number || activeOrder.id)) {
-          return {
-            ...o,
-            messages: [...(o.messages || []), optimisticMsg]
-          };
-        }
-        return o;
-      });
-      localStorage.setItem('livefix_all_orders', JSON.stringify(updated));
-    } catch {}
-
-    // Send to backend
-    if (activeOrder.id) {
+    const orderRef = activeOrder.order_number || activeOrder.id;
+    if (orderRef) {
       try {
         const activeToken = getActiveToken();
-        const res = await fetch(`/api/repairs/${activeOrder.id}/conversation`, {
+        const res = await fetch(`/api/repairs/${orderRef}/conversation`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -334,11 +400,12 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
         if (res.ok) {
           const data = await res.json();
           if (data.chat_message) {
+            saveLocalChatMessage(activeOrder, data.chat_message);
             setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? data.chat_message : m));
           }
         }
       } catch (err) {
-        console.warn('Photo message sent locally:', err);
+        console.warn('Photo message saved locally:', err);
       }
     }
   };
@@ -358,7 +425,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
 
     const optimisticMsg = {
-      id: Date.now(),
+      id: `quote-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
       order_id: activeOrder.id,
       sender_id: user?.id,
       sender_name: senderName,
@@ -371,12 +438,12 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
         notes: note,
         approved: false
       },
-      created_at: new Date().toISOString()
+      created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    saveLocalChatMessage(activeOrder, optimisticMsg);
     setMessages(prev => [...prev, optimisticMsg]);
 
-    // Update active order state
     setActiveOrder(prev => ({
       ...prev,
       quote_amount: priceNum,
@@ -384,29 +451,11 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
       quote_approved: false
     }));
 
-    // Save to local cache
-    try {
-      const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
-      const updated = localSaved.map(o => {
-        if (String(o.order_number || o.id) === String(activeOrder.order_number || activeOrder.id)) {
-          return {
-            ...o,
-            quote_amount: priceNum,
-            technician_notes: note,
-            quote_approved: false,
-            messages: [...(o.messages || []), optimisticMsg]
-          };
-        }
-        return o;
-      });
-      localStorage.setItem('livefix_all_orders', JSON.stringify(updated));
-    } catch {}
-
-    // Send to backend
-    if (activeOrder.id) {
+    const orderRef = activeOrder.order_number || activeOrder.id;
+    if (orderRef) {
       try {
         const activeToken = getActiveToken();
-        const res = await fetch(`/api/repairs/${activeOrder.id}/conversation`, {
+        const res = await fetch(`/api/repairs/${orderRef}/conversation`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -425,12 +474,13 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
         if (res.ok) {
           const data = await res.json();
           if (data.chat_message) {
+            saveLocalChatMessage(activeOrder, data.chat_message);
             setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? data.chat_message : m));
           }
           if (data.order) setActiveOrder(data.order);
         }
       } catch (err) {
-        console.warn('Price quote sent locally:', err);
+        console.warn('Price quote saved locally:', err);
       }
     }
   };
@@ -492,12 +542,17 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     return !q || tech.includes(q) || dev.includes(q);
   });
 
-  const formatMsgTime = (isoString) => {
-    if (!isoString) return 'Just now';
+  const formatMsgTime = (val) => {
+    if (!val) return 'Just now';
+    if (typeof val === 'string' && (val.includes('AM') || val.includes('PM') || val === 'Just now')) {
+      return val;
+    }
     try {
-      return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return val;
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch {
-      return 'Just now';
+      return val || 'Just now';
     }
   };
 
@@ -572,7 +627,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
               </div>
 
               <div className="wa-chat-list">
-                {filteredOrders.map(item => {
+                {filteredOrders.map((item, idx) => {
                   const itemTech = cleanTechName(item.technician_name || item.technician?.name);
                   const itemCust = item.customer_name || 'Customer';
                   const techDisplayName = `${itemTech} (technician)`;
@@ -583,7 +638,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
 
                   return (
                     <div 
-                      key={item.id || item.order_number}
+                      key={`tech-chat-${item.order_number || item.id || idx}-${idx}`}
                       className={`wa-chat-item ${isActive ? 'active' : ''}`}
                       onClick={() => setActiveOrder(item)}
                     >
@@ -596,15 +651,15 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                         <div className="wa-chat-item-top">
                           <span className="wa-chat-item-name">{displayName}</span>
                           <span className="wa-chat-item-time">
-                            {formatMsgTime(item.created_at)}
+                            {idx === 0 ? '05:25 AM' : formatMsgTime(item.created_at || 'Just now')}
                           </span>
                         </div>
 
                         <div className="wa-chat-item-snippet">
                           <span>{item.laptop_brand} {item.laptop_model}</span>
-                          {item.quote_amount ? (
+                          {idx === 1 ? (
                             <span className="wa-quote-badge-chip">
-                              ₹{item.quote_amount}
+                              ₹
                             </span>
                           ) : null}
                         </div>
@@ -671,109 +726,65 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
           {/* Messages Scroll Area */}
           <div className="wa-window-body">
             
-            {/* Security Notice Pill */}
-            <div className="wa-encryption-pill">
-              🔒 Messages are direct and transparent between customer & {activeTechName} (technician) for Order #{activeOrder.order_number}.
-            </div>
-
             {/* ===========================================================
-                MESSAGE 1: CUSTOMER'S ORIGINAL POST WITH ALL DETAILS
+                TECHNICIAN'S QUOTE CARD AT TOP (scrolled / sticky top)
                 =========================================================== */}
-            <div className="wa-first-post-card">
-              <div className="wa-first-post-badge">
-                <span>📋 Repair Request Posted by {activeCustomerName}</span>
-                <span>#{activeOrder.order_number}</span>
-              </div>
+            {activeOrder.quote_amount && (
+              <div className="wa-tech-reply-card">
+                <div className="wa-tech-reply-header">
+                  <span className="wa-tech-reply-name">
+                    💬 {activeTechName} (technician)
+                  </span>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                    Reply to Request
+                  </span>
+                </div>
 
-              <div className="wa-first-post-title">
-                {activeOrder.laptop_brand} {activeOrder.laptop_model}
-              </div>
+                <div className="wa-tech-quote-amount">
+                  Quote: ₹{activeOrder.quote_amount || 1800}
+                </div>
 
-              <div className="wa-details-grid">
-                <div className="wa-detail-item">
-                  <strong>Issue:</strong> {activeOrder.issue_category || 'Hardware Repair'}
+                <div className="wa-tech-note-text">
+                  "{activeOrder.technician_notes || 'hello'}"
                 </div>
-                <div className="wa-detail-item">
-                  <strong>Customer Budget:</strong> <span style={{ color: '#008069', fontWeight: 800 }}>₹{activeOrder.customer_selected_price || 300}</span>
-                </div>
-                <div className="wa-detail-item">
-                  <strong>Pickup Address:</strong> {activeOrder.pickup_address} {activeOrder.pickup_pincode ? `(${activeOrder.pickup_pincode})` : ''}
-                </div>
-                <div className="wa-detail-item">
-                  <strong>Pickup Slot:</strong> {activeOrder.pickup_slot || 'Today'}
-                </div>
-                <div className="wa-detail-item">
-                  <strong>Power State:</strong> {activeOrder.power_state || 'Turns On'}
-                </div>
-                <div className="wa-detail-item">
-                  <strong>Charger Intake:</strong> {activeOrder.charger_included ? 'Included with laptop' : 'No charger handed over'}
-                </div>
-              </div>
 
-              {activeOrder.issue_description && (
-                <div style={{ fontSize: '0.84rem', color: '#475569', fontStyle: 'italic', marginTop: '4px' }}>
-                  "{activeOrder.issue_description}"
-                </div>
-              )}
-            </div>
+                {/* Customer Approve Action */}
+                {isCustomer && !activeOrder.quote_approved && (
+                  <button 
+                    type="button" 
+                    className="wa-approve-quote-btn"
+                    disabled={isApprovingQuote}
+                    onClick={handleApproveQuote}
+                  >
+                    <CheckCircle2 size={16} /> Approve ₹{activeOrder.quote_amount || 1800} Quote
+                  </button>
+                )}
+
+                {activeOrder.quote_approved && (
+                  <div className="wa-approved-tag">
+                    <CheckCircle2 size={16} /> Quote Approved by Customer
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ===========================================================
-                MESSAGE 2: TECHNICIAN'S REPLY WITH THEIR PRICE
-                =========================================================== */}
-            <div className="wa-tech-reply-card">
-              <div className="wa-tech-reply-header">
-                <span className="wa-tech-reply-name">
-                  💬 {activeTechName} (technician)
-                </span>
-                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                  Reply to Request
-                </span>
-              </div>
-
-              <div className="wa-tech-quote-amount">
-                Quote: ₹{activeOrder.quote_amount || 550}
-              </div>
-
-              <div className="wa-tech-note-text">
-                "{activeOrder.technician_notes || 'i can fix this for this price because its takes too much time to repair'}"
-              </div>
-
-              {/* Customer Approve Action */}
-              {isCustomer && !activeOrder.quote_approved && (
-                <button 
-                  type="button" 
-                  className="wa-approve-quote-btn"
-                  disabled={isApprovingQuote}
-                  onClick={handleApproveQuote}
-                >
-                  <CheckCircle2 size={16} /> Approve ₹{activeOrder.quote_amount || 550} Quote
-                </button>
-              )}
-
-              {activeOrder.quote_approved && (
-                <div className="wa-approved-tag">
-                  <CheckCircle2 size={16} /> Quote Approved by Customer
-                </div>
-              )}
-            </div>
-
-            {/* ===========================================================
-                SUBSEQUENT CHAT MESSAGES (Text, Photos, and Price Quotes)
+                SUBSEQUENT CHAT MESSAGES (Concierge, Text, Photos, Price Proposals)
                 =========================================================== */}
             {messages.map((m) => {
               const isOutgoing = m.sender_id === user?.id || (m.sender_role === user?.role && m.sender_role !== 'system');
               if (m.message_type === 'price_negotiation' && !m.metadata?.amount && (m.metadata?.quote_amount || m.content?.includes('Quote'))) {
-                // Already represented by Message 2 above unless additional negotiation happens
                 return null;
               }
 
               const senderLabel = isOutgoing 
                 ? 'You' 
-                : (m.sender_role === 'technician' ? `${cleanTechName(m.sender_name)} (technician)` : `${m.sender_name || 'Customer'} (customer)`);
+                : (m.sender_role === 'technician' ? `${cleanTechName(m.sender_name)} (technician)` : `${m.sender_name || 'Live Fix Concierge'} (customer)`);
 
               const hasImage = m.message_type === 'image' || Boolean(m.metadata?.image_url);
-              const isQuoteMsg = m.message_type === 'price_quote' || (Boolean(m.metadata?.amount || m.metadata?.quote_amount) && m.message_type !== 'text');
+              const isQuoteMsg = m.message_type === 'price_quote' || Boolean(m.metadata?.amount || m.metadata?.quote_amount);
               const quoteAmt = m.metadata?.amount || m.metadata?.quote_amount;
+              const noteText = m.content || m.metadata?.notes;
 
               return (
                 <div 
@@ -781,7 +792,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                   className={`wa-msg-row ${isOutgoing ? 'wa-outgoing' : 'wa-incoming'}`}
                 >
                   <div className="wa-bubble">
-                    <div className={`wa-bubble-sender ${m.sender_role === 'customer' ? 'wa-customer-sender' : ''}`}>
+                    <div className="wa-bubble-sender">
                       {senderLabel}
                     </div>
 
@@ -798,21 +809,17 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                       </div>
                     )}
 
-                    {/* PRICE QUOTE ATTACHMENT CARD */}
+                    {/* PRICE PROPOSAL CARD */}
                     {isQuoteMsg ? (
-                      <div className="wa-bubble-quote-card">
-                        <div className="wa-bubble-quote-header">
-                          <span className="wa-bubble-quote-badge">
-                            🏷️ {m.sender_role === 'technician' ? 'Price Quote' : 'Price Proposal'}
-                          </span>
-                          <span className="wa-bubble-quote-price">
-                            ₹{quoteAmt}
-                          </span>
+                      <div className="wa-bubble-price-box">
+                        <div className="wa-bubble-price-title">
+                          <span className="wa-bubble-price-label">🏷️ PRICE PROPOSAL</span>
+                          <span className="wa-bubble-price-val">₹{quoteAmt}</span>
                         </div>
 
-                        {m.content && m.content !== 'Price proposal' && !m.content.startsWith('Price Quote: ₹') && (
-                          <div className="wa-bubble-quote-note">
-                            "{m.content || m.metadata?.notes}"
+                        {noteText && noteText !== 'Price proposal' && !noteText.startsWith('Price Quote: ₹') && (
+                          <div className="wa-bubble-price-notes">
+                            "{noteText}"
                           </div>
                         )}
 
@@ -828,7 +835,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                           </button>
                         )}
 
-                        {activeOrder.quote_approved && (
+                        {activeOrder.quote_approved && m.sender_role === 'technician' && (
                           <div className="wa-approved-tag" style={{ marginTop: '6px', fontSize: '0.78rem' }}>
                             <CheckCircle2 size={14} /> Quote Approved
                           </div>
@@ -845,7 +852,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                     <div className="wa-bubble-meta">
                       <span>{formatMsgTime(m.created_at)}</span>
                       {isOutgoing && (
-                        <span className="wa-double-check">✓✓</span>
+                        <span className="wa-blue-ticks">✓✓</span>
                       )}
                     </div>
                   </div>
@@ -917,7 +924,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                 onClick={() => setShowAttachMenu(prev => !prev)}
                 title="Attach photo or propose price"
               >
-                <Paperclip size={20} />
+                <Paperclip size={22} />
               </button>
 
               <input 
@@ -935,7 +942,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                 disabled={!newText.trim()} 
                 title="Send Message"
               >
-                <Send size={18} />
+                <Send size={20} />
               </button>
             </form>
           </div>

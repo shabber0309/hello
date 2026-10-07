@@ -11,6 +11,7 @@ import TrackRepairPage from './pages/customer/TrackRepairPage';
 import TechDashboard from './pages/technician/TechDashboard';
 import ForTechniciansPage from './pages/technician/ForTechniciansPage';
 import LandingPage from './pages/public/LandingPage';
+import NotFoundPage from './pages/public/NotFoundPage';
 import HowItWorksPage from './pages/public/HowItWorksPage';
 import ServicesPage from './pages/public/ServicesPage';
 import PricingPage from './pages/public/PricingPage';
@@ -59,6 +60,45 @@ function UnifiedDashboard() {
   }
 
   return <Navigate to="/customer/dashboard" replace />;
+}
+
+function HomePageRoute(props) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const allowLanding = searchParams.get('preview') === 'true' || searchParams.get('view') === 'landing';
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-muted)' }}>
+        Loading...
+      </div>
+    );
+  }
+
+  if (user && !allowLanding) {
+    if (user.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    if (user.role === 'technician') {
+      return <Navigate to="/technician/dashboard" replace />;
+    }
+    return <Navigate to="/customer/dashboard" replace />;
+  }
+
+  return <LandingPage {...props} />;
+}
+
+function CustomerDashboardRoute({ onNewBooking }) {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tab = searchParams.get('tab');
+
+  if (tab === 'chat' || tab === 'messages') {
+    return <Navigate to="/customer/chat" replace />;
+  }
+
+  return <CustomerDashboard onNewBooking={onNewBooking} />;
 }
 
 function MainApp() {
@@ -190,6 +230,19 @@ function MainApp() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={
+            <HomePageRoute
+              onStartBooking={() => navigate('/book')}
+              onBecomeTechnician={() => navigate('/for-technicians')}
+              onSeeHowItWorks={() => navigate('/how-it-works')}
+              onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
+              onOpenChainOfCustody={() => setIsChainOfCustodyOpen(true)}
+              onOpenTrackRepair={(id) => {
+                if (id) handleOpenTrackWithId(id);
+                else navigate('/track-repair');
+              }}
+            />
+          } />
+          <Route path="/landing" element={
             <LandingPage
               onStartBooking={() => navigate('/book')}
               onBecomeTechnician={() => navigate('/for-technicians')}
@@ -254,13 +307,13 @@ function MainApp() {
 
           {/* Customer Dashboard & Chat Routes */}
           <Route path="/customer/dashboard" element={
-            <CustomerDashboard onNewBooking={() => navigate('/book')} />
+            <CustomerDashboardRoute onNewBooking={() => navigate('/book')} />
           } />
           <Route path="/customer/chat" element={
-            <CustomerDashboard onNewBooking={() => navigate('/book')} />
+            <CustomerDashboard onNewBooking={() => navigate('/book')} isChatRoute={true} />
           } />
           <Route path="/customer/messages" element={
-            <CustomerDashboard onNewBooking={() => navigate('/book')} />
+            <Navigate to="/customer/chat" replace />
           } />
           <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
 
@@ -283,8 +336,8 @@ function MainApp() {
           {/* Universal /dashboard Route -> redirects to active role dashboard */}
           <Route path="/dashboard" element={<UnifiedDashboard />} />
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Catch-all: Stays on the invalid URL without bouncing to '/', displaying 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
 

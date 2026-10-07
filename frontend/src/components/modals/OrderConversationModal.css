@@ -5,55 +5,65 @@
    Right: Chat with Request details as Message 1 & Tech Quote as Message 2
    ======================================================================= */
 
-/* Container: Anchored at bottom right, NO blocking backdrop */
+/* Container: Full Screen beneath top navbar */
 .wa-chat-backdrop {
   position: fixed;
+  top: 70px;
   bottom: 0;
-  right: 24px;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  height: calc(100vh - 70px);
   z-index: 2200;
   background: transparent !important;
   pointer-events: none;
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
 @keyframes linkedinSlideUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Docked Card: Bottom-Right Messenger like LinkedIn */
+/* Full Screen Messenger Window */
 .wa-chat-card {
   pointer-events: auto;
-  width: min(760px, calc(100vw - 32px));
-  height: min(580px, calc(100vh - 80px));
+  width: 100vw;
+  height: 100%;
+  max-height: 100%;
   background: #ffffff;
-  border-radius: 12px 12px 0 0;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-bottom: none;
-  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   display: flex;
   flex-direction: row;
   overflow: hidden;
   position: relative;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  animation: linkedinSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  transition: height 0.2s ease, width 0.2s ease;
+  animation: linkedinSlideUp 0.2s ease-out;
+  transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .wa-chat-card {
   background: #111b21;
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 -4px 35px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Minimized Docked Bar State */
 .wa-chat-card.minimized {
-  height: 48px;
-  width: 320px;
+  position: fixed;
+  bottom: 0;
+  right: 24px;
+  height: 52px;
+  width: 360px;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-bottom: none;
   cursor: pointer;
-  box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .wa-minimized-bar {
@@ -93,8 +103,9 @@
    LEFT SIDEBAR: TECHNICIANS CHAT LIST
    ======================================================================= */
 .wa-sidebar {
-  width: 270px;
-  min-width: 250px;
+  width: 380px;
+  min-width: 320px;
+  max-width: 440px;
   background: #ffffff;
   border-right: 1px solid rgba(0, 0, 0, 0.08);
   display: flex;
@@ -109,12 +120,12 @@
 
 .wa-sidebar-header {
   background: #f0f2f5;
-  padding: 10px 14px;
+  padding: 12px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  height: 52px;
+  height: 64px;
   flex-shrink: 0;
 }
 
@@ -124,13 +135,13 @@
 }
 
 .wa-sidebar-title {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: #111b21;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 [data-theme="dark"] .wa-sidebar-title {
@@ -140,14 +151,14 @@
 .wa-sidebar-badge {
   background: #008069;
   color: #ffffff;
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 3px 10px;
+  border-radius: 14px;
 }
 
 .wa-search-wrap {
-  padding: 6px 10px;
+  padding: 10px 16px;
   background: #ffffff;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
@@ -159,17 +170,23 @@
 
 .wa-search-input {
   width: 100%;
-  background: #f0f2f5;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.82rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.96rem;
   color: #111b21;
   outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.wa-search-input:focus {
+  border-color: #008069;
 }
 
 [data-theme="dark"] .wa-search-input {
   background: #202c33;
+  border-color: rgba(255, 255, 255, 0.12);
   color: #e9edef;
 }
 
@@ -183,8 +200,8 @@
 .wa-chat-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 14px;
+  padding: 14px 18px;
   cursor: pointer;
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   transition: background 0.15s ease;
@@ -212,13 +229,13 @@
 }
 
 .wa-chat-item-avatar {
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: #008069;
   color: #ffffff;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -228,10 +245,10 @@
 
 .wa-chat-item-dot {
   position: absolute;
-  bottom: 0px;
-  right: 0px;
-  width: 9px;
-  height: 9px;
+  bottom: 1px;
+  right: 1px;
+  width: 11px;
+  height: 11px;
   background: #25d366;
   border: 2px solid #ffffff;
   border-radius: 50%;
@@ -250,11 +267,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .wa-chat-item-name {
-  font-size: 0.86rem;
+  font-size: 1.02rem;
   font-weight: 700;
   color: #111b21;
   white-space: nowrap;
@@ -267,8 +284,9 @@
 }
 
 .wa-chat-item-time {
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   color: #667781;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
@@ -277,7 +295,7 @@
 }
 
 .wa-chat-item-snippet {
-  font-size: 0.76rem;
+  font-size: 0.9rem;
   color: #667781;
   white-space: nowrap;
   overflow: hidden;
@@ -285,6 +303,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 2px;
 }
 
 [data-theme="dark"] .wa-chat-item-snippet {
@@ -292,16 +311,13 @@
 }
 
 .wa-quote-badge-chip {
-  background: rgba(0, 128, 105, 0.12);
+  background: transparent;
   color: #008069;
   font-weight: 800;
-  font-size: 0.68rem;
-  padding: 1px 5px;
-  border-radius: 4px;
+  font-size: 0.95rem;
 }
 
 [data-theme="dark"] .wa-quote-badge-chip {
-  background: rgba(37, 211, 102, 0.15);
   color: #25d366;
 }
 
@@ -325,12 +341,12 @@
 .wa-window-header {
   background: #008069;
   color: #ffffff;
-  padding: 8px 14px;
+  padding: 10px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  height: 52px;
+  gap: 14px;
+  height: 64px;
   flex-shrink: 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
   z-index: 10;
@@ -344,23 +360,23 @@
 .wa-header-contact {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   min-width: 0;
   flex: 1;
 }
 
 .wa-header-avatar {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.35);
   position: relative;
   flex-shrink: 0;
 }
@@ -369,8 +385,8 @@
   position: absolute;
   bottom: 0px;
   right: 0px;
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   background: #25d366;
   border: 2px solid #008069;
   border-radius: 50%;
@@ -381,8 +397,8 @@
 }
 
 .wa-contact-name {
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: #ffffff;
   margin: 0;
   white-space: nowrap;
@@ -391,9 +407,9 @@
 }
 
 .wa-contact-sub {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.88);
-  margin-top: 1px;
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -404,8 +420,8 @@
   border: none;
   color: #ffffff;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
+  padding: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -420,10 +436,10 @@
 .wa-window-body {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 14px;
+  padding: 20px 32px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   background-color: #efeae2;
   background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 0);
   background-size: 18px 18px;
@@ -537,12 +553,12 @@
    ======================================================================= */
 .wa-tech-reply-card {
   align-self: flex-start;
-  max-width: 90%;
+  max-width: 85%;
   background: #ffffff;
   border: 1px solid rgba(234, 88, 12, 0.3);
-  border-left: 4px solid #ea580c;
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-left: 5px solid #ea580c;
+  border-radius: 10px;
+  padding: 14px 18px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -556,11 +572,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .wa-tech-reply-name {
-  font-size: 0.78rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: #ea580c;
 }
@@ -570,10 +586,10 @@
 }
 
 .wa-tech-quote-amount {
-  font-size: 1.3rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: #0f172a;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 [data-theme="dark"] .wa-tech-quote-amount {
@@ -581,13 +597,13 @@
 }
 
 .wa-tech-note-text {
-  font-size: 0.82rem;
+  font-size: 0.96rem;
   color: #334155;
   background: rgba(234, 88, 12, 0.06);
   border-left: 3px solid #ea580c;
-  padding: 6px 8px;
-  border-radius: 4px;
-  margin: 4px 0 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 6px 0 10px;
   font-style: italic;
 }
 
@@ -600,15 +616,15 @@
   background: #008069;
   color: #ffffff;
   border: none;
-  border-radius: 6px;
-  padding: 7px 12px;
+  border-radius: 8px;
+  padding: 10px 18px;
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.96rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 7px;
   width: 100%;
   transition: all 0.15s ease;
 }
@@ -621,11 +637,11 @@
 .wa-approved-tag {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   color: #10b981;
   font-weight: 700;
-  font-size: 0.78rem;
-  padding-top: 2px;
+  font-size: 0.88rem;
+  padding-top: 4px;
 }
 
 /* =======================================================================
@@ -634,7 +650,7 @@
 .wa-msg-row {
   display: flex;
   flex-direction: column;
-  max-width: 82%;
+  max-width: 78%;
   position: relative;
   animation: waMsgAppear 0.15s ease-out;
 }
@@ -653,13 +669,13 @@
 }
 
 .wa-bubble {
-  padding: 7px 10px 5px;
-  border-radius: 8px;
-  font-size: 0.86rem;
-  line-height: 1.4;
+  padding: 10px 16px 8px;
+  border-radius: 12px;
+  font-size: 1rem;
+  line-height: 1.5;
   position: relative;
   word-break: break-word;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .wa-outgoing .wa-bubble {
@@ -685,10 +701,10 @@
 }
 
 .wa-bubble-sender {
-  font-size: 0.72rem;
-  font-weight: 700;
-  margin-bottom: 2px;
-  color: #128c7e;
+  font-size: 0.92rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: #008069;
 }
 
 [data-theme="dark"] .wa-bubble-sender {
@@ -696,22 +712,27 @@
 }
 
 .wa-bubble-sender.wa-customer-sender {
-  color: #0284c7;
+  color: #008069;
 }
 
 [data-theme="dark"] .wa-bubble-sender.wa-customer-sender {
-  color: #38bdf8;
+  color: #25d366;
+}
+
+.wa-bubble-text {
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .wa-bubble-meta {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 3px;
-  margin-top: 2px;
-  font-size: 0.66rem;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 0.8rem;
   color: #667781;
-  margin-left: 8px;
+  margin-left: 10px;
   float: right;
 }
 
@@ -719,12 +740,14 @@
   color: #8696a0;
 }
 
-.wa-double-check {
+.wa-double-check,
+.wa-blue-ticks {
   color: #53bdeb;
   font-weight: 900;
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   letter-spacing: -2px;
-  margin-left: 1px;
+  margin-left: 3px;
+  user-select: none;
 }
 
 /* =======================================================================
@@ -732,12 +755,13 @@
    ======================================================================= */
 .wa-chat-footer {
   background: #f0f2f5;
-  padding: 8px 12px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
   flex-shrink: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
+  height: 72px;
 }
 
 [data-theme="dark"] .wa-chat-footer {
@@ -748,17 +772,19 @@
 .wa-chat-input {
   flex: 1;
   background: #ffffff;
-  border: 1px solid transparent;
-  border-radius: 20px;
-  padding: 8px 14px;
-  font-size: 0.86rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 30px;
+  padding: 12px 24px;
+  font-size: 1.05rem;
   color: #111b21;
   outline: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease;
 }
 
 [data-theme="dark"] .wa-chat-input {
   background: #2a3942;
+  border-color: rgba(255, 255, 255, 0.12);
   color: #e9edef;
 }
 
@@ -767,30 +793,42 @@
 }
 
 .wa-send-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: #008069;
-  color: #ffffff;
+  background: #e2e8f0;
+  color: #54656f;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 128, 105, 0.35);
-  transition: transform 0.15s ease;
+  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
 .wa-send-btn:hover:not(:disabled) {
+  background: #008069;
+  color: #ffffff;
   transform: scale(1.05);
 }
 
 .wa-send-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.55;
   cursor: not-allowed;
-  background: #94a3b8;
+  background: #e2e8f0;
+  color: #94a3b8;
   box-shadow: none;
+}
+
+[data-theme="dark"] .wa-send-btn {
+  background: #2a3942;
+  color: #8696a0;
+}
+
+[data-theme="dark"] .wa-send-btn:hover:not(:disabled) {
+  background: #00a884;
+  color: #ffffff;
 }
 
 /* =======================================================================
@@ -1012,65 +1050,71 @@
 }
 
 /* =======================================================================
-   PRICE QUOTE CARD INSIDE CHAT BUBBLE
+   PRICE QUOTE / PROPOSAL CARD INSIDE CHAT BUBBLE
    ======================================================================= */
+.wa-bubble-price-box,
 .wa-bubble-quote-card {
   background: #ffffff;
   border-radius: 10px;
-  padding: 10px 12px;
-  margin: 4px 0 6px 0;
-  border: 1px solid rgba(0, 128, 105, 0.25);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 14px 20px;
+  margin: 6px 0 8px 0;
+  border: 1px solid rgba(0, 128, 105, 0.18);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
+[data-theme="dark"] .wa-bubble-price-box,
 [data-theme="dark"] .wa-bubble-quote-card {
   background: #111b21;
   border-color: rgba(0, 168, 132, 0.3);
 }
 
+.wa-bubble-price-title,
 .wa-bubble-quote-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
-  padding-bottom: 6px;
-  margin-bottom: 6px;
+  gap: 16px;
 }
 
-[data-theme="dark"] .wa-bubble-quote-header {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
+.wa-bubble-price-label,
 .wa-bubble-quote-badge {
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   color: #008069;
   text-transform: uppercase;
   letter-spacing: 0.4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
+[data-theme="dark"] .wa-bubble-price-label,
 [data-theme="dark"] .wa-bubble-quote-badge {
   color: #00a884;
 }
 
+.wa-bubble-price-val,
 .wa-bubble-quote-price {
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-size: 1.45rem;
+  font-weight: 900;
   color: #008069;
 }
 
+[data-theme="dark"] .wa-bubble-price-val,
 [data-theme="dark"] .wa-bubble-quote-price {
   color: #25d366;
 }
 
+.wa-bubble-price-notes,
 .wa-bubble-quote-note {
-  font-size: 0.82rem;
+  font-size: 0.98rem;
   color: #334155;
   font-style: italic;
-  line-height: 1.35;
+  margin-top: 8px;
+  line-height: 1.4;
 }
 
+[data-theme="dark"] .wa-bubble-price-notes,
 [data-theme="dark"] .wa-bubble-quote-note {
   color: #cbd5e1;
 }

@@ -52,6 +52,15 @@ export default function AuthPage({ initialRole = 'customer', initialMode = 'logi
     }
   }, [location.pathname]);
 
+  // If already authenticated, redirect immediately to role dashboard
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') navigate('/admin/dashboard', { replace: true });
+      else if (user.role === 'technician') navigate('/technician/dashboard', { replace: true });
+      else navigate('/customer/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
   // Login form state
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' | 'otp'
   const [identifier, setIdentifier] = useState('');

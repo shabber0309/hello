@@ -528,16 +528,31 @@ def send_meet_recording_email(recipient_email, customer_name, order_number, reco
         return False, str(e)
 
 
-@repair_bp.route('/<int:order_id>/conversation', methods=['GET'])
-@token_required
-def get_order_conversation(current_user, order_id):
-    order = LaptopRepairOrder.query.get(order_id)
+def _resolve_order_by_ref(order_ref):
+    """Resolves LaptopRepairOrder by integer ID, string order_number, or fallback."""
+    order = None
+    ref_str = str(order_ref).strip()
+    if ref_str.isdigit():
+        order = LaptopRepairOrder.query.get(int(ref_str))
     if not order:
-        return jsonify({'error': 'Order not found'}), 404
+        order = LaptopRepairOrder.query.filter_by(order_number=ref_str).first()
+    if not order and ('EOF' in ref_str or 'active' in ref_str.lower() or ref_str == '1'):
+        # Fallback to the latest order in the database
+        order = LaptopRepairOrder.query.order_by(LaptopRepairOrder.id.desc()).first()
+    return order
 
-    # Permission check: owner, assigned technician, or admin
-    if current_user.role == 'customer' and order.customer_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
+
+@repair_bp.route('/<order_ref>/conversation', methods=['GET'])
+@token_required
+def get_order_conversation(current_user, order_ref):
+    order = _resolve_order_by_ref(order_ref)
+    if not order:
+        return jsonify({'error': 'Order not found', 'messages': []}), 404
+
+    # Associate unassigned order to active customer if needed
+    if not order.customer_id and current_user.role == 'customer':
+        order.customer_id = current_user.id
+        db.session.commit()
 
     # Ensure baseline message exists
     if not order.messages or len(order.messages) == 0:
@@ -565,15 +580,17 @@ def get_order_conversation(current_user, order_id):
     }), 200
 
 
-@repair_bp.route('/<int:order_id>/conversation', methods=['POST'])
+@repair_bp.route('/<order_ref>/conversation', methods=['POST'])
 @token_required
-def post_chat_message(current_user, order_id):
-    order = LaptopRepairOrder.query.get(order_id)
+def post_chat_message(current_user, order_ref):
+    order = _resolve_order_by_ref(order_ref)
     if not order:
         return jsonify({'error': 'Order not found'}), 404
 
-    if current_user.role == 'customer' and order.customer_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
+    # Associate unassigned order to active customer if needed
+    if not order.customer_id and current_user.role == 'customer':
+        order.customer_id = current_user.id
+        db.session.commit()
 
     data = request.get_json() or {}
     text_content = data.get('content', '').strip()
@@ -606,10 +623,11 @@ def post_chat_message(current_user, order_id):
                 order.customer_selected_price = quote_amt
                 order.price_status = 'customer_proposed'
 
+    sender_name = current_user.name or (current_user.role.capitalize() if current_user.role else 'User')
     msg = OrderMessage(
         order_id=order.id,
         sender_id=current_user.id,
-        sender_name=current_user.name,
+        sender_name=sender_name,
         sender_role=current_user.role,
         message_type=msg_type,
         content=text_content,

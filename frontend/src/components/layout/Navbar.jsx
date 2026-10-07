@@ -21,7 +21,8 @@ import {
   Bell,
   HelpCircle,
   DollarSign,
-  Settings
+  Settings,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
@@ -61,14 +62,17 @@ export default function Navbar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const isHome = location.pathname === '/';
   const isAdmin = user?.role === 'admin';
   const isTech = user?.role === 'technician';
   const isCustomer = user?.role === 'customer';
 
   // Check if we are currently inside an authenticated internal workspace
-  const isInternalApp = (location.pathname.startsWith('/admin') && isAdmin) ||
-                        (location.pathname.startsWith('/technician') && isTech) ||
-                        isCustomer;
+  const isInternalApp = !isHome && (
+    (location.pathname.startsWith('/admin') && isAdmin) ||
+    (location.pathname.startsWith('/technician') && isTech) ||
+    (location.pathname.startsWith('/customer') && isCustomer)
+  );
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -82,8 +86,8 @@ export default function Navbar({
 
   // Nav links: Match active internal dashboard context or user role
   const getNavLinks = () => {
-    // If viewing admin route, prioritize Admin Console
-    if (location.pathname.startsWith('/admin') || isAdmin || (user && user.role === 'admin')) {
+    // If user is authenticated, prioritize their role-specific navigation
+    if (isAdmin || user?.role === 'admin') {
       return [
         { id: 'dashboard', name: 'Admin Console', path: '/admin/dashboard', icon: Shield },
         { id: 'track-repair', name: 'Track Repair', path: '/track-repair', icon: Package },
@@ -91,8 +95,7 @@ export default function Navbar({
         { id: 'pricing', name: 'Pricing', path: '/pricing', icon: DollarSign }
       ];
     }
-    // If viewing technician route, prioritize Technician Workbench
-    if (location.pathname.startsWith('/technician') || isTech || (user && user.role === 'technician')) {
+    if (isTech || user?.role === 'technician') {
       return [
         { id: 'dashboard', name: 'Technician Workbench', path: '/technician/dashboard', icon: Wrench },
         { id: 'track-repair', name: 'Track Repair', path: '/track-repair', icon: Package },
@@ -100,7 +103,7 @@ export default function Navbar({
         { id: 'pricing', name: 'Pricing', path: '/pricing', icon: DollarSign }
       ];
     }
-    if (location.pathname.startsWith('/customer') || isCustomer || (user && user.role === 'customer')) {
+    if (isCustomer || user?.role === 'customer') {
       return [
         { 
           id: 'dashboard', 
@@ -135,7 +138,7 @@ export default function Navbar({
       ];
     }
 
-    // Public links matching brand navigation
+    // Public links for unauthenticated guests
     return [
       { name: 'Home', path: '/' },
       { name: 'How It Works', path: '/how-it-works' },
@@ -152,6 +155,9 @@ export default function Navbar({
     }
     if (link.path === '/technician/dashboard') {
       return location.pathname === '/technician/dashboard' || location.pathname === '/technician';
+    }
+    if (link.path === '/customer/chat') {
+      return location.pathname === '/customer/chat' || location.pathname === '/customer/messages';
     }
     if (link.path === '/customer/dashboard') {
       return location.pathname === '/customer/dashboard' || location.pathname === '/dashboard';
@@ -289,10 +295,42 @@ export default function Navbar({
                 </button>
               </div>
             ) : (
-              <button
-                className="silicone-profile-trigger"
-                onClick={() => setShowProfileMenu(prev => !prev)}
-              >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {!isInternalApp && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAdmin) navigate('/admin/dashboard');
+                      else if (isTech) navigate('/technician/dashboard');
+                      else navigate('/customer/dashboard');
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, var(--cta-orange, #f97316) 0%, #ea580c 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '7px 13px',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      boxShadow: '0 2px 8px rgba(249, 115, 22, 0.35)',
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap'
+                    }}
+                    title="Return to your dashboard"
+                  >
+                    <span>Dashboard</span>
+                    <ArrowRight size={13} />
+                  </button>
+                )}
+
+                <button
+                  className="silicone-profile-trigger"
+                  onClick={() => setShowProfileMenu(prev => !prev)}
+                >
                 <div 
                   className="silicone-avatar-circle"
                   style={{ 
@@ -315,7 +353,8 @@ export default function Navbar({
                 </span>
                 <ChevronDown size={14} color="#ffffff" strokeWidth={2.4} />
               </button>
-            )}
+            </div>
+          )}
 
             {/* Profile Dropdown Menu for Logged In Users */}
             {user && showProfileMenu && (

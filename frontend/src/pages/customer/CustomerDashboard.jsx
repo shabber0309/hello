@@ -25,7 +25,8 @@ import {
   HelpCircle,
   Bell,
   LogOut,
-  MessageSquare
+  MessageSquare,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -40,10 +41,12 @@ import {
 } from '../../components/modals';
 import './CustomerDashboard.css';
 
-export default function CustomerDashboard({ onNewBooking }) {
+export default function CustomerDashboard({ onNewBooking, isChatRoute = false }) {
   const { user, logout, token, login, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isChat = isChatRoute || location.pathname.includes('/customer/chat') || location.pathname.includes('/customer/messages');
 
   // Customer auth guard states
   const [customerIdentifier, setCustomerIdentifier] = useState('customer@livefix.com');
@@ -85,66 +88,78 @@ export default function CustomerDashboard({ onNewBooking }) {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [conversationOrder, setConversationOrder] = useState(null);
   const [repairs, setRepairs] = useState([]);
-  const [dismissedNoticeId, setDismissedNoticeId] = useState(() => {
+  const [dismissedNoticeIds, setDismissedNoticeIds] = useState(() => {
     try {
-      return sessionStorage.getItem('livefix_dismissed_notice') || null;
+      const saved = sessionStorage.getItem('livefix_dismissed_notices') || localStorage.getItem('livefix_dismissed_notices');
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return null;
+      return [];
     }
   });
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
 
-  const handleDismissNotice = (id) => {
-    const idStr = String(id);
-    setDismissedNoticeId(idStr);
-    try {
-      sessionStorage.setItem('livefix_dismissed_notice', idStr);
-    } catch {}
+  const handleDismissNotice = (orderId, orderNum) => {
+    setIsBannerDismissed(true);
+    const toAdd = [];
+    if (orderId !== undefined && orderId !== null) toAdd.push(String(orderId));
+    if (orderNum) toAdd.push(String(orderNum));
+
+    setDismissedNoticeIds(prev => {
+      const updated = Array.from(new Set([...prev, ...toAdd]));
+      try {
+        sessionStorage.setItem('livefix_dismissed_notices', JSON.stringify(updated));
+        localStorage.setItem('livefix_dismissed_notices', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
   };
 
   // Active flash notification when a technician wants to talk
-  // Disappears immediately if conversationOrder is open, or if user opened the messages or dismissed
-  const pendingTechNotice = !conversationOrder && repairs.find(r => 
+  // Disappears immediately if banner is dismissed, if conversationOrder is open, or if user dismissed
+  const pendingTechNotice = !isBannerDismissed && !conversationOrder && repairs.find(r => 
     r.quote_amount > 0 && 
     !r.quote_approved && 
-    String(r.id || r.order_number) !== String(dismissedNoticeId)
+    !dismissedNoticeIds.includes(String(r.id)) &&
+    !dismissedNoticeIds.includes(String(r.order_number))
   );
 
   // Sync tab state with URL search params and routes (such as /customer/chat)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    const isChatRoute = location.pathname === '/customer/chat' || location.pathname === '/customer/messages';
 
-    // If accessed via /customer/dashboard?tab=chat, redirect to /customer/chat cleanly
-    if (location.pathname === '/customer/dashboard' && (tab === 'chat' || tab === 'messages')) {
+    // If accessed via ?tab=chat or ?tab=messages on any dashboard path, navigate cleanly to /customer/chat
+    if (tab === 'chat' || tab === 'messages') {
       navigate('/customer/chat', { replace: true });
       return;
     }
 
-    if (isChatRoute || tab === 'messages' || tab === 'chat') {
-      if (repairs.length > 0) {
-        setConversationOrder(repairs[0]);
-      } else {
-        try {
-          const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
-          if (localSaved.length > 0) {
-            setConversationOrder(localSaved[0]);
-          } else {
-            setConversationOrder({
-              id: 1,
-              order_number: 'EOF-2026-07350',
-              customer_name: user?.name || 'Rahul',
-              technician_name: 'Shabber Hussain',
-              laptop_brand: 'Asus TUF Gaming',
-              laptop_model: 'A15 (FA506 / FA507)',
-              issue_category: 'Hinge & Chassis: Broken hinge',
-              customer_selected_price: 800,
-              quote_amount: 1800,
-              technician_notes: 'hello',
-              quote_approved: false
-            });
-          }
-        } catch {}
+    if (isChat) {
+      if (!conversationOrder) {
+        if (repairs.length > 0) {
+          setConversationOrder(repairs[0]);
+        } else {
+          try {
+            const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+            if (localSaved.length > 0) {
+              setConversationOrder(localSaved[0]);
+            } else {
+              setConversationOrder({
+                id: 1,
+                order_number: 'EOF-2026-07350',
+                customer_name: user?.name || 'Rahul',
+                technician_name: 'Shabber Hussain',
+                laptop_brand: 'Asus TUF Gaming A15',
+                laptop_model: '(FA506 / FA507)',
+                issue_category: 'Hinge & Chassis: Broken hinge',
+                customer_selected_price: 800,
+                quote_amount: 1800,
+                technician_notes: 'hello',
+                quote_approved: false
+              });
+            }
+          } catch {}
+        }
       }
     } else if (tab === 'repairs') {
       setActiveSidebarNav('my-repairs');
@@ -161,7 +176,7 @@ export default function CustomerDashboard({ onNewBooking }) {
     } else if (!tab || tab === 'dashboard') {
       setActiveSidebarNav('dashboard');
     }
-  }, [location.pathname, location.search, repairs]);
+  }, [isChat, location.search, repairs]);
 
   const fetchRepairs = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -267,7 +282,7 @@ export default function CustomerDashboard({ onNewBooking }) {
                   <button
                     type="button"
                     onClick={() => {
-                      handleDismissNotice(pendingTechNotice.id || pendingTechNotice.order_number);
+                      handleDismissNotice(pendingTechNotice.id, pendingTechNotice.order_number);
                       setConversationOrder(pendingTechNotice);
                       navigate('/customer/chat');
                     }}
@@ -286,23 +301,35 @@ export default function CustomerDashboard({ onNewBooking }) {
                       gap: '6px'
                     }}
                   >
-                    💬 Open Messages
+                    <MessageSquare size={16} />
+                    <span>Open Messages</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDismissNotice(pendingTechNotice.id || pendingTechNotice.order_number)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDismissNotice(pendingTechNotice.id, pendingTechNotice.order_number);
+                    }}
                     style={{
-                      background: 'transparent',
+                      background: 'rgba(255, 255, 255, 0.18)',
                       border: 'none',
                       color: '#ffffff',
                       cursor: 'pointer',
                       padding: '6px',
-                      opacity: 0.75,
-                      fontSize: '1.1rem'
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '32px',
+                      height: '32px',
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
                     }}
+                    aria-label="Dismiss notification"
                     title="Dismiss"
                   >
-                    ✕
+                    <X size={18} strokeWidth={2.4} />
                   </button>
                 </div>
               </div>
