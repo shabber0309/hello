@@ -21,7 +21,8 @@ import {
   Bell,
   HelpCircle,
   DollarSign,
-  Settings
+  Settings,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
@@ -61,14 +62,17 @@ export default function Navbar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const isHome = location.pathname === '/';
   const isAdmin = user?.role === 'admin';
   const isTech = user?.role === 'technician';
   const isCustomer = user?.role === 'customer';
 
   // Check if we are currently inside an authenticated internal workspace
-  const isInternalApp = (location.pathname.startsWith('/admin') && isAdmin) ||
-                        (location.pathname.startsWith('/technician') && isTech) ||
-                        isCustomer;
+  const isInternalApp = !isHome && (
+    (location.pathname.startsWith('/admin') && isAdmin) ||
+    (location.pathname.startsWith('/technician') && isTech) ||
+    (location.pathname.startsWith('/customer') && isCustomer)
+  );
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -80,9 +84,10 @@ export default function Navbar({
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  // Nav links: Customer portal navbar matches the 8 menu items
+  // Nav links: Match active internal dashboard context or user role
   const getNavLinks = () => {
-    if (isAdmin || (user && user.role === 'admin')) {
+    // If user is authenticated, prioritize their role-specific navigation
+    if (isAdmin || user?.role === 'admin') {
       return [
         { id: 'dashboard', name: 'Admin Console', path: '/admin/dashboard', icon: Shield },
         { id: 'track-repair', name: 'Track Repair', path: '/track-repair', icon: Package },
@@ -90,7 +95,7 @@ export default function Navbar({
         { id: 'pricing', name: 'Pricing', path: '/pricing', icon: DollarSign }
       ];
     }
-    if (isTech || (user && user.role === 'technician')) {
+    if (isTech || user?.role === 'technician') {
       return [
         { id: 'dashboard', name: 'Technician Workbench', path: '/technician/dashboard', icon: Wrench },
         { id: 'track-repair', name: 'Track Repair', path: '/track-repair', icon: Package },
@@ -98,7 +103,7 @@ export default function Navbar({
         { id: 'pricing', name: 'Pricing', path: '/pricing', icon: DollarSign }
       ];
     }
-    if (isCustomer || (user && user.role === 'customer')) {
+    if (isCustomer || user?.role === 'customer') {
       return [
         { 
           id: 'dashboard', 
@@ -133,7 +138,7 @@ export default function Navbar({
       ];
     }
 
-    // Public links matching brand navigation
+    // Public links for unauthenticated guests
     return [
       { name: 'Home', path: '/' },
       { name: 'How It Works', path: '/how-it-works' },
@@ -150,6 +155,9 @@ export default function Navbar({
     }
     if (link.path === '/technician/dashboard') {
       return location.pathname === '/technician/dashboard' || location.pathname === '/technician';
+    }
+    if (link.path === '/customer/chat') {
+      return location.pathname === '/customer/chat' || location.pathname === '/customer/messages';
     }
     if (link.path === '/customer/dashboard') {
       return location.pathname === '/customer/dashboard' || location.pathname === '/dashboard';
@@ -183,7 +191,10 @@ export default function Navbar({
           <div 
             className="silicone-bay-brand"
             onClick={() => {
-              if (user?.role === 'admin') navigate('/admin/dashboard');
+              if (location.pathname.startsWith('/admin')) navigate('/admin/dashboard');
+              else if (location.pathname.startsWith('/technician')) navigate('/technician/dashboard');
+              else if (location.pathname.startsWith('/customer')) navigate('/customer/dashboard');
+              else if (user?.role === 'admin') navigate('/admin/dashboard');
               else if (user?.role === 'technician') navigate('/technician/dashboard');
               else if (user?.role === 'customer') navigate('/customer/dashboard');
               else navigate('/');
@@ -284,10 +295,42 @@ export default function Navbar({
                 </button>
               </div>
             ) : (
-              <button
-                className="silicone-profile-trigger"
-                onClick={() => setShowProfileMenu(prev => !prev)}
-              >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {!isInternalApp && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAdmin) navigate('/admin/dashboard');
+                      else if (isTech) navigate('/technician/dashboard');
+                      else navigate('/customer/dashboard');
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, var(--cta-orange, #f97316) 0%, #ea580c 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '7px 13px',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      boxShadow: '0 2px 8px rgba(249, 115, 22, 0.35)',
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap'
+                    }}
+                    title="Return to your dashboard"
+                  >
+                    <span>Dashboard</span>
+                    <ArrowRight size={13} />
+                  </button>
+                )}
+
+                <button
+                  className="silicone-profile-trigger"
+                  onClick={() => setShowProfileMenu(prev => !prev)}
+                >
                 <div 
                   className="silicone-avatar-circle"
                   style={{ 
@@ -310,7 +353,8 @@ export default function Navbar({
                 </span>
                 <ChevronDown size={14} color="#ffffff" strokeWidth={2.4} />
               </button>
-            )}
+            </div>
+          )}
 
             {/* Profile Dropdown Menu for Logged In Users */}
             {user && showProfileMenu && (
@@ -570,6 +614,78 @@ export default function Navbar({
                       </button>
                     </>
                   )}
+
+                  {/* 1-Click Portal Switcher */}
+                  <div style={{ padding: '8px 12px 6px', borderTop: '1px solid var(--border-light)', marginTop: '6px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.5px' }}>
+                      Switch Portal View
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await switchRole('customer');
+                          setShowProfileMenu(false);
+                          navigate('/customer/dashboard');
+                        }}
+                        style={{
+                          padding: '6px 4px',
+                          fontSize: '0.72rem',
+                          fontWeight: user?.role === 'customer' ? 800 : 600,
+                          borderRadius: '6px',
+                          border: user?.role === 'customer' ? '1px solid #2563eb' : '1px solid var(--border-light)',
+                          background: user?.role === 'customer' ? 'rgba(37, 99, 235, 0.15)' : 'var(--bg-card)',
+                          color: user?.role === 'customer' ? '#2563eb' : 'var(--text-main)',
+                          cursor: 'pointer'
+                        }}
+                        title="Switch to Customer Dashboard"
+                      >
+                        👤 Customer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await switchRole('technician');
+                          setShowProfileMenu(false);
+                          navigate('/technician/dashboard');
+                        }}
+                        style={{
+                          padding: '6px 4px',
+                          fontSize: '0.72rem',
+                          fontWeight: user?.role === 'technician' ? 800 : 600,
+                          borderRadius: '6px',
+                          border: user?.role === 'technician' ? '1px solid #d97706' : '1px solid var(--border-light)',
+                          background: user?.role === 'technician' ? 'rgba(217, 119, 6, 0.15)' : 'var(--bg-card)',
+                          color: user?.role === 'technician' ? '#d97706' : 'var(--text-main)',
+                          cursor: 'pointer'
+                        }}
+                        title="Switch to Technician Workbench"
+                      >
+                        🔧 Tech
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await switchRole('admin');
+                          setShowProfileMenu(false);
+                          navigate('/admin/dashboard');
+                        }}
+                        style={{
+                          padding: '6px 4px',
+                          fontSize: '0.72rem',
+                          fontWeight: user?.role === 'admin' ? 800 : 600,
+                          borderRadius: '6px',
+                          border: user?.role === 'admin' ? '1px solid #059669' : '1px solid var(--border-light)',
+                          background: user?.role === 'admin' ? 'rgba(5, 150, 105, 0.15)' : 'var(--bg-card)',
+                          color: user?.role === 'admin' ? '#059669' : 'var(--text-main)',
+                          cursor: 'pointer'
+                        }}
+                        title="Switch to Admin Console"
+                      >
+                        🛡️ Admin
+                      </button>
+                    </div>
+                  </div>
 
                   <button
                     className="silicone-dropdown-item silicone-dropdown-logout"

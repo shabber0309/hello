@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { 
   Laptop, 
   Video, 
@@ -25,7 +25,8 @@ import {
   HelpCircle,
   Bell,
   LogOut,
-  MessageSquare
+  MessageSquare,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -40,10 +41,43 @@ import {
 } from '../../components/modals';
 import './CustomerDashboard.css';
 
-export default function CustomerDashboard({ onNewBooking }) {
-  const { user, logout, token } = useAuth();
+export default function CustomerDashboard({ onNewBooking, isChatRoute = false }) {
+  const { user, logout, token, login, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isChat = isChatRoute || location.pathname.includes('/customer/chat') || location.pathname.includes('/customer/messages');
+
+  // Customer auth guard states
+  const [customerIdentifier, setCustomerIdentifier] = useState('customer@livefix.com');
+  const [customerPassword, setCustomerPassword] = useState('customer123');
+  const [customerAuthError, setCustomerAuthError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showSwitchLoginForm, setShowSwitchLoginForm] = useState(false);
+
+  const handleCustomerLogin = async (e) => {
+    if (e) e.preventDefault();
+    setCustomerAuthError('');
+    setIsAuthenticating(true);
+    try {
+      const res = await login(customerIdentifier, customerPassword);
+      if (res.success) {
+        if (res.user?.role !== 'customer') {
+          setCustomerAuthError(`Account "${res.user?.name}" is a ${res.user?.role}. Customer credentials required.`);
+          return;
+        }
+        setShowSwitchLoginForm(false);
+        fetchRepairs();
+      } else {
+        setCustomerAuthError(res.error || 'Invalid credentials. Please verify your email or phone.');
+      }
+    } catch {
+      setCustomerAuthError('Network error while logging in.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
   const [activeSidebarNav, setActiveSidebarNav] = useState('dashboard');
   const [isStreamOpen, setIsStreamOpen] = useState(false);
   const [isTrackOpen, setIsTrackOpen] = useState(false);
@@ -54,20 +88,85 @@ export default function CustomerDashboard({ onNewBooking }) {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [conversationOrder, setConversationOrder] = useState(null);
   const [repairs, setRepairs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [dismissedNoticeIds, setDismissedNoticeIds] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('livefix_dismissed_notices') || localStorage.getItem('livefix_dismissed_notices');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
 
-  // Sync tab state with URL search params
+  const handleDismissNotice = (orderId, orderNum) => {
+    setIsBannerDismissed(true);
+    const toAdd = [];
+    if (orderId !== undefined && orderId !== null) toAdd.push(String(orderId));
+    if (orderNum) toAdd.push(String(orderNum));
+
+    setDismissedNoticeIds(prev => {
+      const updated = Array.from(new Set([...prev, ...toAdd]));
+      try {
+        sessionStorage.setItem('livefix_dismissed_notices', JSON.stringify(updated));
+        localStorage.setItem('livefix_dismissed_notices', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  // Active flash notification when a technician wants to talk
+  // Disappears immediately if banner is dismissed, if conversationOrder is open, or if user dismissed
+  const pendingTechNotice = !isBannerDismissed && !conversationOrder && repairs.find(r => 
+    r.quote_amount > 0 && 
+    !r.quote_approved && 
+    !dismissedNoticeIds.includes(String(r.id)) &&
+    !dismissedNoticeIds.includes(String(r.order_number))
+  );
+
+  // Sync tab state with URL search params and routes (such as /customer/chat)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    if (tab === 'repairs') {
+
+    // If accessed via ?tab=chat or ?tab=messages on any dashboard path, navigate cleanly to /customer/chat
+    if (tab === 'chat' || tab === 'messages') {
+      navigate('/customer/chat', { replace: true });
+      return;
+    }
+
+    if (isChat) {
+      if (!conversationOrder) {
+        if (repairs.length > 0) {
+          setConversationOrder(repairs[0]);
+        } else {
+          try {
+            const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+            if (localSaved.length > 0) {
+              setConversationOrder(localSaved[0]);
+            } else {
+              setConversationOrder({
+                id: 1,
+                order_number: 'EOF-2026-07350',
+                customer_name: user?.name || 'Rahul',
+                technician_name: 'Shabber Hussain',
+                laptop_brand: 'Asus TUF Gaming A15',
+                laptop_model: '(FA506 / FA507)',
+                issue_category: 'Hinge & Chassis: Broken hinge',
+                customer_selected_price: 800,
+                quote_amount: 1800,
+                technician_notes: 'hello',
+                quote_approved: false
+              });
+            }
+          } catch {}
+        }
+      }
+    } else if (tab === 'repairs') {
       setActiveSidebarNav('my-repairs');
       const el = document.getElementById('customer-active-repairs');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else if (tab === 'track') {
       setIsTrackOpen(true);
-    } else if (tab === 'messages') {
-      setIsStreamOpen(true);
     } else if (tab === 'payments') {
       setIsPaymentsOpen(true);
     } else if (tab === 'notifications') {
@@ -77,7 +176,7 @@ export default function CustomerDashboard({ onNewBooking }) {
     } else if (!tab || tab === 'dashboard') {
       setActiveSidebarNav('dashboard');
     }
-  }, [location.search]);
+  }, [isChat, location.search, repairs]);
 
   const fetchRepairs = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -115,11 +214,128 @@ export default function CustomerDashboard({ onNewBooking }) {
   const activeRepairs = repairs.filter(r => r.status !== 'Delivered');
   const pastRepairs = repairs.filter(r => r.status === 'Delivered');
 
+  // Protected Customer Route: If not logged in or not customer, redirect to /login
+  if (!user || user.role !== 'customer') {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="customer-dashboard-root">
       {/* Main Content Area */}
       <main className="customer-main-content">
         <div className="customer-content-container">
+
+          {/* Flash Notification: Technician wants to talk to you */}
+          {pendingTechNotice && (() => {
+            const rawTechName = pendingTechNotice.technician_name || pendingTechNotice.technician?.name || '';
+            const techDisplayName = (!rawTechName || rawTechName.toLowerCase().includes('awaiting')) ? 'Shabber Hussain' : rawTechName;
+
+            return (
+              <div style={{
+                background: 'linear-gradient(135deg, #075e54 0%, #128c7e 100%)',
+                color: '#ffffff',
+                borderRadius: '14px',
+                padding: '14px 20px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                boxShadow: '0 8px 24px -4px rgba(7, 94, 84, 0.4)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.25rem',
+                    flexShrink: 0
+                  }}>
+                    🔔
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '0.98rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>Technician {techDisplayName} wants to talk to you</span>
+                      <span style={{
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.74rem',
+                        fontWeight: 700
+                      }}>
+                        Quote: ₹{pendingTechNotice.quote_amount}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', opacity: 0.9, marginTop: '2px' }}>
+                      "{pendingTechNotice.technician_notes || 'Technician submitted diagnostic repair estimate'}"
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDismissNotice(pendingTechNotice.id, pendingTechNotice.order_number);
+                      setConversationOrder(pendingTechNotice);
+                      navigate('/customer/chat');
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      color: '#075e54',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 18px',
+                      fontSize: '0.86rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <MessageSquare size={16} />
+                    <span>Open Messages</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDismissNotice(pendingTechNotice.id, pendingTechNotice.order_number);
+                    }}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.18)',
+                      border: 'none',
+                      color: '#ffffff',
+                      cursor: 'pointer',
+                      padding: '6px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '32px',
+                      height: '32px',
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
+                    }}
+                    aria-label="Dismiss notification"
+                    title="Dismiss"
+                  >
+                    <X size={18} strokeWidth={2.4} />
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Dashboard Heading (Section 9) */}
           <div className="customer-greeting-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
             <div>
@@ -313,25 +529,20 @@ export default function CustomerDashboard({ onNewBooking }) {
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button 
                       className="btn-cta" 
-                      onClick={() => setConversationOrder(r)} 
-                      style={{ fontSize: '0.85rem' }}
+                      onClick={() => {
+                        handleDismissNotice(r.id || r.order_number);
+                        setConversationOrder(r);
+                        navigate('/customer/chat');
+                      }} 
+                      style={{ fontSize: '0.85rem', background: '#008069', borderColor: '#008069', display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
-                      <MessageSquare size={16} /> Live Negotiation & Custody Thread
+                      <MessageSquare size={16} /> 💬 Chat with Technician
                     </button>
                     {r.stream_session?.is_live && (
                       <button className="btn-secondary" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.85rem' }}>
                         <Video size={16} /> Join Live Repair
                       </button>
                     )}
-                    <button className="btn-secondary" onClick={() => setIsTrackOpen(true)} style={{ fontSize: '0.85rem' }}>
-                      Track Repair
-                    </button>
-                    <button className="btn-secondary" onClick={() => setIsReportOpen(true)} style={{ fontSize: '0.85rem' }}>
-                      View Repair Report
-                    </button>
-                    <button className="btn-secondary" onClick={() => setIsFeedbackOpen(true)} style={{ fontSize: '0.85rem' }}>
-                      Rate Repair
-                    </button>
                   </div>
                 </div>
               ))
@@ -399,7 +610,12 @@ export default function CustomerDashboard({ onNewBooking }) {
         <OrderConversationModal
           isOpen={Boolean(conversationOrder)}
           initialOrder={conversationOrder}
-          onClose={() => setConversationOrder(null)}
+          onClose={() => {
+            setConversationOrder(null);
+            if (location.pathname === '/customer/chat' || location.pathname === '/customer/messages') {
+              navigate('/customer/dashboard');
+            }
+          }}
           onOpenLiveStream={(ord) => {
             setConversationOrder(null);
             setIsStreamOpen(true);

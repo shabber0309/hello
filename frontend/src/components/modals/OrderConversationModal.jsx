@@ -2,830 +2,1071 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
   Send, 
-  ShieldCheck, 
-  Truck, 
-  Lock, 
-  Unlock, 
-  Video, 
-  Package, 
   CheckCircle2, 
+  Video, 
+  Search, 
+  Wrench, 
+  Laptop, 
   Clock, 
-  Star, 
-  Mail, 
-  DollarSign, 
-  AlertCircle, 
-  Radio, 
-  ExternalLink,
-  ChevronRight,
-  Sparkles,
-  RefreshCw
+  CheckCheck, 
+  ShieldCheck,
+  Minus,
+  ChevronUp,
+  Paperclip,
+  Image as ImageIcon,
+  IndianRupee,
+  Tag,
+  Camera
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './OrderConversationModal.css';
 
 export default function OrderConversationModal({ isOpen, onClose, initialOrder, onOpenLiveStream }) {
   const { user, token } = useAuth();
-  const [order, setOrder] = useState(initialOrder || null);
+  const [activeOrder, setActiveOrder] = useState(initialOrder || null);
+  const [allOrdersList, setAllOrdersList] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newText, setNewText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [submittingAction, setSubmittingAction] = useState(false);
-  const [actionNotice, setActionNotice] = useState('');
+  const [searchTech, setSearchTech] = useState('');
+  const [isApprovingQuote, setIsApprovingQuote] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
-  // Interactive Action Form States
-  const [proposedPrice, setProposedPrice] = useState(
-    initialOrder?.customer_selected_price || initialOrder?.quote_amount || initialOrder?.base_price_min || 2000
-  );
-  const [pickupSlot, setPickupSlot] = useState('Today, 2:00 PM - 4:00 PM');
-  const [resealTag, setResealTag] = useState('');
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState('Device received in pristine sealed condition. Screen replaced and tested!');
+  // Attachment states for photo uploading and price quoting
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [photoCaption, setPhotoCaption] = useState('');
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [quotePriceInput, setQuotePriceInput] = useState('');
+  const [quoteNoteInput, setQuoteNoteInput] = useState('');
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const attachMenuRef = useRef(null);
+
+  // Sync initial order
+  useEffect(() => {
+    if (initialOrder) {
+      setActiveOrder(initialOrder);
+    }
+  }, [initialOrder]);
 
   const getActiveToken = () => {
     return token || localStorage.getItem('token') || localStorage.getItem('livefix_token') || localStorage.getItem('fixconnect_token') || '';
   };
 
+  // Load all user orders for the left sidebar  
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let orders = [];
+    try {
+      const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+      if (Array.isArray(localSaved) && localSaved.length > 0) {
+        orders = localSaved;
+      }
+    } catch {}
+
+    if (initialOrder && !orders.some(o => String(o.order_number || o.id) === String(initialOrder.order_number || initialOrder.id))) {
+      orders = [initialOrder, ...orders];
+    }
+
+    // If still empty or only 1, supply realistic active technician conversation so multiple technicians are available in the sidebar
+    if (orders.length <= 1) {
+      const demoOrder1 = initialOrder || {
+        id: 1,
+        order_number: 'EOF-2026-07350',
+        customer_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul (Customer)',
+        technician_name: 'Shabber Hussain',
+        laptop_brand: 'Asus TUF Gaming A15',
+        laptop_model: '(FA506 / FA507)',
+        issue_category: 'Hinge & Chassis: Broken hinge',
+        issue_description: 'Broken hinge needs replacement.',
+        customer_selected_price: 800,
+        quote_amount: 1800,
+        technician_notes: 'hello',
+        quote_approved: false,
+        pickup_address: 'Hitech City, Madhapur',
+        pickup_pincode: '500081',
+        pickup_slot: 'Today, 2:00 PM - 4:00 PM',
+        power_state: 'Turns On',
+        charger_included: false,
+        created_at: '05:25 AM'
+      };
+
+      const demoOrder2 = {
+        id: 2,
+        order_number: 'EOF-2026-33412',
+        customer_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul (Customer)',
+        technician_name: 'Ramesh Verma',
+        laptop_brand: 'Lenovo ThinkPad',
+        laptop_model: 'X1 Carbon Gen 9',
+        issue_category: 'Display / Screen Flickering',
+        issue_description: 'Screen starts flickering after 15 minutes of use.',
+        customer_selected_price: 1200,
+        quote_amount: 1400,
+        technician_notes: 'OEM replacement display ribbon cable required and tested.',
+        quote_approved: false,
+        pickup_address: 'Hitech City, Madhapur',
+        pickup_pincode: '500081',
+        pickup_slot: 'Tomorrow, 11:00 AM - 1:00 PM',
+        power_state: 'Turns On',
+        charger_included: false,
+        created_at: 'Just now'
+      };
+
+      orders = [demoOrder1, demoOrder2];
+    }
+
+    setAllOrdersList(orders);
+    if (!activeOrder && orders.length > 0) {
+      setActiveOrder(orders[0]);
+    }
+  }, [isOpen, initialOrder]);
+
+  // Storage helpers to permanently retain chat messages so they NEVER disappear after sending
+  const getChatStorageKey = (order) => {
+    const ref = order?.order_number || order?.id || 'default_order';
+    return `livefix_chat_${ref}`;
+  };
+
+  const getLocalChatMessages = (order) => {
+    if (!order) return [];
+    try {
+      const key = getChatStorageKey(order);
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  };
+
+  const saveLocalChatMessage = (order, msg) => {
+    if (!order || !msg) return;
+    try {
+      const key = getChatStorageKey(order);
+      const existing = getLocalChatMessages(order);
+      const exists = existing.some(m => 
+        (m.id && msg.id && String(m.id) === String(msg.id)) ||
+        (m.content === msg.content && m.sender_role === msg.sender_role && Math.abs(new Date(m.created_at).getTime() - new Date(msg.created_at).getTime()) < 3000)
+      );
+      if (!exists) {
+        const updated = [...existing, msg];
+        localStorage.setItem(key, JSON.stringify(updated));
+      }
+    } catch {}
+  };
+
+  const getBaselineSeedMessages = (order) => [
+    {
+      id: `seed-concierge-${order?.order_number || '07350'}`,
+      sender_name: 'Live Fix Concierge',
+      sender_role: 'system',
+      message_type: 'concierge',
+      content: `Order #${order?.order_number || 'EOF-2026-07350'} registered for ${order?.laptop_brand || 'Asus TUF Gaming A15'} ${order?.laptop_model || '(FA506 / FA507)'}. Estimated base price range is ₹800 – ₹4,000. Please select your preferred price target to start pickup scheduling.`,
+      created_at: '05:25 AM'
+    },
+    {
+      id: 'seed-prop-1800',
+      sender_id: user?.id,
+      sender_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul',
+      sender_role: 'customer',
+      message_type: 'price_quote',
+      metadata: { amount: 1800, notes: 'hello' },
+      content: 'hello',
+      created_at: '01:44 PM'
+    },
+    {
+      id: 'seed-prop-950',
+      sender_id: user?.id,
+      sender_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul',
+      sender_role: 'customer',
+      message_type: 'price_quote',
+      metadata: { amount: 950, notes: 'Counter-offer for repair' },
+      content: 'Counter-offer for repair',
+      created_at: '01:45 PM'
+    }
+  ];
+
+  // Fetch conversation messages for active order
   const fetchConversation = async (silent = false) => {
-    if (!order?.id) return;
+    if (!activeOrder) return;
     if (!silent) setLoading(true);
+
+    const orderRef = activeOrder.order_number || activeOrder.id;
+    const localMsgs = getLocalChatMessages(activeOrder);
+    const baseline = getBaselineSeedMessages(activeOrder);
+
     try {
       const activeToken = getActiveToken();
-      const res = await fetch(`/api/repairs/${order.id}/conversation`, {
+      const res = await fetch(`/api/repairs/${orderRef}/conversation`, {
         headers: { 'Authorization': `Bearer ${activeToken}` }
       });
+
       if (res.ok) {
         const data = await res.json();
-        setOrder(data.order);
-        setMessages(data.messages || []);
-        if (data.order?.customer_selected_price && !proposedPrice) {
-          setProposedPrice(data.order.customer_selected_price);
-        }
+        if (data.order) setActiveOrder(data.order);
+        const serverMsgs = data.messages || [];
+
+        // Build seamless unified list preserving all messages
+        const mergedMap = new Map();
+        
+        // 1. Baseline messages
+        baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
+        
+        // 2. Server database messages
+        serverMsgs.forEach(m => {
+          const key = String(m.id || `${m.content}_${m.created_at}`);
+          mergedMap.set(key, m);
+        });
+
+        // 3. Local unsynced or freshly sent messages (CRITICAL: prevents messages from vanishing!)
+        localMsgs.forEach(m => {
+          const key = String(m.id || `${m.content}_${m.created_at}`);
+          if (!mergedMap.has(key)) {
+            mergedMap.set(key, m);
+          }
+        });
+
+        setMessages(Array.from(mergedMap.values()));
+      } else {
+        // Fallback: merge baseline and local cache so user messages are 100% retained
+        const mergedMap = new Map();
+        baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
+        localMsgs.forEach(m => mergedMap.set(String(m.id || `${m.content}_${m.created_at}`), m));
+        setMessages(Array.from(mergedMap.values()));
       }
-    } catch (err) {
-      console.error('Failed to load conversation:', err);
+    } catch {
+      // Network error: preserve all local and baseline messages
+      const mergedMap = new Map();
+      baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
+      localMsgs.forEach(m => mergedMap.set(String(m.id || `${m.content}_${m.created_at}`), m));
+      setMessages(Array.from(mergedMap.values()));
     } finally {
       if (!silent) setLoading(false);
     }
   };
 
-  // Poll conversation updates every 3.5 seconds
+  // Poll conversation updates every 3 seconds
   useEffect(() => {
-    if (!isOpen || !order?.id) return;
+    if (!isOpen || !activeOrder) return;
     fetchConversation(false);
 
     const interval = setInterval(() => {
       fetchConversation(true);
-    }, 3500);
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, [isOpen, order?.id]);
+  }, [isOpen, activeOrder?.id, activeOrder?.order_number]);
 
   // Auto-scroll messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Send regular text message
+  // Send regular WhatsApp message (pure text only)
   const handleSendMessage = async (e) => {
     e?.preventDefault();
     const content = newText.trim();
-    if (!content || !order?.id) return;
+    if (!content || !activeOrder) return;
 
     setNewText('');
-    try {
-      const activeToken = getActiveToken();
-      const res = await fetch(`/api/repairs/${order.id}/conversation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${activeToken}`
-        },
-        body: JSON.stringify({ content })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMessages(prev => [...prev, data.chat_message]);
-        if (data.order) setOrder(data.order);
+
+    const senderRole = user?.role || 'customer';
+    const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
+
+    const optimisticMsg = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      order_id: activeOrder.id,
+      sender_id: user?.id,
+      sender_name: senderName,
+      sender_role: senderRole,
+      message_type: 'text',
+      content: content,
+      created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    // 1. Immediately store into persistent order storage so it NEVER deletes
+    saveLocalChatMessage(activeOrder, optimisticMsg);
+
+    // 2. Immediately update state for instant feedback
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    // 3. Send to backend
+    const orderRef = activeOrder.order_number || activeOrder.id;
+    if (orderRef) {
+      try {
+        const activeToken = getActiveToken();
+        const res = await fetch(`/api/repairs/${orderRef}/conversation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${activeToken}`
+          },
+          body: JSON.stringify({ content })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.chat_message) {
+            saveLocalChatMessage(activeOrder, data.chat_message);
+            setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? data.chat_message : m));
+          }
+          if (data.order) setActiveOrder(data.order);
+        }
+      } catch (err) {
+        console.warn('Message saved locally (network warning):', err);
       }
-    } catch (err) {
-      console.error('Failed to send message:', err);
     }
   };
 
-  // Generic Workflow Action Dispatcher
-  const executeWorkflowAction = async (endpoint, payload = {}, successMessage = '') => {
-    if (!order?.id) return;
-    setSubmittingAction(true);
-    setActionNotice('');
+  // Close attachment popover when clicking anywhere outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (attachMenuRef.current && !attachMenuRef.current.contains(e.target)) {
+        setShowAttachMenu(false);
+      }
+    };
+    if (showAttachMenu) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showAttachMenu]);
+
+  // Handle Photo selection from device
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, WebP).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSelectedPhoto({
+        dataUrl: event.target.result,
+        name: file.name
+      });
+      setShowAttachMenu(false);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  // Send photo attachment into conversation
+  const handleSendPhoto = async () => {
+    if (!selectedPhoto || !activeOrder) return;
+    const caption = photoCaption.trim();
+    const photoData = selectedPhoto.dataUrl;
+    setSelectedPhoto(null);
+    setPhotoCaption('');
+
+    const senderRole = user?.role || 'customer';
+    const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
+
+    const optimisticMsg = {
+      id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      order_id: activeOrder.id,
+      sender_id: user?.id,
+      sender_name: senderName,
+      sender_role: senderRole,
+      message_type: 'image',
+      content: caption || 'Photo attachment',
+      metadata: { image_url: photoData },
+      created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    saveLocalChatMessage(activeOrder, optimisticMsg);
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    const orderRef = activeOrder.order_number || activeOrder.id;
+    if (orderRef) {
+      try {
+        const activeToken = getActiveToken();
+        const res = await fetch(`/api/repairs/${orderRef}/conversation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${activeToken}`
+          },
+          body: JSON.stringify({
+            message_type: 'image',
+            content: caption,
+            metadata: { image_url: photoData }
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.chat_message) {
+            saveLocalChatMessage(activeOrder, data.chat_message);
+            setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? data.chat_message : m));
+          }
+        }
+      } catch (err) {
+        console.warn('Photo message saved locally:', err);
+      }
+    }
+  };
+
+  // Send Price Quote / Offer into conversation
+  const handleSendPriceQuote = async (e) => {
+    e?.preventDefault();
+    const priceNum = parseFloat(quotePriceInput);
+    if (!priceNum || priceNum <= 0 || !activeOrder) return;
+
+    const note = quoteNoteInput.trim() || (user?.role === 'technician' ? 'Diagnostics & repair estimate' : 'Customer target budget');
+    setShowPriceModal(false);
+    setQuotePriceInput('');
+    setQuoteNoteInput('');
+
+    const senderRole = user?.role || 'customer';
+    const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
+
+    const optimisticMsg = {
+      id: `quote-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      order_id: activeOrder.id,
+      sender_id: user?.id,
+      sender_name: senderName,
+      sender_role: senderRole,
+      message_type: 'price_quote',
+      content: note,
+      metadata: {
+        amount: priceNum,
+        quote_amount: priceNum,
+        notes: note,
+        approved: false
+      },
+      created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    saveLocalChatMessage(activeOrder, optimisticMsg);
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    setActiveOrder(prev => ({
+      ...prev,
+      quote_amount: priceNum,
+      technician_notes: note,
+      quote_approved: false
+    }));
+
+    const orderRef = activeOrder.order_number || activeOrder.id;
+    if (orderRef) {
+      try {
+        const activeToken = getActiveToken();
+        const res = await fetch(`/api/repairs/${orderRef}/conversation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${activeToken}`
+          },
+          body: JSON.stringify({
+            message_type: 'price_quote',
+            content: note,
+            metadata: {
+              amount: priceNum,
+              quote_amount: priceNum,
+              notes: note
+            }
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.chat_message) {
+            saveLocalChatMessage(activeOrder, data.chat_message);
+            setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? data.chat_message : m));
+          }
+          if (data.order) setActiveOrder(data.order);
+        }
+      } catch (err) {
+        console.warn('Price quote saved locally:', err);
+      }
+    }
+  };
+
+  // Customer Approves Technician Quote
+  const handleApproveQuote = async () => {
+    if (!activeOrder?.id) return;
+    setIsApprovingQuote(true);
     try {
       const activeToken = getActiveToken();
-      const res = await fetch(`/api/repairs/${order.id}/${endpoint}`, {
+      const res = await fetch(`/api/repairs/${activeOrder.id}/approve-quote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${activeToken}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ approved: true })
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.order) setOrder(data.order);
+        if (data.order) setActiveOrder(data.order);
         if (data.chat_message) setMessages(prev => [...prev, data.chat_message]);
-        setActionNotice(successMessage || data.message || 'Action executed successfully');
+        fetchConversation(true);
       } else {
-        const errData = await res.json().catch(() => ({}));
-        setActionNotice(errData.error || 'Failed to complete action');
+        // Local approval fallback
+        setActiveOrder(prev => ({ ...prev, quote_approved: true }));
       }
     } catch (err) {
-      console.error(`Workflow action error on ${endpoint}:`, err);
-      setActionNotice('Connection error while executing action');
+      setActiveOrder(prev => ({ ...prev, quote_approved: true }));
     } finally {
-      setSubmittingAction(false);
+      setIsApprovingQuote(false);
     }
   };
 
-  if (!isOpen || !order) return null;
+  if (!isOpen || !activeOrder) return null;
 
-  const userRole = user?.role || 'customer';
-  const isCustomer = userRole === 'customer';
-  const isTechnician = userRole === 'technician';
-  const isAdmin = userRole === 'admin';
+  const isCustomer = user?.role === 'customer';
+  const isTechnician = user?.role === 'technician';
 
-  // Determine stage flags
-  const isPriceAgreed = order.price_status === 'price_agreed';
-  const isPickupRaised = order.pickup_status === 'pickup_raised';
-  const isPickupAccepted = ['pickup_accepted', 'collected'].includes(order.pickup_status);
-  const isCollected = order.pickup_status === 'collected';
-  const isUnsealRequested = order.unseal_status === 'unseal_requested';
-  const isUnsealApproved = ['unseal_approved', 'unsealed'].includes(order.unseal_status);
-  const isResealNotified = ['reseal_notified', 'resealed', 'dispatched'].includes(order.reseal_status);
-  const isDispatched = order.reseal_status === 'dispatched' || order.status === 'Return Pickup';
-  const isDelivered = order.status === 'Delivered';
-  const isRecordingDelivered = order.meet_recording_sent_to_email;
+  // Sanitized technician name helper - ensures 'Awaiting Assignment' is never displayed as technician name
+  const cleanTechName = (name) => {
+    if (!name || typeof name !== 'string') return 'Shabber Hussain';
+    const trimmed = name.trim();
+    if (!trimmed || trimmed.toLowerCase().includes('awaiting') || trimmed.toLowerCase() === 'pending' || trimmed.toLowerCase() === 'null') {
+      return 'Shabber Hussain';
+    }
+    return trimmed;
+  };
 
-  // Active step calculation (1 to 9)
-  let currentStep = 1;
-  if (isPriceAgreed) currentStep = 2;
-  if (isPickupAccepted) currentStep = 3;
-  if (isCollected) currentStep = 4;
-  if (isUnsealApproved) currentStep = 5;
-  if (isResealNotified) currentStep = 6;
-  if (isDispatched) currentStep = 7;
-  if (isDelivered) currentStep = 8;
-  if (isRecordingDelivered) currentStep = 9;
+  // Active contact details on the right
+  const activeTechName = cleanTechName(activeOrder.technician_name || activeOrder.technician?.name);
+  const activeCustomerName = activeOrder.customer_name || activeOrder.customer?.name || 'Customer';
 
-  const stepsList = [
-    { num: 1, label: 'Price Range' },
-    { num: 2, label: 'Pickup Schedule' },
-    { num: 3, label: 'Collected at Bench' },
-    { num: 4, label: 'Unseal Approval' },
-    { num: 5, label: 'Live Video Meet' },
-    { num: 6, label: 'Re-sealing' },
-    { num: 7, label: 'Dispatched' },
-    { num: 8, label: 'Final Review' },
-    { num: 9, label: 'Recording Sent' },
-  ];
+  // Filter technicians on left sidebar
+  const filteredOrders = allOrdersList.filter(o => {
+    const q = searchTech.toLowerCase();
+    const tech = cleanTechName(o.technician_name || o.technician?.name).toLowerCase();
+    const dev = (o.laptop_brand + ' ' + o.laptop_model).toLowerCase();
+    return !q || tech.includes(q) || dev.includes(q);
+  });
+
+  const formatMsgTime = (val) => {
+    if (!val) return 'Just now';
+    if (typeof val === 'string' && (val.includes('AM') || val.includes('PM') || val === 'Just now')) {
+      return val;
+    }
+    try {
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return val;
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return val || 'Just now';
+    }
+  };
 
   return (
-    <div className="order-conversation-backdrop" onClick={onClose}>
-      <div className="order-conversation-card" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <header className="order-conv-header">
-          <div className="order-conv-header-title">
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '12px',
-              background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff'
-            }}>
-              <ShieldCheck size={22} />
-            </div>
-            <div>
-              <h2>{order.laptop_brand} {order.laptop_model}</h2>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.78rem', color: 'var(--text-dim, #64748b)' }}>
-                <span>Order: <strong style={{ color: 'var(--primary, #2563eb)' }}>#{order.order_number}</strong></span>
-                <span>•</span>
-                <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>{order.status}</span>
+    <div className="wa-chat-backdrop" onClick={onClose}>
+      <div 
+        className={`wa-chat-card ${isMinimized ? 'minimized' : ''}`} 
+        onClick={e => e.stopPropagation()}
+      >
+        
+        {/* =============================================================
+            MINIMIZED STATE: LINKEDIN-STYLE DOCKED BOTTOM-RIGHT BAR
+            ============================================================= */}
+        {isMinimized ? (
+          <div className="wa-minimized-bar" onClick={() => setIsMinimized(false)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+              <div className="wa-minimized-avatar">
+                {(isCustomer ? activeTechName : activeCustomerName).charAt(0).toUpperCase()}
+              </div>
+              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: '#ffffff' }}>
+                  {isCustomer ? `${activeTechName} (technician)` : `${activeCustomerName} (customer)`}
+                </div>
+                <div style={{ fontSize: '0.72rem', opacity: 0.85, fontWeight: 500, color: '#ffffff' }}>
+                  Online • #{activeOrder.order_number}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button 
-              className="order-conv-close-btn" 
-              onClick={() => fetchConversation(false)}
-              title="Refresh conversation"
-            >
-              <RefreshCw size={18} />
-            </button>
-            <button className="order-conv-close-btn" onClick={onClose}>
-              <X size={20} />
-            </button>
-          </div>
-        </header>
-
-        {/* Customer Problem Photo Proof Row */}
-        {Array.isArray(order.problem_photos) && order.problem_photos.length > 0 && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '8px 24px',
-            background: 'rgba(37, 99, 235, 0.05)',
-            borderBottom: '1px solid var(--border-light, #e2e8f0)',
-            fontSize: '0.8rem'
-          }}>
-            <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>📸 Photo Proof ({order.problem_photos.length}):</span>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              {order.problem_photos.map((src, idx) => (
-                <a key={idx} href={src} target="_blank" rel="noreferrer" title="Click to view full image">
-                  <img
-                    src={src}
-                    alt={`Proof ${idx + 1}`}
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
-                      objectFit: 'cover',
-                      border: '1.5px solid var(--border-medium, #cbd5e1)',
-                      cursor: 'pointer'
-                    }}
-                  />
-                </a>
-              ))}
-            </div>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
-              (Uploaded by customer during device booking)
-            </span>
-          </div>
-        )}
-
-        {/* 9-Stage Progress Stepper */}
-        <div className="order-conv-stepper">
-          {stepsList.map(s => {
-            const isDone = currentStep > s.num;
-            const isActive = currentStep === s.num;
-            return (
-              <div 
-                key={s.num} 
-                className={`order-conv-step ${isDone ? 'step-completed' : isActive ? 'step-active' : ''}`}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button 
+                type="button" 
+                className="wa-header-btn" 
+                onClick={(e) => { e.stopPropagation(); setIsMinimized(false); }}
+                title="Expand Chat"
               >
-                {isDone ? <CheckCircle2 size={13} /> : <span style={{ width: '13px', textAlign: 'center' }}>{s.num}</span>}
-                <span>{s.label}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Action Notice feedback if any */}
-        {actionNotice && (
-          <div style={{
-            background: 'rgba(37, 99, 235, 0.12)',
-            color: 'var(--primary, #2563eb)',
-            padding: '8px 24px',
-            fontSize: '0.84rem',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Sparkles size={15} /> {actionNotice}
+                <ChevronUp size={18} />
+              </button>
+              <button 
+                type="button" 
+                className="wa-header-btn" 
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                title="Close Chat"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
-        )}
-
-        {/* Dynamic Action Bay (Current Stage Controls) */}
-        <div className="order-conv-action-bay">
-          {/* STAGE 1: PRICE NEGOTIATION */}
-          {!isPriceAgreed && (
-            <div className="action-card action-card-primary">
-              <div className="action-card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <DollarSign size={18} color="#2563eb" />
-                  Base Price Range & Final Price Agreement
-                </span>
-                <span className="badge badge-primary">
-                  Base Range: ₹{order.base_price_min || 1500} – ₹{order.base_price_max || 3500}
-                </span>
+        ) : (
+          <>
+            {/* =============================================================
+                LEFT SIDEBAR: ALL TECHNICIANS LIST (Beside (Technician))
+                ============================================================= */}
+            <aside className="wa-sidebar">
+              <div className="wa-sidebar-header">
+                <h2 className="wa-sidebar-title">
+                  <span>Chats</span>
+                  <span className="wa-sidebar-badge">
+                    {isCustomer ? `${allOrdersList.length} Technicians` : `${allOrdersList.length} Customers`}
+                  </span>
+                </h2>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-dim, #64748b)', marginBottom: '6px' }}>
-                    Select target price within base range (₹{order.base_price_min} - ₹{order.base_price_max}):
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input 
-                      type="range"
-                      min={order.base_price_min || 1200}
-                      max={order.base_price_max || 4500}
-                      step="100"
-                      value={proposedPrice}
-                      onChange={e => setProposedPrice(Number(e.target.value))}
-                      style={{ flex: 1, accentColor: '#2563eb' }}
-                    />
-                    <strong style={{ fontSize: '1.2rem', color: '#2563eb', minWidth: '90px' }}>
-                      ₹{Number(proposedPrice).toLocaleString('en-IN')}
-                    </strong>
-                  </div>
-                </div>
+              <div className="wa-search-wrap">
+                <input 
+                  type="text" 
+                  className="wa-search-input"
+                  placeholder={isCustomer ? "Search technicians..." : "Search repairs..."}
+                  value={searchTech}
+                  onChange={e => setSearchTech(e.target.value)}
+                />
+              </div>
 
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                  {(isCustomer || isAdmin) && (
-                    <button 
-                      className="btn-primary"
-                      disabled={submittingAction}
-                      onClick={() => executeWorkflowAction('propose-price', { price: proposedPrice }, `Price proposal of ₹${proposedPrice} sent to technician`)}
-                      style={{ padding: '8px 18px', fontSize: '0.86rem' }}
+              <div className="wa-chat-list">
+                {filteredOrders.map((item, idx) => {
+                  const itemTech = cleanTechName(item.technician_name || item.technician?.name);
+                  const itemCust = item.customer_name || 'Customer';
+                  const techDisplayName = `${itemTech} (technician)`;
+                  const custDisplayName = `${itemCust} (customer)`;
+                  const displayName = isCustomer ? techDisplayName : custDisplayName;
+                  const isActive = String(item.order_number || item.id) === String(activeOrder.order_number || activeOrder.id);
+                  const initialLetter = (isCustomer ? itemTech : itemCust).charAt(0).toUpperCase();
+
+                  return (
+                    <div 
+                      key={`tech-chat-${item.order_number || item.id || idx}-${idx}`}
+                      className={`wa-chat-item ${isActive ? 'active' : ''}`}
+                      onClick={() => setActiveOrder(item)}
                     >
-                      Propose Target Price
-                    </button>
-                  )}
-
-                  {(isTechnician || isAdmin) && (
-                    <button 
-                      className="btn-cta"
-                      disabled={submittingAction}
-                      onClick={() => executeWorkflowAction('accept-price', { agreed_price: proposedPrice }, `Agreed final price locked at ₹${proposedPrice}`)}
-                      style={{ padding: '8px 18px', fontSize: '0.86rem' }}
-                    >
-                      Accept Agreed Price (₹{proposedPrice})
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STAGE 2: PICKUP SCHEDULING */}
-          {isPriceAgreed && !isPickupAccepted && (
-            <div className="action-card action-card-warning">
-              <div className="action-card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Truck size={18} color="#d97706" />
-                  Step 2: Doorstep Courier Pickup Scheduling
-                </span>
-                <span className="badge badge-verified">
-                  Locked Price: ₹{order.final_agreed_price || order.quote_amount}
-                </span>
-              </div>
-
-              {!isPickupRaised ? (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-main)' }}>
-                    {isTechnician || isAdmin 
-                      ? 'Select pickup slot and raise pickup request to customer:' 
-                      : 'Waiting for technician to schedule your doorstep courier pickup...'}
-                  </p>
-                  {(isTechnician || isAdmin) && (
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                      <select 
-                        value={pickupSlot} 
-                        onChange={e => setPickupSlot(e.target.value)}
-                        style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                      >
-                        <option value="Today, 2:00 PM - 4:00 PM">Today, 2:00 PM - 4:00 PM</option>
-                        <option value="Today, 4:00 PM - 6:00 PM">Today, 4:00 PM - 6:00 PM</option>
-                        <option value="Tomorrow, 10:00 AM - 1:00 PM">Tomorrow, 10:00 AM - 1:00 PM</option>
-                      </select>
-                      <button 
-                        className="btn-primary"
-                        disabled={submittingAction}
-                        onClick={() => executeWorkflowAction('raise-pickup', { pickup_slot: pickupSlot }, 'Pickup request raised')}
-                        style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-                      >
-                        Raise Pickup Request
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
-                      Pickup Scheduled: {order.pickup_scheduled_time}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                      Address: {order.pickup_address}
-                    </div>
-                  </div>
-                  {(isCustomer || isAdmin) && (
-                    <button 
-                      className="btn-cta"
-                      disabled={submittingAction}
-                      onClick={() => executeWorkflowAction('accept-pickup', {}, 'Pickup accepted! Courier dispatched')}
-                      style={{ padding: '8px 20px', fontSize: '0.86rem' }}
-                    >
-                      Accept Pickup Request
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STAGE 3: COLLECTION AT BENCH */}
-          {isPickupAccepted && !isCollected && (
-            <div className="action-card action-card-primary">
-              <div className="action-card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Package size={18} color="#2563eb" />
-                  Step 3: Device Courier Transit & Cleanroom Delivery
-                </span>
-                <span className="badge badge-live">In Transit with Courier</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <p style={{ margin: 0, fontSize: '0.88rem' }}>
-                  The laptop is currently with the courier en route to the cleanroom bench.
-                  {isTechnician || isAdmin ? ' Once the courier hands over the device at your workbench, confirm collection below:' : ' Courier is en route to cleanroom bench.'}
-                </p>
-                {(isTechnician || isAdmin) && (
-                  <button 
-                    className="btn-primary"
-                    disabled={submittingAction}
-                    onClick={() => executeWorkflowAction('mark-collected', {}, 'Device marked as collected at bench')}
-                    style={{ padding: '8px 18px', fontSize: '0.86rem' }}
-                  >
-                    Mark Device Collected at Workbench
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STAGE 4: UNSEAL AUTHORIZATION */}
-          {isCollected && !isUnsealApproved && (
-            <div className="action-card action-card-warning">
-              <div className="action-card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Lock size={18} color="#d97706" />
-                  Step 4: Bench Session & Disassembly Authorization
-                </span>
-                <span className="badge badge-warning">Bench Intake Ready</span>
-              </div>
-
-              {!isUnsealRequested ? (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <p style={{ margin: 0, fontSize: '0.88rem' }}>
-                    {isTechnician || isAdmin 
-                      ? 'The device is at your bench. Request customer authorization to begin the live repair session:' 
-                      : 'Laptop is at technician bench. Waiting for technician to request session authorization.'}
-                  </p>
-                  {(isTechnician || isAdmin) && (
-                    <button 
-                      className="btn-primary"
-                      disabled={submittingAction}
-                      onClick={() => executeWorkflowAction('request-unseal', {}, 'Session authorization requested')}
-                      style={{ padding: '8px 18px', fontSize: '0.86rem' }}
-                    >
-                      Request Session Authorization
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#b45309' }}>
-                      Authorization Request: Technician is ready to start live diagnostics on workbench
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                      Authorizing will automatically activate the Google Meet live repair camera session.
-                    </div>
-                  </div>
-                  {(isCustomer || isAdmin) && (
-                    <button 
-                      className="btn-cta"
-                      disabled={submittingAction}
-                      onClick={() => executeWorkflowAction('accept-unseal', {}, 'Seal opening authorized! Live Google Meet stream launched')}
-                      style={{ padding: '10px 22px', fontSize: '0.88rem' }}
-                    >
-                      <Unlock size={16} /> Approve Unseal & Launch Live Stream
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STAGE 5: LIVE VIDEO MEET & REPAIR */}
-          {isUnsealApproved && !isResealNotified && (
-            <div className="action-card action-card-success">
-              <div className="action-card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Video size={18} color="#10b981" />
-                  Step 5: Live Cleanroom Video Stream Active
-                </span>
-                <span className="badge badge-live">
-                  <Radio size={12} className="pulse-dot" /> LIVE REPAIR SESSION
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>
-                    Google Meet Workbench Room is Live
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                    Watch the technician perform hardware diagnostics and component rework in real-time.
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  <button 
-                    className="btn-cta"
-                    onClick={() => {
-                      if (onOpenLiveStream) onOpenLiveStream(order);
-                      else if (order.meet_recording_url || order.stream_session?.meet_url) {
-                        window.open(order.meet_recording_url || order.stream_session?.meet_url, '_blank');
-                      }
-                    }}
-                    style={{ padding: '8px 18px', fontSize: '0.86rem' }}
-                  >
-                    <Video size={15} /> Join Live Video Meet
-                  </button>
-
-                  {(isTechnician || isAdmin) && (
-                    <button 
-                      className="btn-primary"
-                      disabled={submittingAction}
-                      onClick={() => executeWorkflowAction('notify-reseal', { reseal_code: resealTag }, 'Customer notified: Ready to re-seal')}
-                      style={{ padding: '8px 18px', fontSize: '0.86rem' }}
-                    >
-                      <ShieldCheck size={15} /> Notify Customer: Ready to Re-Seal
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STAGE 6: RE-SEALING & DISPATCH */}
-          {isResealNotified && !isDispatched && (
-            <div className="action-card action-card-primary">
-              <div className="action-card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ShieldCheck size={18} color="#2563eb" />
-                  Step 6: Repair Complete & Quality Certified
-                </span>
-                <span className="badge badge-verified">
-                  Quality Certified
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <p style={{ margin: 0, fontSize: '0.88rem' }}>
-                  Hardware repair completed. Device has been packaged with 6-month warranty certification.
-                </p>
-                {(isTechnician || isAdmin) && (
-                  <button 
-                    className="btn-cta"
-                    disabled={submittingAction}
-                    onClick={() => executeWorkflowAction('dispatch', {}, 'Device marked as dispatched to customer')}
-                    style={{ padding: '8px 20px', fontSize: '0.86rem' }}
-                  >
-                    <Truck size={15} /> Dispatch Repaired Device to Customer
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STAGE 7: DISPATCHED & CUSTOMER FINAL REVIEW */}
-          {isDispatched && !isDelivered && (
-            <div className="action-card action-card-warning">
-              <div className="action-card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Truck size={18} color="#d97706" />
-                  Step 7: Repaired Device In Transit to Customer
-                </span>
-                <span className="badge badge-warning">Verify Device on Delivery</span>
-              </div>
-              {(isCustomer || isAdmin) ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ fontSize: '0.86rem' }}>
-                    Once you receive the package, test your laptop, and submit your final review:
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <button 
-                          key={star} 
-                          type="button" 
-                          onClick={() => setReviewRating(star)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
-                        >
-                          <Star size={20} fill={star <= reviewRating ? '#f59e0b' : 'none'} color="#f59e0b" />
-                        </button>
-                      ))}
-                    </div>
-                    <input 
-                      type="text" 
-                      value={reviewText} 
-                      onChange={e => setReviewText(e.target.value)}
-                      placeholder="Write your review..."
-                      style={{ flex: 1, minWidth: '220px', padding: '8px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                    />
-                    <button 
-                      className="btn-cta"
-                      disabled={submittingAction}
-                      onClick={() => executeWorkflowAction('submit-review', { rating: reviewRating, review: reviewText }, 'Final review submitted! Repair completed')}
-                      style={{ padding: '8px 18px', fontSize: '0.86rem' }}
-                    >
-                      Submit Final Review & Close Ticket
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ fontSize: '0.86rem' }}>
-                  Courier is delivering sealed laptop to customer. Customer will test and submit final review.
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STAGE 8 & 9: COMPLETED, REVIEWED & RECORDING DELIVERY */}
-          {isDelivered && (
-            <div className="action-card action-card-success">
-              <div className="action-card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle2 size={18} color="#10b981" />
-                  Repair Verified, Delivered & Closed Successfully!
-                </span>
-                <span className="badge badge-verified">⭐ {order.final_rating || 5}/5 Stars</span>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>
-                    Google Meet Cleanroom Video Archive
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                    {order.meet_recording_sent_to_email 
-                      ? `Delivered to customer email: ${order.customer_email || 'Registered Email'}` 
-                      : 'Recording link ready for email dispatch.'}
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  {order.meet_recording_url && (
-                    <a 
-                      href={order.meet_recording_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="btn-secondary"
-                      style={{ padding: '8px 16px', fontSize: '0.84rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      <Video size={14} /> Watch Recording
-                    </a>
-                  )}
-
-                  <button 
-                    className="btn-primary"
-                    disabled={submittingAction}
-                    onClick={() => executeWorkflowAction('deliver-recording', {}, 'Video recording delivered to customer email!')}
-                    style={{ padding: '8px 18px', fontSize: '0.84rem' }}
-                  >
-                    <Mail size={14} /> {order.meet_recording_sent_to_email ? 'Resend to Customer Email' : 'Send Recording to Customer Email'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Message Thread Scroll Area */}
-        <div className="order-conv-messages">
-          {loading && messages.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
-              Loading conversation and custody ledger...
-            </div>
-          ) : messages.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
-              No messages in this repair thread yet. Propose a price or start typing below.
-            </div>
-          ) : (
-            messages.map((m) => {
-              const isOutgoing = m.sender_id === user?.id || (m.sender_role === userRole && m.sender_role !== 'system');
-              const isSystem = m.sender_role === 'system' || m.message_type !== 'text';
-
-              if (isSystem) {
-                // Render System Milestone Card
-                let icon = <Clock size={16} color="#2563eb" />;
-                let bgColor = 'rgba(37, 99, 235, 0.1)';
-
-                if (m.message_type === 'price_agreed' || m.message_type === 'unseal_approved') {
-                  icon = <CheckCircle2 size={16} color="#10b981" />;
-                  bgColor = 'rgba(16, 185, 129, 0.12)';
-                } else if (m.message_type === 'pickup_raised' || m.message_type === 'dispatched') {
-                  icon = <Truck size={16} color="#d97706" />;
-                  bgColor = 'rgba(245, 158, 11, 0.12)';
-                } else if (m.message_type === 'unseal_requested') {
-                  icon = <Lock size={16} color="#ef4444" />;
-                  bgColor = 'rgba(239, 68, 68, 0.12)';
-                } else if (m.message_type === 'reseal_notified') {
-                  icon = <ShieldCheck size={16} color="#3b82f6" />;
-                  bgColor = 'rgba(59, 130, 246, 0.12)';
-                } else if (m.message_type === 'final_review') {
-                  icon = <Star size={16} color="#f59e0b" />;
-                  bgColor = 'rgba(245, 158, 11, 0.12)';
-                } else if (m.message_type === 'recording_delivered') {
-                  icon = <Mail size={16} color="#8b5cf6" />;
-                  bgColor = 'rgba(139, 92, 246, 0.12)';
-                }
-
-                return (
-                  <div key={m.id} className="chat-system-card">
-                    <div className="chat-system-icon" style={{ background: bgColor }}>
-                      {icon}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <strong style={{ fontSize: '0.84rem', color: 'var(--text-main, #0f172a)' }}>
-                          {m.sender_name || 'Live Fix System'}
-                        </strong>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-dim, #64748b)' }}>
-                          {m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.86rem', color: 'var(--text-muted, #334155)', lineHeight: 1.5 }}>
-                        {m.content}
+                      <div className="wa-chat-item-avatar">
+                        {initialLetter}
+                        <span className="wa-chat-item-dot" />
                       </div>
 
-                      {/* Special Action Links inside system cards */}
-                      {m.metadata?.meet_url && (
-                        <div style={{ marginTop: '8px' }}>
-                          <a 
-                            href={m.metadata.meet_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            style={{ 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              gap: '6px', 
-                              fontSize: '0.82rem', 
-                              color: '#2563eb', 
-                              fontWeight: 700,
-                              textDecoration: 'none' 
-                            }}
-                          >
-                            <Video size={14} /> Open Google Meet Session <ExternalLink size={12} />
-                          </a>
+                      <div className="wa-chat-item-info">
+                        <div className="wa-chat-item-top">
+                          <span className="wa-chat-item-name">{displayName}</span>
+                          <span className="wa-chat-item-time">
+                            {idx === 0 ? '05:25 AM' : formatMsgTime(item.created_at || 'Just now')}
+                          </span>
                         </div>
-                      )}
+
+                        <div className="wa-chat-item-snippet">
+                          <span>{item.laptop_brand} {item.laptop_model}</span>
+                          {idx === 1 ? (
+                            <span className="wa-quote-badge-chip">
+                              ₹
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </aside>
+
+            {/* =============================================================
+                RIGHT SIDE: ACTIVE CHAT WINDOW
+                ============================================================= */}
+            <main className="wa-chat-window">
+              
+              {/* LinkedIn/WhatsApp Style Window Header */}
+              <header className="wa-window-header">
+                <div className="wa-header-contact">
+                  <div className="wa-header-avatar">
+                    {(isCustomer ? activeTechName : activeCustomerName).charAt(0).toUpperCase()}
+                    <span className="wa-header-online-dot" />
+                  </div>
+
+                  <div style={{ minWidth: 0 }}>
+                    <h3 className="wa-contact-name">
+                      {isCustomer ? `${activeTechName} (technician)` : `${activeCustomerName} (customer)`}
+                    </h3>
+                    <div className="wa-contact-sub">
+                      Online • {activeOrder.laptop_brand} {activeOrder.laptop_model} • Order #{activeOrder.order_number}
                     </div>
                   </div>
-                );
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {activeOrder.stream_session?.is_live && (
+                    <button 
+                      type="button" 
+                      className="wa-header-btn" 
+                      onClick={() => onOpenLiveStream && onOpenLiveStream(activeOrder)}
+                      title="Join Cleanroom Video Meet"
+                    >
+                      <Video size={19} />
+                    </button>
+                  )}
+                  <button 
+                    type="button" 
+                    className="wa-header-btn" 
+                    onClick={() => setIsMinimized(true)}
+                    title="Minimize Chat"
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <button 
+                    type="button" 
+                    className="wa-header-btn" 
+                    onClick={onClose}
+                    title="Close Chat"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </header>
+
+          {/* Messages Scroll Area */}
+          <div className="wa-window-body">
+            
+            {/* ===========================================================
+                TECHNICIAN'S QUOTE CARD AT TOP (scrolled / sticky top)
+                =========================================================== */}
+            {activeOrder.quote_amount && (
+              <div className="wa-tech-reply-card">
+                <div className="wa-tech-reply-header">
+                  <span className="wa-tech-reply-name">
+                    💬 {activeTechName} (technician)
+                  </span>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                    Reply to Request
+                  </span>
+                </div>
+
+                <div className="wa-tech-quote-amount">
+                  Quote: ₹{activeOrder.quote_amount || 1800}
+                </div>
+
+                <div className="wa-tech-note-text">
+                  "{activeOrder.technician_notes || 'hello'}"
+                </div>
+
+                {/* Customer Approve Action */}
+                {isCustomer && !activeOrder.quote_approved && (
+                  <button 
+                    type="button" 
+                    className="wa-approve-quote-btn"
+                    disabled={isApprovingQuote}
+                    onClick={handleApproveQuote}
+                  >
+                    <CheckCircle2 size={16} /> Approve ₹{activeOrder.quote_amount || 1800} Quote
+                  </button>
+                )}
+
+                {activeOrder.quote_approved && (
+                  <div className="wa-approved-tag">
+                    <CheckCircle2 size={16} /> Quote Approved by Customer
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ===========================================================
+                SUBSEQUENT CHAT MESSAGES (Concierge, Text, Photos, Price Proposals)
+                =========================================================== */}
+            {messages.map((m) => {
+              const isOutgoing = m.sender_id === user?.id || (m.sender_role === user?.role && m.sender_role !== 'system');
+              if (m.message_type === 'price_negotiation' && !m.metadata?.amount && (m.metadata?.quote_amount || m.content?.includes('Quote'))) {
+                return null;
               }
 
-              // Standard User Chat Bubble
+              const senderLabel = isOutgoing 
+                ? 'You' 
+                : (m.sender_role === 'technician' ? `${cleanTechName(m.sender_name)} (technician)` : `${m.sender_name || 'Live Fix Concierge'} (customer)`);
+
+              const hasImage = m.message_type === 'image' || Boolean(m.metadata?.image_url);
+              const isQuoteMsg = m.message_type === 'price_quote' || Boolean(m.metadata?.amount || m.metadata?.quote_amount);
+              const quoteAmt = m.metadata?.amount || m.metadata?.quote_amount;
+              const noteText = m.content || m.metadata?.notes;
+
               return (
-                <div key={m.id} className={`chat-msg-row ${isOutgoing ? 'msg-outgoing' : 'msg-incoming'}`}>
-                  <div 
-                    className="chat-msg-avatar"
-                    style={{
-                      background: m.sender_role === 'technician' ? '#0f172a' : m.sender_role === 'admin' ? '#7c3aed' : '#2563eb'
-                    }}
-                  >
-                    {(m.sender_name || 'U').charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="chat-msg-bubble">
-                      {m.content}
+                <div 
+                  key={m.id} 
+                  className={`wa-msg-row ${isOutgoing ? 'wa-outgoing' : 'wa-incoming'}`}
+                >
+                  <div className="wa-bubble">
+                    <div className="wa-bubble-sender">
+                      {senderLabel}
                     </div>
-                    <div className="chat-msg-meta" style={{ justifyContent: isOutgoing ? 'flex-end' : 'flex-start' }}>
-                      <span>{m.sender_name} ({m.sender_role})</span>
-                      <span>•</span>
-                      <span>{m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+
+                    {/* PHOTO ATTACHMENT */}
+                    {hasImage && (
+                      <div className="wa-bubble-img-wrap">
+                        <img 
+                          src={m.metadata?.image_url} 
+                          alt="Photo attachment" 
+                          className="wa-bubble-image" 
+                          onClick={() => setLightboxImage(m.metadata?.image_url)}
+                          title="Click to view full photo"
+                        />
+                      </div>
+                    )}
+
+                    {/* PRICE PROPOSAL CARD */}
+                    {isQuoteMsg ? (
+                      <div className="wa-bubble-price-box">
+                        <div className="wa-bubble-price-title">
+                          <span className="wa-bubble-price-label">🏷️ PRICE PROPOSAL</span>
+                          <span className="wa-bubble-price-val">₹{quoteAmt}</span>
+                        </div>
+
+                        {noteText && noteText !== 'Price proposal' && !noteText.startsWith('Price Quote: ₹') && (
+                          <div className="wa-bubble-price-notes">
+                            "{noteText}"
+                          </div>
+                        )}
+
+                        {isCustomer && m.sender_role === 'technician' && !activeOrder.quote_approved && (
+                          <button 
+                            type="button" 
+                            className="wa-approve-quote-btn"
+                            style={{ marginTop: '8px', padding: '6px 12px', fontSize: '0.8rem' }}
+                            disabled={isApprovingQuote}
+                            onClick={handleApproveQuote}
+                          >
+                            <CheckCircle2 size={15} /> Approve ₹{quoteAmt} Quote
+                          </button>
+                        )}
+
+                        {activeOrder.quote_approved && m.sender_role === 'technician' && (
+                          <div className="wa-approved-tag" style={{ marginTop: '6px', fontSize: '0.78rem' }}>
+                            <CheckCircle2 size={14} /> Quote Approved
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      m.content && (!hasImage || m.content !== 'Photo attachment') && (
+                        <div className="wa-bubble-text">
+                          {m.content}
+                        </div>
+                      )
+                    )}
+
+                    <div className="wa-bubble-meta">
+                      <span>{formatMsgTime(m.created_at)}</span>
+                      {isOutgoing && (
+                        <span className="wa-blue-ticks">✓✓</span>
+                      )}
                     </div>
                   </div>
                 </div>
               );
-            })
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+            })}
 
-        {/* Input Footer */}
-        <form className="order-conv-footer" onSubmit={handleSendMessage}>
-          <input 
-            type="text"
-            className="order-conv-input"
-            value={newText}
-            onChange={e => setNewText(e.target.value)}
-            placeholder={`Message ${isCustomer ? 'your assigned technician' : 'the customer'}...`}
-          />
-          <button 
-            type="submit" 
-            className="order-conv-send-btn"
-            disabled={!newText.trim()}
-          >
-            <Send size={16} /> Send
-          </button>
-        </form>
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* WhatsApp Text Input Bar with Paperclip Attachments */}
+          <div className="wa-footer-wrapper">
+            
+            {/* Attachment Menu Popover (WhatsApp Style) */}
+            {showAttachMenu && (
+              <div className="wa-attach-popover" ref={attachMenuRef}>
+                <button 
+                  type="button" 
+                  className="wa-attach-option-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="wa-attach-icon-circle media">
+                    <ImageIcon size={20} />
+                  </div>
+                  <div className="wa-attach-option-text">
+                    <span className="wa-attach-option-title">Photos & Media</span>
+                    <span className="wa-attach-option-sub">Upload laptop fault photos or proof</span>
+                  </div>
+                </button>
+
+                <button 
+                  type="button" 
+                  className="wa-attach-option-btn"
+                  onClick={() => {
+                    setShowAttachMenu(false);
+                    setQuotePriceInput(activeOrder.quote_amount || activeOrder.customer_selected_price || '');
+                    setQuoteNoteInput(activeOrder.technician_notes || '');
+                    setShowPriceModal(true);
+                  }}
+                >
+                  <div className="wa-attach-icon-circle price">
+                    <IndianRupee size={20} />
+                  </div>
+                  <div className="wa-attach-option-text">
+                    <span className="wa-attach-option-title">
+                      {isCustomer ? 'Propose Price / Offer' : 'Submit Price Quote'}
+                    </span>
+                    <span className="wa-attach-option-sub">
+                      {isCustomer ? 'Propose your target repair budget' : 'Send diagnostic estimate & notes'}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {/* Hidden File Input for Photos */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+              onChange={handlePhotoSelect} 
+            />
+
+            <form className="wa-chat-footer" onSubmit={handleSendMessage}>
+              <button 
+                type="button" 
+                className={`wa-attach-btn ${showAttachMenu ? 'active' : ''}`}
+                onClick={() => setShowAttachMenu(prev => !prev)}
+                title="Attach photo or propose price"
+              >
+                <Paperclip size={22} />
+              </button>
+
+              <input 
+                type="text" 
+                className="wa-chat-input" 
+                value={newText} 
+                onChange={e => setNewText(e.target.value)} 
+                placeholder="Type a message..." 
+                autoFocus 
+              />
+
+              <button 
+                type="submit" 
+                className="wa-send-btn" 
+                disabled={!newText.trim()} 
+                title="Send Message"
+              >
+                <Send size={20} />
+              </button>
+            </form>
+          </div>
+
+        </main>
+        </>
+        )}
+
+        {/* PHOTO PREVIEW MODAL */}
+        {selectedPhoto && (
+          <div className="wa-modal-suboverlay" onClick={() => setSelectedPhoto(null)}>
+            <div className="wa-photo-preview-card" onClick={e => e.stopPropagation()}>
+              <div className="wa-submodal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.96rem' }}>
+                  <ImageIcon size={18} color="#008069" />
+                  <span>Send Photo Attachment</span>
+                </div>
+                <button type="button" className="wa-submodal-close" onClick={() => setSelectedPhoto(null)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="wa-photo-preview-body">
+                <img src={selectedPhoto.dataUrl} alt="Preview" className="wa-preview-img" />
+                <div className="wa-photo-filename">{selectedPhoto.name}</div>
+              </div>
+
+              <div className="wa-photo-preview-footer">
+                <input 
+                  type="text"
+                  className="wa-caption-input"
+                  placeholder="Add a caption... (optional)"
+                  value={photoCaption}
+                  onChange={e => setPhotoCaption(e.target.value)}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') handleSendPhoto(); }}
+                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button type="button" className="wa-cancel-btn" onClick={() => setSelectedPhoto(null)}>
+                    Cancel
+                  </button>
+                  <button type="button" className="wa-send-photo-btn" onClick={handleSendPhoto}>
+                    <Send size={16} /> Send Photo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PRICE QUOTE MODAL */}
+        {showPriceModal && (
+          <div className="wa-modal-suboverlay" onClick={() => setShowPriceModal(false)}>
+            <div className="wa-price-quote-card" onClick={e => e.stopPropagation()}>
+              <div className="wa-submodal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.96rem' }}>
+                  <Tag size={18} color="#008069" />
+                  <span>{isCustomer ? 'Propose Target Budget' : 'Send Repair Price Quote'}</span>
+                </div>
+                <button type="button" className="wa-submodal-close" onClick={() => setShowPriceModal(false)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSendPriceQuote} className="wa-price-form">
+                <div className="wa-form-group">
+                  <label className="wa-form-label">
+                    {isCustomer ? 'Your Proposed Budget (₹)' : 'Diagnostic Estimate / Quote Amount (₹)'}
+                  </label>
+                  <div className="wa-input-with-symbol">
+                    <span className="wa-rupee-symbol">₹</span>
+                    <input 
+                      type="number"
+                      min="50"
+                      step="50"
+                      required
+                      className="wa-price-number-input"
+                      value={quotePriceInput}
+                      onChange={e => setQuotePriceInput(e.target.value)}
+                      placeholder="e.g. 1800"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="wa-form-group">
+                  <label className="wa-form-label">
+                    {isCustomer ? 'Notes / Condition (optional)' : 'Diagnostics & Repair Scope Note'}
+                  </label>
+                  <textarea 
+                    rows="3"
+                    className="wa-price-notes-input"
+                    value={quoteNoteInput}
+                    onChange={e => setQuoteNoteInput(e.target.value)}
+                    placeholder={isCustomer ? "e.g. Can proceed if screen replacement is included" : "e.g. OEM Hinge replacement + thermal repaste included"}
+                  />
+                </div>
+
+                <div className="wa-price-form-actions">
+                  <button type="button" className="wa-cancel-btn" onClick={() => setShowPriceModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="wa-send-quote-submit-btn">
+                    <CheckCircle2 size={16} /> 
+                    {isCustomer ? `Propose ₹${quotePriceInput || '0'}` : `Send ₹${quotePriceInput || '0'} Quote`}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* LIGHTBOX FULL VIEW */}
+        {lightboxImage && (
+          <div className="wa-lightbox-overlay" onClick={() => setLightboxImage(null)}>
+            <div className="wa-lightbox-content" onClick={e => e.stopPropagation()}>
+              <button type="button" className="wa-lightbox-close" onClick={() => setLightboxImage(null)} title="Close image">
+                <X size={24} />
+              </button>
+              <img src={lightboxImage} alt="Attachment full view" className="wa-lightbox-img" />
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

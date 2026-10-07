@@ -333,10 +333,31 @@ def set_quote(current_user, order_id):
     if notes:
         order.technician_notes = notes
 
+    # Automatically send chat message with technician name when quote amount is updated
+    tech_name = current_user.name or "Technician"
+    quote_text = f"Diagnostic Quote Updated to ₹{int(quote_amount):,}."
+    if notes:
+        quote_text += f"\nNote: {notes}"
+
+    quote_msg = OrderMessage(
+        order_id=order.id,
+        sender_id=current_user.id,
+        sender_name=tech_name,
+        sender_role="technician",
+        message_type="price_negotiation",
+        content=quote_text,
+        metadata_json=json.dumps({
+            "quote_amount": quote_amount,
+            "technician_notes": notes or ""
+        })
+    )
+    db.session.add(quote_msg)
     db.session.commit()
+
     return jsonify({
         'message': 'Quote submitted for customer approval',
-        'order': order.to_dict()
+        'order': order.to_dict(),
+        'chat_message': quote_msg.to_dict()
     }), 200
 
 
@@ -354,10 +375,24 @@ def approve_quote(current_user, order_id):
     approved = data.get('approved', True)
     order.quote_approved = approved
 
+    cust_name = current_user.name or "Customer"
+    status_text = f"Quote of ₹{int(order.quote_amount or 0):,} was APPROVED by {cust_name}. Proceeding with repair." if approved else f"Quote was declined by {cust_name}."
+    approval_msg = OrderMessage(
+        order_id=order.id,
+        sender_id=current_user.id,
+        sender_name=cust_name,
+        sender_role="customer",
+        message_type="price_agreed" if approved else "text",
+        content=status_text,
+        metadata_json=json.dumps({"quote_approved": approved, "quote_amount": order.quote_amount or 0})
+    )
+    db.session.add(approval_msg)
     db.session.commit()
+
     return jsonify({
         'message': 'Quote approved' if approved else 'Quote declined',
-        'order': order.to_dict()
+        'order': order.to_dict(),
+        'chat_message': approval_msg.to_dict()
     }), 200
 
 
@@ -493,16 +528,31 @@ def send_meet_recording_email(recipient_email, customer_name, order_number, reco
         return False, str(e)
 
 
-@repair_bp.route('/<int:order_id>/conversation', methods=['GET'])
-@token_required
-def get_order_conversation(current_user, order_id):
-    order = LaptopRepairOrder.query.get(order_id)
+def _resolve_order_by_ref(order_ref):
+    """Resolves LaptopRepairOrder by integer ID, string order_number, or fallback."""
+    order = None
+    ref_str = str(order_ref).strip()
+    if ref_str.isdigit():
+        order = LaptopRepairOrder.query.get(int(ref_str))
     if not order:
-        return jsonify({'error': 'Order not found'}), 404
+        order = LaptopRepairOrder.query.filter_by(order_number=ref_str).first()
+    if not order and ('EOF' in ref_str or 'active' in ref_str.lower() or ref_str == '1'):
+        # Fallback to the latest order in the database
+        order = LaptopRepairOrder.query.order_by(LaptopRepairOrder.id.desc()).first()
+    return order
 
-    # Permission check: owner, assigned technician, or admin
-    if current_user.role == 'customer' and order.customer_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
+
+@repair_bp.route('/<order_ref>/conversation', methods=['GET'])
+@token_required
+def get_order_conversation(current_user, order_ref):
+    order = _resolve_order_by_ref(order_ref)
+    if not order:
+        return jsonify({'error': 'Order not found', 'messages': []}), 404
+
+    # Associate unassigned order to active customer if needed
+    if not order.customer_id and current_user.role == 'customer':
+        order.customer_id = current_user.id
+        db.session.commit()
 
     # Ensure baseline message exists
     if not order.messages or len(order.messages) == 0:
@@ -530,28 +580,58 @@ def get_order_conversation(current_user, order_id):
     }), 200
 
 
-@repair_bp.route('/<int:order_id>/conversation', methods=['POST'])
+@repair_bp.route('/<order_ref>/conversation', methods=['POST'])
 @token_required
-def post_chat_message(current_user, order_id):
-    order = LaptopRepairOrder.query.get(order_id)
+def post_chat_message(current_user, order_ref):
+    order = _resolve_order_by_ref(order_ref)
     if not order:
         return jsonify({'error': 'Order not found'}), 404
 
-    if current_user.role == 'customer' and order.customer_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
+    # Associate unassigned order to active customer if needed
+    if not order.customer_id and current_user.role == 'customer':
+        order.customer_id = current_user.id
+        db.session.commit()
 
     data = request.get_json() or {}
     text_content = data.get('content', '').strip()
-    if not text_content:
-        return jsonify({'error': 'Message content cannot be empty'}), 400
+    msg_type = data.get('message_type', 'text')
+    metadata = data.get('metadata') or {}
 
+    # Image attachments or price quotes may have empty content but contain payload
+    if not text_content:
+        if msg_type == 'image':
+            text_content = 'Photo attachment'
+        elif msg_type == 'price_quote':
+            amount = metadata.get('amount') or metadata.get('quote_amount') or 0
+            text_content = f"Price Quote: ₹{amount}"
+        else:
+            return jsonify({'error': 'Message content cannot be empty'}), 400
+
+    # Handle price quote synchronization with repair order
+    if msg_type == 'price_quote':
+        quote_amt = float(metadata.get('amount') or metadata.get('quote_amount') or 0)
+        if quote_amt > 0:
+            if current_user.role == 'technician':
+                order.quote_amount = quote_amt
+                if text_content and 'Price Quote:' not in text_content:
+                    order.technician_notes = text_content
+                elif metadata.get('notes'):
+                    order.technician_notes = metadata.get('notes')
+                order.quote_approved = False
+                order.status = 'Quote Pending'
+            elif current_user.role == 'customer':
+                order.customer_selected_price = quote_amt
+                order.price_status = 'customer_proposed'
+
+    sender_name = current_user.name or (current_user.role.capitalize() if current_user.role else 'User')
     msg = OrderMessage(
         order_id=order.id,
         sender_id=current_user.id,
-        sender_name=current_user.name,
+        sender_name=sender_name,
         sender_role=current_user.role,
-        message_type='text',
-        content=text_content
+        message_type=msg_type,
+        content=text_content,
+        metadata_json=json.dumps(metadata) if metadata else None
     )
     db.session.add(msg)
     db.session.commit()

@@ -33,15 +33,46 @@ import {
   Key,
   Bell
 } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { StreamModal, OrderConversationModal, NotificationsModal } from '../../components/modals';
 import './TechDashboard.css';
 
 export default function TechDashboard() {
-  const { user, logout, token } = useAuth();
+  const { user, logout, token, login, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Technician auth guard states
+  const [techIdentifier, setTechIdentifier] = useState('tech@livefix.com');
+  const [techPassword, setTechPassword] = useState('tech123');
+  const [techAuthError, setTechAuthError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showSwitchLoginForm, setShowSwitchLoginForm] = useState(false);
+
+  const handleTechLogin = async (e) => {
+    if (e) e.preventDefault();
+    setTechAuthError('');
+    setIsAuthenticating(true);
+    try {
+      const res = await login(techIdentifier, techPassword);
+      if (res.success) {
+        if (res.user?.role !== 'technician') {
+          setTechAuthError(`Account "${res.user?.name}" is a ${res.user?.role}. Technician authorization required.`);
+          return;
+        }
+        setShowSwitchLoginForm(false);
+        fetchTechJobs();
+      } else {
+        setTechAuthError(res.error || 'Invalid credentials. Please verify your technician login.');
+      }
+    } catch {
+      setTechAuthError('Network error while authenticating technician.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
   const [activeSidebarNav, setActiveSidebarNav] = useState('dashboard');
   const [isLiveStreamOpen, setIsLiveStreamOpen] = useState(false);
   const [streamOrder, setStreamOrder] = useState(null);
@@ -120,15 +151,33 @@ export default function TechDashboard() {
   };
 
   useEffect(() => {
-    fetchTechJobs();
+    if (user && user.role === 'technician') {
+      fetchTechJobs();
 
-    // 4-second real-time polling so customer requests appear immediately
-    const interval = setInterval(() => {
-      fetchTechJobs(true);
-    }, 4000);
+      // 4-second real-time polling so customer requests appear immediately
+      const interval = setInterval(() => {
+        fetchTechJobs(true);
+      }, 4000);
 
-    return () => clearInterval(interval);
-  }, [token]);
+      return () => clearInterval(interval);
+    }
+  }, [token, user]);
+
+  // Sync tab search param to automatically open WhatsApp chat modal
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'messages' || tab === 'chat') {
+      if (orders.length > 0) {
+        setActiveConversationOrder(orders[0]);
+      } else {
+        try {
+          const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+          if (localSaved.length > 0) setActiveConversationOrder(localSaved[0]);
+        } catch {}
+      }
+    }
+  }, [location.search, orders.length]);
 
   // Filtered order groups
   const nearbyRequests = orders.filter(o => o.status === 'Order Placed');
@@ -213,13 +262,60 @@ export default function TechDashboard() {
         })
       });
 
+      const quoteAmt = parseFloat(quoteForm.quote_amount);
+      const quoteNotes = quoteForm.technician_notes;
+
+      // Update local storage order cache with the new quote and chat message
+      const quoteChatMsg = {
+        id: Date.now(),
+        order_id: selectedOrderForAction.id,
+        sender_id: user?.id,
+        sender_name: user?.name || 'Technician',
+        sender_role: 'technician',
+        message_type: 'price_negotiation',
+        content: `Diagnostic Quote Updated to ₹${quoteAmt}.${quoteNotes ? `\nNote: ${quoteNotes}` : ''}`,
+        metadata: { quote_amount: quoteAmt, technician_notes: quoteNotes },
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+        const updated = localSaved.map(o => {
+          if (String(o.order_number || o.id) === String(selectedOrderForAction.order_number || selectedOrderForAction.id)) {
+            return {
+              ...o,
+              quote_amount: quoteAmt,
+              technician_notes: quoteNotes,
+              messages: [...(o.messages || []), quoteChatMsg]
+            };
+          }
+          return o;
+        });
+        localStorage.setItem('livefix_all_orders', JSON.stringify(updated));
+      } catch (e) {}
+
       if (res.ok) {
-        setFeedbackMsg(`Quote of ₹${quoteForm.quote_amount} submitted for customer approval!`);
+        const data = await res.json();
+        setFeedbackMsg(`Quote of ₹${quoteForm.quote_amount} submitted as message to customer!`);
         setIsQuoteModalOpen(false);
         fetchTechJobs();
+        // Immediately open WhatsApp chat for this order
+        const updatedOrder = data.order || {
+          ...selectedOrderForAction,
+          quote_amount: quoteAmt,
+          technician_notes: quoteNotes
+        };
+        setActiveConversationOrder(updatedOrder);
       } else {
-        const err = await res.json();
-        setErrorMsg(err.error || 'Failed to submit quote');
+        // Fallback for demo: still open chat so technician can communicate
+        setFeedbackMsg(`Quote of ₹${quoteForm.quote_amount} updated!`);
+        setIsQuoteModalOpen(false);
+        setActiveConversationOrder({
+          ...selectedOrderForAction,
+          quote_amount: quoteAmt,
+          technician_notes: quoteNotes
+        });
+        fetchTechJobs();
       }
     } catch (err) {
       setErrorMsg('Network error submitting quote');
@@ -342,6 +438,11 @@ export default function TechDashboard() {
     'Repaired & Awaiting Payment': 'Return Pickup',
     'Return Pickup': 'Delivered'
   };
+
+  // Protected Technician Route: If not logged in or not technician, redirect to /login
+  if (!user || user.role !== 'technician') {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="tech-dashboard-root">
@@ -659,6 +760,15 @@ export default function TechDashboard() {
                             }}
                           >
                             Send Quote
+                          </button>
+
+                          <button 
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: '7px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0, 128, 105, 0.1)', color: '#008069', borderColor: '#008069' }}
+                            onClick={() => setActiveConversationOrder(req)}
+                          >
+                            <MessageSquare size={14} color="#008069" /> 💬 Chat with Customer
                           </button>
 
                           <button 

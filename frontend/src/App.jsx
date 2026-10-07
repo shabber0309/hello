@@ -11,6 +11,7 @@ import TrackRepairPage from './pages/customer/TrackRepairPage';
 import TechDashboard from './pages/technician/TechDashboard';
 import ForTechniciansPage from './pages/technician/ForTechniciansPage';
 import LandingPage from './pages/public/LandingPage';
+import NotFoundPage from './pages/public/NotFoundPage';
 import HowItWorksPage from './pages/public/HowItWorksPage';
 import ServicesPage from './pages/public/ServicesPage';
 import PricingPage from './pages/public/PricingPage';
@@ -30,7 +31,8 @@ import {
   NotificationsModal,
   HelpSupportModal,
   EditProfileModal,
-  QualityCheckDeliveryModal
+  QualityCheckDeliveryModal,
+  OrderConversationModal
 } from './components/modals';
 import { ShieldCheck, Video, Lock, Heart } from 'lucide-react';
 
@@ -60,6 +62,45 @@ function UnifiedDashboard() {
   return <Navigate to="/customer/dashboard" replace />;
 }
 
+function HomePageRoute(props) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const allowLanding = searchParams.get('preview') === 'true' || searchParams.get('view') === 'landing';
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-muted)' }}>
+        Loading...
+      </div>
+    );
+  }
+
+  if (user && !allowLanding) {
+    if (user.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    if (user.role === 'technician') {
+      return <Navigate to="/technician/dashboard" replace />;
+    }
+    return <Navigate to="/customer/dashboard" replace />;
+  }
+
+  return <LandingPage {...props} />;
+}
+
+function CustomerDashboardRoute({ onNewBooking }) {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tab = searchParams.get('tab');
+
+  if (tab === 'chat' || tab === 'messages') {
+    return <Navigate to="/customer/chat" replace />;
+  }
+
+  return <CustomerDashboard onNewBooking={onNewBooking} />;
+}
+
 function MainApp() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -77,9 +118,57 @@ function MainApp() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [activeWhatsAppChatOrder, setActiveWhatsAppChatOrder] = useState(null);
 
   const openAuth = (role = 'customer') => {
     navigate('/login', { state: { role } });
+  };
+
+  const handleOpenChat = async (targetOrder = null) => {
+    if (targetOrder) {
+      setActiveWhatsAppChatOrder(targetOrder);
+      return;
+    }
+
+    // 1. Check cached orders from localStorage
+    try {
+      const localSaved = JSON.parse(localStorage.getItem('livefix_all_orders') || '[]');
+      if (localSaved.length > 0) {
+        setActiveWhatsAppChatOrder(localSaved[0]);
+        return;
+      }
+    } catch {}
+
+    // 2. Fetch latest repair from API
+    try {
+      const activeToken = localStorage.getItem('token') || localStorage.getItem('livefix_token') || '';
+      const res = await fetch('/api/repairs', {
+        headers: activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {}
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const apiOrders = data.orders || [];
+        if (apiOrders.length > 0) {
+          setActiveWhatsAppChatOrder(apiOrders[0]);
+          return;
+        }
+      }
+    } catch {}
+
+    // 3. Fallback default order so the WhatsApp chat always opens immediately
+    setActiveWhatsAppChatOrder({
+      id: 1,
+      order_number: 'EOF-2026-91889',
+      customer_name: user?.role === 'technician' ? 'Customer' : (user?.name || 'Customer'),
+      technician_name: user?.role === 'technician' ? (user?.name || 'Technician') : 'Shabber Hussain (Technician)',
+      laptop_brand: 'Dell XPS 13',
+      laptop_model: '9315 / 9310',
+      issue_category: 'Keyboard stuck',
+      status: 'In Progress',
+      quote_amount: 500,
+      technician_notes: 'i can fix this for this price because its takes too much time to repair',
+      quote_approved: false
+    });
   };
 
   const handleOpenTrackWithId = (id = '') => {
@@ -133,7 +222,7 @@ function MainApp() {
         onOpenPayments={() => setIsPaymentsOpen(true)}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
-        onOpenMessages={() => setDemoStreamOrder(sampleDemoOrder)}
+        onOpenMessages={() => handleOpenChat()}
         onOpenEditProfile={() => setIsEditProfileOpen(true)}
       />
 
@@ -141,6 +230,19 @@ function MainApp() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={
+            <HomePageRoute
+              onStartBooking={() => navigate('/book')}
+              onBecomeTechnician={() => navigate('/for-technicians')}
+              onSeeHowItWorks={() => navigate('/how-it-works')}
+              onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
+              onOpenChainOfCustody={() => setIsChainOfCustodyOpen(true)}
+              onOpenTrackRepair={(id) => {
+                if (id) handleOpenTrackWithId(id);
+                else navigate('/track-repair');
+              }}
+            />
+          } />
+          <Route path="/landing" element={
             <LandingPage
               onStartBooking={() => navigate('/book')}
               onBecomeTechnician={() => navigate('/for-technicians')}
@@ -203,9 +305,15 @@ function MainApp() {
             />
           } />
 
-          {/* Customer Dashboard */}
+          {/* Customer Dashboard & Chat Routes */}
           <Route path="/customer/dashboard" element={
-            <CustomerDashboard onNewBooking={() => navigate('/book')} />
+            <CustomerDashboardRoute onNewBooking={() => navigate('/book')} />
+          } />
+          <Route path="/customer/chat" element={
+            <CustomerDashboard onNewBooking={() => navigate('/book')} isChatRoute={true} />
+          } />
+          <Route path="/customer/messages" element={
+            <Navigate to="/customer/chat" replace />
           } />
           <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
 
@@ -214,6 +322,8 @@ function MainApp() {
             <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
           } />
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/administrator" element={<Navigate to="/admin/dashboard" replace />} />
 
           {/* Technician Dashboard */}
           <Route path="/technician/dashboard" element={
@@ -226,8 +336,8 @@ function MainApp() {
           {/* Universal /dashboard Route -> redirects to active role dashboard */}
           <Route path="/dashboard" element={<UnifiedDashboard />} />
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Catch-all: Stays on the invalid URL without bouncing to '/', displaying 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
 
@@ -303,6 +413,19 @@ function MainApp() {
         isOpen={isEditProfileOpen}
         onClose={() => setIsEditProfileOpen(false)}
       />
+
+      {/* WhatsApp Direct Customer-Technician Chat Modal */}
+      {activeWhatsAppChatOrder && (
+        <OrderConversationModal
+          isOpen={Boolean(activeWhatsAppChatOrder)}
+          initialOrder={activeWhatsAppChatOrder}
+          onClose={() => setActiveWhatsAppChatOrder(null)}
+          onOpenLiveStream={(ord) => {
+            setActiveWhatsAppChatOrder(null);
+            setDemoStreamOrder(ord || sampleDemoOrder);
+          }}
+        />
+      )}
 
       {/* Authentication Modal */}
       <AuthModal
