@@ -215,7 +215,7 @@ function MainApp() {
     <div className="app-root">
       <Navbar 
         onOpenAuthModal={openAuth}
-        onOpenRequestModal={() => (user ? navigate('/book') : openAuth('customer'))}
+        onOpenRequestModal={() => (user ? navigate('/customer/book') : openAuth('customer'))}
         onOpenTrackRepair={() => navigate('/track-repair')}
         onOpenTechOnboarding={() => (user ? setIsTechOnboardingOpen(true) : openAuth('technician'))}
         onOpenChainOfCustody={() => setIsChainOfCustodyOpen(true)}
@@ -231,7 +231,7 @@ function MainApp() {
           {/* Public Routes */}
           <Route path="/" element={
             <HomePageRoute
-              onStartBooking={() => navigate('/book')}
+              onStartBooking={() => navigate('/customer/book')}
               onBecomeTechnician={() => navigate('/for-technicians')}
               onSeeHowItWorks={() => navigate('/how-it-works')}
               onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
@@ -244,7 +244,7 @@ function MainApp() {
           } />
           <Route path="/landing" element={
             <LandingPage
-              onStartBooking={() => navigate('/book')}
+              onStartBooking={() => navigate('/customer/book')}
               onBecomeTechnician={() => navigate('/for-technicians')}
               onSeeHowItWorks={() => navigate('/how-it-works')}
               onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
@@ -259,14 +259,14 @@ function MainApp() {
 
           <Route path="/how-it-works" element={
             <HowItWorksPage 
-              onStartBooking={() => navigate('/book')}
+              onStartBooking={() => navigate('/customer/book')}
               onWatchLiveDemo={() => setDemoStreamOrder(sampleDemoOrder)}
             />
           } />
 
           <Route path="/services" element={
             <ServicesPage 
-              onStartBooking={(problem) => navigate('/book', { state: { prefillProblem: problem } })}
+              onStartBooking={(problem) => navigate('/customer/book', { state: { prefillProblem: problem } })}
             />
           } />
 
@@ -279,7 +279,7 @@ function MainApp() {
 
           <Route path="/pricing" element={
             <PricingPage 
-              onStartBooking={(problem) => navigate('/book', { state: { prefillProblem: problem } })}
+              onStartBooking={(problem) => navigate('/customer/book', { state: { prefillProblem: problem } })}
             />
           } />
 
@@ -296,21 +296,23 @@ function MainApp() {
           <Route path="/signin" element={<Navigate to="/login" replace />} />
           <Route path="/signup" element={<Navigate to="/register" replace />} />
 
-          <Route path="/book" element={
+          {/* Customer Booking Slot Route: /customer/book (with /book backwards compatibility) */}
+          <Route path="/customer/book" element={
             <BookRepair
               onBookingSuccess={(newOrder) => {
                 navigate('/customer/dashboard');
               }}
-              onCancel={() => navigate('/')}
+              onCancel={() => navigate('/customer/dashboard')}
             />
           } />
+          <Route path="/book" element={<Navigate to="/customer/book" replace />} />
 
           {/* Customer Dashboard & Chat Routes */}
           <Route path="/customer/dashboard" element={
-            <CustomerDashboardRoute onNewBooking={() => navigate('/book')} />
+            <CustomerDashboardRoute onNewBooking={() => navigate('/customer/book')} />
           } />
           <Route path="/customer/chat" element={
-            <CustomerDashboard onNewBooking={() => navigate('/book')} isChatRoute={true} />
+            <CustomerDashboard onNewBooking={() => navigate('/customer/book')} isChatRoute={true} />
           } />
           <Route path="/customer/messages" element={
             <Navigate to="/customer/chat" replace />

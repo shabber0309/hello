@@ -114,7 +114,7 @@ export default function Navbar({
         { 
           id: 'new', 
           name: 'New Repair', 
-          path: '/book', 
+          path: '/customer/book', 
           icon: PlusCircle 
         },
         { 
@@ -161,6 +161,9 @@ export default function Navbar({
     }
     if (link.path === '/customer/dashboard') {
       return location.pathname === '/customer/dashboard' || location.pathname === '/dashboard';
+    }
+    if (link.path === '/customer/book') {
+      return location.pathname === '/customer/book' || location.pathname === '/book';
     }
     if (link.path === '/') {
       return location.pathname === '/' || location.pathname === '/home';
