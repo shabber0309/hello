@@ -163,7 +163,19 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
       const saved = localStorage.getItem(key);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          // Purge obsolete seed dummy messages from storage
+          const cleaned = parsed.filter(m => 
+            m.id !== 'seed-prop-1800' && 
+            m.id !== 'seed-prop-950' &&
+            !m.content?.includes('Counter-offer for repair') &&
+            !(m.content === 'hello' && (m.metadata?.amount === 1800 || m.metadata?.amount === 950))
+          );
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem(key, JSON.stringify(cleaned));
+          }
+          return cleaned;
+        }
       }
     } catch {}
     return [];
@@ -185,36 +197,19 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     } catch {}
   };
 
-  const getBaselineSeedMessages = (order) => [
-    {
-      id: `seed-concierge-${order?.order_number || '07350'}`,
-      sender_name: 'Live Fix Concierge',
-      sender_role: 'system',
-      message_type: 'concierge',
-      content: `Order #${order?.order_number || 'EOF-2026-07350'} registered for ${order?.laptop_brand || 'Asus TUF Gaming A15'} ${order?.laptop_model || '(FA506 / FA507)'}. Estimated base price range is ₹800 – ₹4,000. Please select your preferred price target to start pickup scheduling.`,
-      created_at: '05:25 AM'
-    },
-    {
-      id: 'seed-prop-1800',
-      sender_id: user?.id,
-      sender_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul',
-      sender_role: 'customer',
-      message_type: 'price_quote',
-      metadata: { amount: 1800, notes: 'hello' },
-      content: 'hello',
-      created_at: '01:44 PM'
-    },
-    {
-      id: 'seed-prop-950',
-      sender_id: user?.id,
-      sender_name: user?.role === 'customer' ? (user?.name || 'Rahul') : 'Rahul',
-      sender_role: 'customer',
-      message_type: 'price_quote',
-      metadata: { amount: 950, notes: 'Counter-offer for repair' },
-      content: 'Counter-offer for repair',
-      created_at: '01:45 PM'
-    }
-  ];
+  const getBaselineSeedMessages = (order) => {
+    if (!order) return [];
+    return [
+      {
+        id: `seed-concierge-${order?.order_number || order?.id || 'reg'}`,
+        sender_name: 'Live Fix Concierge',
+        sender_role: 'system',
+        message_type: 'concierge',
+        content: `Order #${order?.order_number || 'EOF-2026-98789'} registered for ${order?.laptop_brand || 'Lenovo ThinkPad'} ${order?.laptop_model || 'X1 Yoga Gen 6 / 7 / 8'}. Estimated base price range is ₹800 – ₹4,000. Please select your preferred price target to start pickup scheduling.`,
+        created_at: '05:25 AM'
+      }
+    ];
+  };
 
   // Fetch conversation messages for active order
   const fetchConversation = async (silent = false) => {
@@ -239,17 +234,21 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
         // Build seamless unified list preserving all messages
         const mergedMap = new Map();
         
-        // 1. Baseline messages
-        baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
-        
-        // 2. Server database messages
+        // 1. Server database messages (ground truth)
         serverMsgs.forEach(m => {
+          if (m.id === 'seed-prop-1800' || m.id === 'seed-prop-950') return;
           const key = String(m.id || `${m.content}_${m.created_at}`);
           mergedMap.set(key, m);
         });
 
-        // 3. Local unsynced or freshly sent messages (CRITICAL: prevents messages from vanishing!)
+        // 2. Baseline welcome message only if server has no messages
+        if (serverMsgs.length === 0) {
+          baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
+        }
+
+        // 3. Local unsynced or freshly sent messages
         localMsgs.forEach(m => {
+          if (m.id === 'seed-prop-1800' || m.id === 'seed-prop-950') return;
           const key = String(m.id || `${m.content}_${m.created_at}`);
           if (!mergedMap.has(key)) {
             mergedMap.set(key, m);
@@ -261,14 +260,20 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
         // Fallback: merge baseline and local cache so user messages are 100% retained
         const mergedMap = new Map();
         baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
-        localMsgs.forEach(m => mergedMap.set(String(m.id || `${m.content}_${m.created_at}`), m));
+        localMsgs.forEach(m => {
+          if (m.id === 'seed-prop-1800' || m.id === 'seed-prop-950') return;
+          mergedMap.set(String(m.id || `${m.content}_${m.created_at}`), m);
+        });
         setMessages(Array.from(mergedMap.values()));
       }
     } catch {
       // Network error: preserve all local and baseline messages
       const mergedMap = new Map();
       baseline.forEach(m => mergedMap.set(String(m.id || m.content), m));
-      localMsgs.forEach(m => mergedMap.set(String(m.id || `${m.content}_${m.created_at}`), m));
+      localMsgs.forEach(m => {
+        if (m.id === 'seed-prop-1800' || m.id === 'seed-prop-950') return;
+        mergedMap.set(String(m.id || `${m.content}_${m.created_at}`), m);
+      });
       setMessages(Array.from(mergedMap.values()));
     } finally {
       if (!silent) setLoading(false);
@@ -287,9 +292,13 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     return () => clearInterval(interval);
   }, [isOpen, activeOrder?.id, activeOrder?.order_number]);
 
-  // Auto-scroll messages
+  // Auto-scroll messages ONLY when the user sends a new message (never on background polling)
+  const shouldAutoScrollRef = useRef(false);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (shouldAutoScrollRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      shouldAutoScrollRef.current = false;
+    }
   }, [messages]);
 
   // Send regular WhatsApp message (pure text only)
@@ -299,6 +308,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
     if (!content || !activeOrder) return;
 
     setNewText('');
+    shouldAutoScrollRef.current = true;
 
     const senderRole = user?.role || 'customer';
     const senderName = user?.name || (senderRole === 'technician' ? 'Technician' : 'Customer');
@@ -1280,7 +1290,7 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
                           <>
                             <h4 className="wa-step-title">Your 6-Digit Pickup Handover OTP</h4>
                             <p className="wa-step-desc">
-                              Technician {activeOrder.technician_name} will come to collect your sealed laptop. While handing over the parcel, speak this OTP aloud to verify pickup:
+                              Technician {activeTechName} will come to collect your sealed laptop. While handing over the parcel, speak this OTP aloud to verify pickup:
                             </p>
                             <div className="wa-otp-highlight-box">
                               <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 800 }}>HANDOVER VERIFICATION OTP</div>
@@ -1540,11 +1550,33 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
             {/* ===========================================================
                 SUBSEQUENT CHAT MESSAGES (Concierge, Text, Photos, Price Proposals)
                 =========================================================== */}
-            {messages.map((m) => {
-              const isOutgoing = m.sender_id === user?.id || (m.sender_role === user?.role && m.sender_role !== 'system');
-              if (m.message_type === 'price_negotiation' && !m.metadata?.amount && (m.metadata?.quote_amount || m.content?.includes('Quote'))) {
-                return null;
+            {messages.filter((m) => {
+              // 1. Never show obsolete mock seed proposals
+              if (m.id === 'seed-prop-1800' || m.id === 'seed-prop-950') return false;
+              if (m.content === 'hello' && (m.metadata?.amount === 1800 || m.metadata?.amount === 950)) return false;
+              if (m.content?.includes('Counter-offer for repair')) return false;
+
+              // 2. If quote is agreed/locked, filter out older superseded price proposal bubbles that are not the current quote
+              if (activeOrder?.quote_amount) {
+                const isQuoteMsg = m.message_type === 'price_quote' || Boolean(m.metadata?.amount || m.metadata?.quote_amount);
+                const quoteAmt = m.metadata?.amount || m.metadata?.quote_amount;
+                if (isQuoteMsg && quoteAmt && Number(quoteAmt) !== Number(activeOrder.quote_amount)) {
+                  return false;
+                }
               }
+
+              // 3. Deduplicate multiple concierge messages
+              if (m.message_type === 'concierge' || m.sender_name === 'Live Fix Concierge') {
+                const firstConcierge = messages.find(x => x.message_type === 'concierge' || x.sender_name === 'Live Fix Concierge');
+                if (firstConcierge && firstConcierge.id !== m.id) return false;
+              }
+
+              if (m.message_type === 'price_negotiation' && !m.metadata?.amount && (m.metadata?.quote_amount || m.content?.includes('Quote'))) {
+                return false;
+              }
+
+              return true;
+            }).map((m) => {
 
               const senderLabel = isOutgoing 
                 ? 'You' 
