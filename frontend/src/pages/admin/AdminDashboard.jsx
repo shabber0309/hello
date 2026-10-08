@@ -171,6 +171,14 @@ export default function AdminDashboard({ onOpenLiveStream }) {
     }
   }, [token, user]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['overview', 'users', 'orders', 'streams', 'custody', 'escrow', 'database'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
+
   const handleEditUserClick = (u) => {
     setEditingUser(u);
     setUserForm({
@@ -432,76 +440,9 @@ export default function AdminDashboard({ onOpenLiveStream }) {
             >
               <Download size={15} /> Export JSON
             </button>
-
-            <button 
-              onClick={handleResetDatabase}
-              className="admin-btn-danger-soft"
-            >
-              <Database size={15} /> Reset / Re-Seed Database
-            </button>
           </div>
         </div>
 
-        {/* Notice if viewing while logged into Technician or Customer role */}
-        {user && user.role !== 'admin' && (
-          <div style={{
-            background: 'rgba(245, 158, 11, 0.12)',
-            border: '1px solid rgba(245, 158, 11, 0.35)',
-            borderRadius: '12px',
-            padding: '14px 18px',
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <AlertTriangle size={20} color="#f59e0b" style={{ flexShrink: 0 }} />
-              <div>
-                <strong style={{ color: 'var(--text-main)', fontSize: '0.92rem' }}>
-                  Currently signed in as {user.name} ({user.role.toUpperCase()})
-                </strong>
-                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  You are previewing the Admin Console. Switch to Administrator for full permissions or jump back to your workbench.
-                </div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={async () => {
-                  await switchRole('admin');
-                  fetchData();
-                }}
-                style={{ fontSize: '0.82rem', padding: '7px 14px', background: '#059669', borderColor: '#059669' }}
-              >
-                🛡️ Switch to Administrator
-              </button>
-              {user.role === 'technician' && (
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => navigate('/technician/dashboard')}
-                  style={{ fontSize: '0.82rem', padding: '7px 14px' }}
-                >
-                  🔧 Go to Technician Workbench
-                </button>
-              )}
-              {user.role === 'customer' && (
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => navigate('/customer/dashboard')}
-                  style={{ fontSize: '0.82rem', padding: '7px 14px' }}
-                >
-                  👤 Go to Customer Dashboard
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Feedback Alert */}
         {feedbackMsg && (
@@ -1292,17 +1233,6 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  {(ord.customer_whatsapp || ord.customer_phone) && (
-                                    <a
-                                      href={`https://wa.me/${(ord.customer_whatsapp || ord.customer_phone || '').replace(/[^0-9]/g, '')}`}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="admin-whatsapp-btn"
-                                      title="Open direct WhatsApp with customer"
-                                    >
-                                      <MessageCircle size={14} /> Customer WhatsApp
-                                    </a>
-                                  )}
                                   <span className="badge badge-verified" style={{ fontSize: '0.75rem' }}>
                                     Verified Intake
                                   </span>
@@ -1311,63 +1241,26 @@ export default function AdminDashboard({ onOpenLiveStream }) {
 
                               <div className="admin-dossier-grid">
                                 <div className="admin-dossier-box">
-                                  <div className="admin-dossier-label">Device Access & Diagnostic Credentials</div>
-                                  <div className="admin-dossier-value" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.92rem', fontWeight: 800 }}>
-                                    {ord.credentials_provided ? (
-                                      <span style={{ color: '#16a34a' }}>🔑 PIN: {ord.device_pin}</span>
-                                    ) : ord.credentials_requested ? (
-                                      <span style={{ color: '#d97706' }}>⏳ Requested by Tech</span>
-                                    ) : (
-                                      <span style={{ color: 'var(--text-dim)' }}>Not Requested (On-Demand)</span>
-                                    )}
-                                  </div>
-                                  {ord.credentials_request_note && (
-                                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                      Note: "{ord.credentials_request_note}"
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="admin-dossier-box">
-                                  <div className="admin-dossier-label">Charger & Accessories Intake</div>
-                                  <div className="admin-dossier-value" style={{ color: ord.charger_included ? '#16a34a' : 'var(--text-dim)' }}>
-                                    ⚡ {ord.charger_included ? (ord.charger_details || 'Original Charger Handed Over') : 'No Charger Handed Over'}
-                                  </div>
-                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                    <strong>Accessories:</strong> {Array.isArray(ord.included_accessories) ? ord.included_accessories.join(', ') : (ord.included_accessories || 'None')}
-                                  </div>
-                                </div>
-
-                                <div className="admin-dossier-box">
-                                  <div className="admin-dossier-label">Declared Pre-Existing Damage & Flaws</div>
-                                  <div className="admin-dossier-value" style={{ color: '#d97706', fontSize: '0.85rem' }}>
-                                    ⚠️ {Array.isArray(ord.pre_existing_damage) ? ord.pre_existing_damage.join(', ') : (ord.pre_existing_damage || 'None Declared')}
-                                  </div>
-                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                                    Customer verified condition prior to courier handover.
-                                  </div>
-                                </div>
-
-                                <div className="admin-dossier-box">
-                                  <div className="admin-dossier-label">Customer Target Budget</div>
+                                  <div className="admin-dossier-label">Agreed Repair Budget</div>
                                   <div className="admin-dossier-value" style={{ color: 'var(--primary)', fontWeight: 800 }}>
                                     ₹{(ord.customer_selected_price || ord.base_price_min || 0).toLocaleString()}
                                   </div>
-                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                    Data Backup: {ord.data_backup_status || 'Customer Confirmed'}
+                                </div>
+
+                                <div className="admin-dossier-box">
+                                  <div className="admin-dossier-label">Current Progress & Stage</div>
+                                  <div className="admin-dossier-value" style={{ fontSize: '0.88rem', fontWeight: 600 }}>
+                                    {ord.status}
                                   </div>
                                 </div>
 
                                 <div className="admin-dossier-box" style={{ gridColumn: 'span 2' }}>
-                                  <div className="admin-dossier-label">Logistics, Doorstep Address & Gate Pass</div>
+                                  <div className="admin-dossier-label">Logistics & Service Details</div>
                                   <div className="admin-dossier-value" style={{ fontSize: '0.85rem' }}>
                                     📍 {ord.pickup_address}, {ord.pickup_area ? `${ord.pickup_area}, ` : ''}{ord.pickup_city} - {ord.pickup_pincode || '500081'}
                                   </div>
-                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-                                    <strong>Landmark / Gate Pass:</strong> {ord.pickup_landmark || 'No landmark specified'}
-                                  </div>
-                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                    <strong>Customer:</strong> {ord.customer_name} ({ord.customer_phone} / {ord.customer_email}) • <strong>Assigned Tech:</strong> {ord.technician_name} ({ord.technician_bench || 'Cleanroom Bench'})
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                    <strong>Customer:</strong> {ord.customer_name} ({ord.customer_phone || ord.customer_email}) • <strong>Assigned Tech:</strong> {ord.technician_name} ({ord.technician_bench || 'Cleanroom Bench'})
                                   </div>
                                 </div>
                               </div>
@@ -1436,14 +1329,26 @@ export default function AdminDashboard({ onOpenLiveStream }) {
                         Issue: {ord.issue_category} • Status: {ord.status}
                       </div>
 
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         <button
                           className="btn-primary"
                           onClick={() => setLiveStreamOrder(ord)}
-                          style={{ flex: 1, padding: '9px', fontSize: '0.84rem', display: 'flex', justifyContent: 'center', gap: '8px' }}
+                          style={{ flex: 1, minWidth: '140px', padding: '9px', fontSize: '0.84rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
                         >
-                          <Video size={15} /> Join Live Cleanroom Feed
+                          <Video size={15} /> Join Live Feed
                         </button>
+                        {(ord.stream_session?.meet_url || ord.meet_recording_url) && (
+                          <a
+                            href={ord.stream_session?.meet_url || ord.meet_recording_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-cta"
+                            style={{ padding: '9px 12px', fontSize: '0.84rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            title="Join Google Meet Room for Cleanroom Audit"
+                          >
+                            <ExternalLink size={14} /> Join Google Meet
+                          </a>
+                        )}
                         <button
                           className="btn-secondary"
                           onClick={() => setAdminConversationOrder(ord)}

@@ -193,7 +193,7 @@ export default function ServicesPage({ onStartBooking }) {
     if (onStartBooking) {
       onStartBooking(serviceTitle);
     } else {
-      navigate('/book', { state: { prefillProblem: serviceTitle } });
+      navigate('/customer/book', { state: { prefillProblem: serviceTitle } });
     }
   };
 
@@ -339,7 +339,7 @@ export default function ServicesPage({ onStartBooking }) {
           </div>
 
           <button
-            onClick={() => onStartBooking ? onStartBooking() : navigate('/book')}
+            onClick={() => onStartBooking ? onStartBooking() : navigate('/customer/book')}
             className="btn-primary services-callout-btn"
           >
             Custom Diagnostic Request

@@ -754,3 +754,307 @@
     border-radius: 14px;
   }
 }
+
+/* ==========================================================================
+   PRO ZERO-TRUST LIFECYCLE COMMAND CENTER (Cleanroom Workbench)
+   Seamless Light & Dark Mode Compatibility with Dynamic Stage Spotlight
+   ========================================================================== */
+
+.tech-zt-command-center {
+  background: var(--bg-card-subtle, #edf4fc);
+  border: 1px solid var(--border-medium, #b6d4f5);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .tech-zt-command-center {
+  background: rgba(17, 27, 47, 0.7);
+  border-color: rgba(56, 189, 248, 0.25);
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.4);
+}
+
+.tech-zt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tech-zt-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main, #0f172a);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+[data-theme="dark"] .tech-zt-title-badge {
+  color: #f8fafc;
+}
+
+.tech-zt-stage-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: var(--primary-subtle, rgba(29, 78, 216, 0.1));
+  color: var(--primary, #1d4ed8);
+  border: 1px solid var(--border-light, #cfe0f5);
+}
+
+[data-theme="dark"] .tech-zt-stage-tag {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+/* Horizontal Connected Stepper */
+.tech-zt-stepper-container {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+  scrollbar-width: thin;
+}
+
+.tech-zt-step-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid var(--border-light, #cfe0f5);
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-dim, #64748b);
+  transition: all 0.15s ease;
+}
+
+[data-theme="dark"] .tech-zt-step-node {
+  background: #0f172a;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+.tech-zt-step-node:hover {
+  border-color: var(--primary, #1d4ed8);
+  color: var(--text-main, #0f172a);
+}
+
+.tech-zt-step-node-completed {
+  background: rgba(5, 150, 105, 0.08) !important;
+  color: #059669 !important;
+  border-color: rgba(5, 150, 105, 0.3) !important;
+}
+
+[data-theme="dark"] .tech-zt-step-node-completed {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.tech-zt-step-node-active {
+  background: var(--primary, #1d4ed8) !important;
+  color: #ffffff !important;
+  border-color: var(--primary, #1d4ed8) !important;
+  box-shadow: 0 2px 8px var(--primary-glow, rgba(29, 78, 216, 0.3));
+}
+
+[data-theme="dark"] .tech-zt-step-node-active {
+  background: #38bdf8 !important;
+  color: #0f172a !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+}
+
+/* Active Stage Spotlight Station */
+.tech-zt-action-station {
+  background: var(--bg-surface, #ffffff);
+  border: 1.5px solid var(--border-medium, #b6d4f5);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .tech-zt-action-station {
+  background: #0f172a;
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.tech-zt-action-info {
+  flex: 1;
+  min-width: 240px;
+}
+
+.tech-zt-action-headline {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main, #0f172a);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+[data-theme="dark"] .tech-zt-action-headline {
+  color: #f8fafc;
+}
+
+.tech-zt-action-desc {
+  font-size: 0.82rem;
+  color: var(--text-dim, #64748b);
+  line-height: 1.45;
+}
+
+[data-theme="dark"] .tech-zt-action-desc {
+  color: #94a3b8;
+}
+
+.tech-zt-action-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Polished OTP Input Field */
+.tech-zt-otp-input {
+  width: 130px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-medium, #b6d4f5);
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-main, #0f172a);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-align: center;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+[data-theme="dark"] .tech-zt-otp-input {
+  background: #090e1a;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+}
+
+.tech-zt-otp-input:focus {
+  border-color: var(--primary, #1d4ed8);
+  box-shadow: 0 0 0 3px var(--primary-subtle, rgba(29, 78, 216, 0.15));
+}
+
+[data-theme="dark"] .tech-zt-otp-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+}
+
+/* Action Buttons */
+.tech-zt-btn-action {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  border: none;
+  background: var(--primary, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 2px 8px var(--primary-glow, rgba(29, 78, 216, 0.3));
+}
+
+.tech-zt-btn-action:hover {
+  background: var(--primary-hover, #1e40af);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .tech-zt-btn-action {
+  background: #0284c7;
+}
+
+[data-theme="dark"] .tech-zt-btn-action:hover {
+  background: #0369a1;
+}
+
+.tech-zt-btn-meet {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ea4335;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(234, 67, 53, 0.35);
+  transition: all 0.15s ease;
+}
+
+.tech-zt-btn-meet:hover {
+  background: #c5221f;
+  transform: translateY(-1px);
+}
+
+.tech-zt-btn-outline {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--text-dim, #64748b);
+  border: 1px solid var(--border-medium, #b6d4f5);
+  transition: all 0.15s ease;
+}
+
+.tech-zt-btn-outline:hover {
+  background: var(--bg-card-subtle, #edf4fc);
+  color: var(--text-main, #0f172a);
+  border-color: var(--primary, #1d4ed8);
+}
+
+[data-theme="dark"] .tech-zt-btn-outline {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .tech-zt-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  border-color: #38bdf8;
+}
+

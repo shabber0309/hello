@@ -117,6 +117,17 @@ export default function TechDashboard() {
   // Photo viewer lightbox modal state
   const [activePhotoModalUrl, setActivePhotoModalUrl] = useState(null);
 
+  // Zero-Trust OTP inputs and action loading state
+  const [otpInputs, setOtpInputs] = useState({});
+  const [actionLoading, setActionLoading] = useState({});
+
+  const handleOtpInputChange = (orderRef, field, val) => {
+    setOtpInputs(prev => ({
+      ...prev,
+      [`${orderRef}_${field}`]: val
+    }));
+  };
+
   const fetchTechJobs = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
@@ -163,7 +174,7 @@ export default function TechDashboard() {
     }
   }, [token, user]);
 
-  // Sync tab search param to automatically open WhatsApp chat modal
+  // Sync tab search param to switch workbench view or open chat modal
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
@@ -176,6 +187,22 @@ export default function TechDashboard() {
           if (localSaved.length > 0) setActiveConversationOrder(localSaved[0]);
         } catch {}
       }
+    } else if (tab === 'active') {
+      setActiveSidebarNav('active');
+    } else if (tab === 'earnings') {
+      setActiveSidebarNav('earnings');
+    } else if (tab === 'requests') {
+      setActiveSidebarNav('requests');
+    } else if (tab === 'live') {
+      if (activeRepairs.length > 0) {
+        handleLaunchLiveStream(activeRepairs[0]);
+      } else if (orders.length > 0) {
+        handleLaunchLiveStream(orders[0]);
+      } else {
+        handleLaunchLiveStream();
+      }
+    } else if (!tab || tab === 'dashboard') {
+      setActiveSidebarNav('dashboard');
     }
   }, [location.search, orders.length]);
 
@@ -400,6 +427,152 @@ export default function TechDashboard() {
       }
     } catch (err) {
       setErrorMsg('Network error requesting credentials');
+    }
+  };
+
+  // Zero-Trust Protocol Handlers for Active Repairs
+  const handleConfirmTimingSlot = async (orderRef) => {
+    try {
+      setActionLoading(prev => ({ ...prev, [orderRef]: true }));
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token');
+      const res = await fetch(`/api/repairs/${orderRef}/confirm-timing-slot`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({})
+      });
+      if (res.ok) {
+        setFeedbackMsg(`Pickup timing slot locked! Status updated to Scheduled for Pickup.`);
+        fetchTechJobs();
+      } else {
+        const d = await res.json();
+        setErrorMsg(d.error || 'Failed to lock timing slot');
+      }
+    } catch {
+      setErrorMsg('Failed to lock timing slot');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [orderRef]: false }));
+    }
+  };
+
+  const handleVerifyPickupOtp = async (orderRef) => {
+    const otpVal = otpInputs[`${orderRef}_pickup`] || '';
+    if (!otpVal.trim()) {
+      setErrorMsg('Please enter the 6-digit Customer Pickup OTP');
+      return;
+    }
+    try {
+      setActionLoading(prev => ({ ...prev, [orderRef]: true }));
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token');
+      const res = await fetch(`/api/repairs/${orderRef}/verify-pickup-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({ otp: otpVal.trim() })
+      });
+      if (res.ok) {
+        setFeedbackMsg(`Pickup OTP Verified! Custody transferred to technician.`);
+        fetchTechJobs();
+      } else {
+        const d = await res.json();
+        setErrorMsg(d.error || 'Invalid Pickup OTP');
+      }
+    } catch {
+      setErrorMsg('Failed to verify Pickup OTP');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [orderRef]: false }));
+    }
+  };
+
+  const handleVerifyUnboxOtp = async (orderRef) => {
+    const otpVal = otpInputs[`${orderRef}_unbox`] || '';
+    if (!otpVal.trim()) {
+      setErrorMsg('Please enter the 6-digit Customer Unbox OTP');
+      return;
+    }
+    try {
+      setActionLoading(prev => ({ ...prev, [orderRef]: true }));
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token');
+      const res = await fetch(`/api/repairs/${orderRef}/verify-unbox-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({ otp: otpVal.trim() })
+      });
+      if (res.ok) {
+        setFeedbackMsg(`Unbox OTP Verified! Tamper seal officially authorized to be opened.`);
+        fetchTechJobs();
+      } else {
+        const d = await res.json();
+        setErrorMsg(d.error || 'Invalid Unbox OTP');
+      }
+    } catch {
+      setErrorMsg('Failed to verify Unbox OTP');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [orderRef]: false }));
+    }
+  };
+
+  const handleNotifyPackingReady = async (orderRef) => {
+    try {
+      setActionLoading(prev => ({ ...prev, [orderRef]: true }));
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token');
+      const res = await fetch(`/api/repairs/${orderRef}/notify-packing`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({})
+      });
+      if (res.ok) {
+        setFeedbackMsg('Customer notified for live functional test demo & Packing OTP generated!');
+        fetchTechJobs();
+      } else {
+        const d = await res.json();
+        setErrorMsg(d.error || 'Failed to notify packing');
+      }
+    } catch {
+      setErrorMsg('Failed to notify packing');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [orderRef]: false }));
+    }
+  };
+
+  const handleVerifyPackingOtp = async (orderRef) => {
+    const otpVal = otpInputs[`${orderRef}_packing`] || '';
+    if (!otpVal.trim()) {
+      setErrorMsg('Please enter the 6-digit Customer Packing OTP');
+      return;
+    }
+    try {
+      setActionLoading(prev => ({ ...prev, [orderRef]: true }));
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token');
+      const res = await fetch(`/api/repairs/${orderRef}/verify-packing-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({ otp: otpVal.trim() })
+      });
+      if (res.ok) {
+        setFeedbackMsg(`Packing OTP Verified! Device sealed with Tamper Seal Tag.`);
+        fetchTechJobs();
+      } else {
+        const d = await res.json();
+        setErrorMsg(d.error || 'Invalid Packing OTP');
+      }
+    } catch {
+      setErrorMsg('Failed to verify Packing OTP');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [orderRef]: false }));
     }
   };
 
@@ -887,23 +1060,6 @@ export default function TechDashboard() {
                             <strong>Device Serial Number</strong>
                             {req.serial_number || 'To Be Verified on Bench'}
                           </div>
-
-                          <div className="tech-spec-item">
-                            <strong>Charger Intake</strong>
-                            {req.charger_included ? (req.charger_details || 'Yes (Original Charger Included)') : 'No Charger Handed Over'}
-                          </div>
-
-                          <div className="tech-spec-item">
-                            <strong>Included Accessories</strong>
-                            {Array.isArray(req.included_accessories) ? req.included_accessories.join(', ') : (req.included_accessories || 'None')}
-                          </div>
-
-                          <div className="tech-spec-item">
-                            <strong>Pre-existing Flaws</strong>
-                            <span style={{ color: '#d97706', fontWeight: 600 }}>
-                              {Array.isArray(req.pre_existing_damage) ? req.pre_existing_damage.join(', ') : (req.pre_existing_damage || 'None declared')}
-                            </span>
-                          </div>
                         </div>
 
                         {/* Customer Uploaded Photo Proofs */}
@@ -1056,79 +1212,366 @@ export default function TechDashboard() {
 
                           <button
                             className="btn-secondary"
-                            onClick={() => handleOpenRequestCredentials(ord)}
+                            onClick={() => setActiveConversationOrder(ord)}
                             style={{
                               padding: '7px 14px',
-                              fontSize: '0.82rem',
-                              border: ord.credentials_requested && !ord.credentials_provided ? '1px solid #d97706' : '1px solid var(--border-light)'
+                              fontSize: '0.82rem'
                             }}
-                            title="Request temporary OS PIN or guest account access from customer for hardware testing"
                           >
-                            <Key size={14} color={ord.credentials_provided ? '#16a34a' : (ord.credentials_requested ? '#d97706' : 'currentColor')} />
-                            {ord.credentials_provided ? 'PIN Verified' : (ord.credentials_requested ? 'Re-request PIN' : 'Request OS PIN')}
+                            <MessageSquare size={14} /> Open Chat & Protocol
                           </button>
                         </div>
                       </div>
 
-                      {/* Milestone progression selector */}
-                      <div style={{ background: 'var(--bg-main)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: '10px', textTransform: 'uppercase' }}>
-                          Repair Milestones Progression
+                      {/* UNIFIED ZERO-TRUST COMMAND CENTER & INTERACTIVE STEPPER */}
+                      <div className="tech-zt-command-center">
+                        <div className="tech-zt-header">
+                          <div className="tech-zt-title-badge">
+                            <ShieldCheck size={18} color="var(--primary)" />
+                            Zero-Trust Chain of Custody
+                          </div>
+                          <span className="tech-zt-stage-tag">
+                            Current Stage: <strong>{ord.status}</strong>
+                          </span>
                         </div>
-                        <div className="tech-milestone-pills-container">
-                          {[
-                            'Technician Accepted',
-                            'Pickup Scheduled',
-                            'Picked Up',
-                            'Delivered to Bench',
-                            'In Repair',
-                            'Quality Check',
-                            'Repaired & Awaiting Payment',
-                            'Return Pickup',
-                            'Delivered'
-                          ].map((stepName, sIdx) => {
-                            const isCurrent = ord.status === stepName;
-                            return (
-                              <button
-                                key={sIdx}
-                                type="button"
-                                onClick={() => handleUpdateStatus(ord.id, stepName)}
-                                className={`tech-milestone-pill ${isCurrent ? 'tech-milestone-pill-active' : ''}`}
-                              >
-                                {isCurrent ? '✓ ' : ''}{stepName}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
 
-                      {/* Hardware Intake & Security Credentials Details */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', padding: '12px 14px', background: 'var(--bg-main)', borderRadius: '10px', marginBottom: '14px', fontSize: '0.82rem' }}>
-                        <div>
-                          <strong>Device PIN / Access:</strong>{' '}
-                          {ord.credentials_provided ? (
-                            <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#16a34a' }}>
-                              🔑 {ord.device_pin} {ord.bitlocker_status ? `(BitLocker: ${ord.bitlocker_status})` : ''}
-                            </span>
-                          ) : ord.credentials_requested ? (
-                            <span style={{ color: '#d97706', fontWeight: 700 }}>
-                              ⏳ PIN Requested from Customer
-                            </span>
-                          ) : (
-                            <span style={{ color: 'var(--text-dim)' }}>
-                              Not Requested (On-Demand)
-                            </span>
-                          )}
-                        </div>
-                        <div><strong>Charger Intake:</strong> {ord.charger_included ? (ord.charger_details || 'Yes (Charger Included)') : 'No Charger Handed Over'}</div>
-                        <div><strong>Accessories:</strong> {Array.isArray(ord.included_accessories) ? ord.included_accessories.join(', ') : (ord.included_accessories || 'None')}</div>
-                        <div><strong>Pre-Existing Flaws:</strong> <span style={{ color: '#d97706', fontWeight: 600 }}>{Array.isArray(ord.pre_existing_damage) ? ord.pre_existing_damage.join(', ') : (ord.pre_existing_damage || 'None')}</span></div>
-                        <div><strong>Customer WhatsApp:</strong> {ord.customer_whatsapp || ord.customer_phone || 'N/A'}</div>
-                        <div><strong>Data Backup Status:</strong> <span style={{ color: '#059669' }}>{ord.data_backup_status || 'Customer Confirmed'}</span></div>
+                        {/* Horizontal Connected Stepper */}
+                        {(() => {
+                          const currentStageIdx = (() => {
+                            if (ord.status === 'Delivered') return 6;
+                            if (ord.packing_otp_verified) return 5;
+                            if (ord.packing_otp) return 5;
+                            if (ord.unbox_otp_verified) return 4;
+                            if (ord.pickup_otp_verified) return 3;
+                            if (ord.timing_slot_status === 'confirmed' || ord.timing_slot_status === 'slot_confirmed' || ord.status === 'Pickup Scheduled') return 2;
+                            if (ord.quote_approved || ord.price_status === 'price_agreed') return 1;
+                            return 0;
+                          })();
+
+                          const STAGES = [
+                            { name: '1. Quote Agreed', targetStatus: 'Technician Accepted' },
+                            { name: '2. Pickup Window', targetStatus: 'Pickup Scheduled' },
+                            { name: '3. Handover OTP', targetStatus: 'Pickup Scheduled' },
+                            { name: '4. Live Unbox (Meet)', targetStatus: 'Delivered to Bench' },
+                            { name: '5. Cleanroom Repair', targetStatus: 'In Repair' },
+                            { name: '6. Packing & Seal', targetStatus: 'Repaired & Awaiting Payment' },
+                            { name: '7. Delivered', targetStatus: 'Delivered' }
+                          ];
+
+                          const orderRef = ord.order_number || ord.id;
+
+                          return (
+                            <>
+                              <div className="tech-zt-stepper-container">
+                                {STAGES.map((st, sIdx) => {
+                                  const isDone = sIdx < currentStageIdx;
+                                  const isCurrent = sIdx === currentStageIdx;
+                                  let nodeClass = 'tech-zt-step-node';
+                                  if (isDone) nodeClass += ' tech-zt-step-node-completed';
+                                  else if (isCurrent) nodeClass += ' tech-zt-step-node-active';
+
+                                  return (
+                                    <button
+                                      key={sIdx}
+                                      type="button"
+                                      className={nodeClass}
+                                      onClick={() => {
+                                        if (sIdx > currentStageIdx) {
+                                          setErrorMsg(`Zero-Trust Security Gate: Stage "${st.name}" is locked. Complete the OTP verification below to advance.`);
+                                        } else if (sIdx < currentStageIdx) {
+                                          setFeedbackMsg(`Stage "${st.name}" has already been verified and locked into the ledger.`);
+                                        } else {
+                                          setFeedbackMsg(`Stage "${st.name}" is currently active. Complete the required verification below.`);
+                                        }
+                                      }}
+                                      style={{ cursor: sIdx === currentStageIdx ? 'default' : 'pointer' }}
+                                      title={sIdx > currentStageIdx ? `Locked: Must verify previous stage OTP first` : `Stage: ${st.name}`}
+                                    >
+                                      {isDone ? <Check size={13} /> : isCurrent ? <Radio size={12} className="pulse-dot" /> : <Lock size={12} style={{ opacity: 0.5 }} />}
+                                      <span>{st.name}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {/* DYNAMIC ACTIVE ACTION STATION (Current Stage Spotlight Box) */}
+                              <div className="tech-zt-action-station">
+                                {currentStageIdx === 0 ? (
+                                  /* Phase 0: Price Quote Discussion */
+                                  <>
+                                    <div className="tech-zt-action-info">
+                                      <div className="tech-zt-action-headline">
+                                        <Clock size={16} color="var(--primary)" />
+                                        Stage 1: Diagnostic Quote Proposed (₹{ord.quote_amount || 0})
+                                      </div>
+                                      <div className="tech-zt-action-desc">
+                                        Waiting for customer to accept quote in chat or dashboard. You can update the quote or discuss diagnostic findings with customer.
+                                      </div>
+                                    </div>
+                                    <div className="tech-zt-action-controls">
+                                      <button
+                                        type="button"
+                                        className="tech-zt-btn-action"
+                                        onClick={() => {
+                                          setSelectedOrderForAction(ord);
+                                          setQuoteForm({
+                                            quote_amount: ord.quote_amount || '',
+                                            technician_notes: ord.technician_notes || ''
+                                          });
+                                          setIsQuoteModalOpen(true);
+                                        }}
+                                      >
+                                        Update Quote
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="tech-zt-btn-outline"
+                                        onClick={() => setActiveConversationOrder(ord)}
+                                      >
+                                        <MessageSquare size={14} /> Open Chat
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : currentStageIdx === 1 ? (
+                                  /* Phase 1: Timing Slot Booking */
+                                  <>
+                                    <div className="tech-zt-action-info">
+                                      <div className="tech-zt-action-headline">
+                                        <Clock size={16} color="var(--primary)" />
+                                        Action Required: Confirm Doorstep Pickup Window
+                                      </div>
+                                      <div className="tech-zt-action-desc">
+                                        Customer requested timing slot: <strong>{ord.pickup_slot || 'On-Demand Dispatch'}</strong>. Lock this slot to dispatch courier and generate customer's 6-digit Pickup OTP.
+                                      </div>
+                                    </div>
+                                    <div className="tech-zt-action-controls">
+                                      <button
+                                        type="button"
+                                        className="tech-zt-btn-action"
+                                        onClick={() => handleConfirmTimingSlot(orderRef)}
+                                        disabled={actionLoading[orderRef]}
+                                      >
+                                        <Check size={15} /> Approve & Lock Pickup Window
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="tech-zt-btn-outline"
+                                        onClick={() => setActiveConversationOrder(ord)}
+                                      >
+                                        <MessageSquare size={14} /> Discuss in Chat
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : currentStageIdx === 2 ? (
+                                  /* Phase 2: Doorstep Handover (1st OTP) */
+                                  <>
+                                    <div className="tech-zt-action-info">
+                                      <div className="tech-zt-action-headline">
+                                        <ShieldCheck size={16} color="var(--success)" />
+                                        Action Required: Doorstep Handover (1st OTP)
+                                      </div>
+                                      <div className="tech-zt-action-desc">
+                                        Technician arrived at doorstep. Ask customer for their private 6-digit Pickup OTP upon physical collection.
+                                        {ord.pickup_otp && (
+                                          <span 
+                                            onClick={() => handleOtpInputChange(orderRef, 'pickup', ord.pickup_otp)}
+                                            title="Click to auto-fill OTP"
+                                            style={{ color: 'var(--primary)', fontWeight: 800, marginLeft: '6px', cursor: 'pointer', textDecoration: 'underline' }}
+                                          >
+                                            (Customer OTP: {ord.pickup_otp})
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="tech-zt-action-controls">
+                                      <input
+                                        type="text"
+                                        className="tech-zt-otp-input"
+                                        placeholder="000000"
+                                        maxLength={6}
+                                        value={otpInputs[`${orderRef}_pickup`] || ''}
+                                        onChange={(e) => handleOtpInputChange(orderRef, 'pickup', e.target.value)}
+                                      />
+                                      <button
+                                        type="button"
+                                        className="tech-zt-btn-action"
+                                        onClick={() => handleVerifyPickupOtp(orderRef)}
+                                        disabled={actionLoading[orderRef]}
+                                      >
+                                        <Check size={15} /> Verify & Accept Custody
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : currentStageIdx === 3 ? (
+                                  /* Phase 3: Google Meet Live Unboxing (2nd OTP) */
+                                  <>
+                                    <div className="tech-zt-action-info">
+                                      <div className="tech-zt-action-headline">
+                                        <Video size={16} color="#ea4335" />
+                                        Action Required: Google Meet Live Unboxing (2nd OTP)
+                                      </div>
+                                      <div className="tech-zt-action-desc">
+                                        Device placed on ESD cleanroom bench. Join Google Meet and verify customer's Unbox OTP before breaking the intake tamper seal.
+                                        {ord.unbox_otp && (
+                                          <span 
+                                            onClick={() => handleOtpInputChange(orderRef, 'unbox', ord.unbox_otp)}
+                                            title="Click to auto-fill OTP"
+                                            style={{ color: 'var(--primary)', fontWeight: 800, marginLeft: '6px', cursor: 'pointer', textDecoration: 'underline' }}
+                                          >
+                                            (Customer Unbox OTP: {ord.unbox_otp})
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="tech-zt-action-controls">
+                                      <a
+                                        href={ord.stream_session?.google_meet_link || `https://meet.google.com/live-cleanroom-EOF-${ord.order_number}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="tech-zt-btn-meet"
+                                      >
+                                        <Video size={15} /> Launch Google Meet
+                                      </a>
+                                      <input
+                                        type="text"
+                                        className="tech-zt-otp-input"
+                                        placeholder="000000"
+                                        maxLength={6}
+                                        value={otpInputs[`${orderRef}_unbox`] || ''}
+                                        onChange={(e) => handleOtpInputChange(orderRef, 'unbox', e.target.value)}
+                                      />
+                                      <button
+                                        type="button"
+                                        className="tech-zt-btn-action"
+                                        onClick={() => handleVerifyUnboxOtp(orderRef)}
+                                        disabled={actionLoading[orderRef]}
+                                      >
+                                        <Check size={15} /> Authorize & Unbox Live
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : currentStageIdx === 4 ? (
+                                  /* Phase 4: Cleanroom Repair & Diagnostics */
+                                  <>
+                                    <div className="tech-zt-action-info">
+                                      <div className="tech-zt-action-headline">
+                                        <Wrench size={16} color="var(--primary)" />
+                                        Active: Cleanroom Micro-Soldering & Component Diagnostics
+                                      </div>
+                                      <div className="tech-zt-action-desc">
+                                        Perform board-level repairs under 100x magnification. Log genuine OEM parts below. When finished, notify customer for live functional demo.
+                                      </div>
+                                    </div>
+                                    <div className="tech-zt-action-controls">
+                                      <button
+                                        type="button"
+                                        className="tech-zt-btn-outline"
+                                        onClick={() => {
+                                          setSelectedOrderForAction(ord);
+                                          setIsPartLogOpen(true);
+                                        }}
+                                      >
+                                        <Layers size={14} /> Log OEM Part
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="tech-zt-btn-action"
+                                        onClick={() => handleNotifyPackingReady(orderRef)}
+                                        disabled={actionLoading[orderRef]}
+                                      >
+                                        <Package size={15} /> Ready for Live Packing (Generate OTP)
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : currentStageIdx === 5 ? (
+                                  /* Phase 5: Live Packing OTP or Tamper Sealed */
+                                  <>
+                                    <div className="tech-zt-action-info">
+                                      <div className="tech-zt-action-headline">
+                                        {ord.packing_otp && !ord.packing_otp_verified ? (
+                                          <><Wrench size={16} color="var(--primary)" /> Action Required: Live Functional Demo & Return Seal (3rd OTP)</>
+                                        ) : (
+                                          <><ShieldCheck size={16} color="var(--success)" /> Device Tamper Sealed (#{ord.reseal_tamper_code || 'SEAL-TX-849102'})</>
+                                        )}
+                                      </div>
+                                      <div className="tech-zt-action-desc">
+                                        {ord.packing_otp && !ord.packing_otp_verified ? (
+                                          <>
+                                            Demonstrate all working laptop functions live in Google Meet, then enter customer's Packing OTP to seal device with Return Tamper Tag.
+                                            {ord.packing_otp && (
+                                              <span 
+                                                onClick={() => handleOtpInputChange(orderRef, 'packing', ord.packing_otp)}
+                                                title="Click to auto-fill OTP"
+                                                style={{ color: 'var(--primary)', fontWeight: 700, marginLeft: '6px', cursor: 'pointer', textDecoration: 'underline' }}
+                                              >
+                                                (Customer Packing OTP: {ord.packing_otp})
+                                              </span>
+                                            )}
+                                          </>
+                                        ) : (
+                                          'All functional tests passed and device sealed with official security tag. Awaiting customer escrow payment release before dispatch.'
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="tech-zt-action-controls">
+                                      {ord.packing_otp && !ord.packing_otp_verified ? (
+                                        <>
+                                          <a
+                                            href={ord.stream_session?.google_meet_link || `https://meet.google.com/live-cleanroom-EOF-${ord.order_number}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="tech-zt-btn-meet"
+                                          >
+                                            <Video size={15} /> Join Google Meet
+                                          </a>
+                                          <input
+                                            type="text"
+                                            className="tech-zt-otp-input"
+                                            placeholder="000000"
+                                            maxLength={6}
+                                            value={otpInputs[`${orderRef}_packing`] || ''}
+                                            onChange={(e) => handleOtpInputChange(orderRef, 'packing', e.target.value)}
+                                          />
+                                          <button
+                                            type="button"
+                                            className="tech-zt-btn-action"
+                                            onClick={() => handleVerifyPackingOtp(orderRef)}
+                                            disabled={actionLoading[orderRef]}
+                                          >
+                                            <Package size={15} /> Apply Return Seal Tag
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <button
+                                            type="button"
+                                            className="tech-zt-btn-action"
+                                            onClick={() => handleUpdateStatus(ord.id, 'Delivered')}
+                                          >
+                                            <Check size={15} /> Complete Delivery
+                                          </button>
+                                          <span style={{ fontSize: '0.84rem', fontWeight: 800, color: 'var(--success)' }}>
+                                            Quote: ₹{ord.quote_amount || 1500}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </>
+                                ) : (
+                                  /* Phase 6: Delivered */
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', color: 'var(--success)', fontWeight: 800, fontSize: '0.92rem' }}>
+                                    <CheckCircle2 size={20} />
+                                    <span>Zero-Trust Repair Lifecycle Completed & Delivered • 6-Month Warranty Active</span>
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
 
                       {/* Notes & details */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', color: 'var(--text-dim)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '8px' }}>
                         <div>
                           <strong>Notes:</strong> {ord.technician_notes || 'Cleanroom inspection underway under 100x zoom.'}
                         </div>

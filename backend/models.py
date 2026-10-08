@@ -172,6 +172,13 @@ class LaptopRepairOrder(db.Model):
     # Transparent Chain-of-Custody milestones:
     pickup_status = db.Column(db.String(30), default='not_requested')
     pickup_scheduled_time = db.Column(db.String(100), nullable=True)
+    timing_slot_status = db.Column(db.String(30), default='pending')  # 'pending', 'slot_proposed', 'slot_confirmed'
+    pickup_otp = db.Column(db.String(10), nullable=True)
+    pickup_otp_verified = db.Column(db.Boolean, default=False)
+    unbox_otp = db.Column(db.String(10), nullable=True)
+    unbox_otp_verified = db.Column(db.Boolean, default=False)
+    packing_otp = db.Column(db.String(10), nullable=True)
+    packing_otp_verified = db.Column(db.Boolean, default=False)
 
     # Tamper seal & unsealing authorization
     unseal_status = db.Column(db.String(30), default='sealed')
@@ -271,6 +278,13 @@ class LaptopRepairOrder(db.Model):
             'price_status': self.price_status or 'pending',
             'pickup_status': self.pickup_status or 'not_requested',
             'pickup_scheduled_time': self.pickup_scheduled_time,
+            'timing_slot_status': self.timing_slot_status or 'pending',
+            'pickup_otp': self.pickup_otp,
+            'pickup_otp_verified': bool(self.pickup_otp_verified),
+            'unbox_otp': self.unbox_otp,
+            'unbox_otp_verified': bool(self.unbox_otp_verified),
+            'packing_otp': self.packing_otp,
+            'packing_otp_verified': bool(self.packing_otp_verified),
             'unseal_status': self.unseal_status or 'sealed',
             'reseal_status': self.reseal_status or 'not_resealed',
             'reseal_tamper_code': self.reseal_tamper_code,

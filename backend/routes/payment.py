@@ -22,6 +22,8 @@ def checkout(current_user, order_id):
 
     existing_payment = Payment.query.filter_by(order_id=order.id).first()
     if existing_payment:
+        order.status = 'Delivered'
+        db.session.commit()
         return jsonify({
             'message': 'Payment already processed for this order',
             'payment': existing_payment.to_dict(),

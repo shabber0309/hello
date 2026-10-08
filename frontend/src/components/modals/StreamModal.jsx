@@ -67,7 +67,7 @@ export default function StreamModal({ order, isOpen = true, onClose, onApproveQu
 
           <div className="stream-header-right">
             <a 
-              href="https://meet.google.com/eof-live-bench"
+              href={order?.stream_session?.meet_url || order?.meet_recording_url || order?.meet_url || "https://meet.google.com/eof-live-bench"}
               target="_blank"
               rel="noreferrer"
               className="btn-secondary stream-meet-link"

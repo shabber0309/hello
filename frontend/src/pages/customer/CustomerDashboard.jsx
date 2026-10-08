@@ -88,6 +88,7 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [conversationOrder, setConversationOrder] = useState(null);
   const [repairs, setRepairs] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [dismissedNoticeIds, setDismissedNoticeIds] = useState(() => {
     try {
       const saved = sessionStorage.getItem('livefix_dismissed_notices') || localStorage.getItem('livefix_dismissed_notices');
@@ -213,6 +214,78 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
 
   const activeRepairs = repairs.filter(r => r.status !== 'Delivered');
   const pastRepairs = repairs.filter(r => r.status === 'Delivered');
+
+  // Customer Zero-Trust Protocol Handlers
+  const [customerActionLoading, setCustomerActionLoading] = useState({});
+
+  const handleCustomerApproveQuote = async (orderRef) => {
+    try {
+      setCustomerActionLoading(prev => ({ ...prev, [orderRef]: true }));
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token');
+      const res = await fetch(`/api/repairs/${orderRef}/approve-quote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({ approved: true })
+      });
+      if (res.ok) {
+        fetchRepairs();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCustomerActionLoading(prev => ({ ...prev, [orderRef]: false }));
+    }
+  };
+
+  const handleCustomerBookTimingSlot = async (orderRef, slot) => {
+    try {
+      setCustomerActionLoading(prev => ({ ...prev, [orderRef]: true }));
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token');
+      const res = await fetch(`/api/repairs/${orderRef}/timing-slot`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({ timing_slot: slot })
+      });
+      if (res.ok) {
+        fetchRepairs();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCustomerActionLoading(prev => ({ ...prev, [orderRef]: false }));
+    }
+  };
+
+  const handleCustomerPayment = async (orderRef, amt) => {
+    try {
+      setCustomerActionLoading(prev => ({ ...prev, [orderRef]: true }));
+      const activeToken = token || localStorage.getItem('token') || localStorage.getItem('livefix_token');
+      const res = await fetch(`/api/repairs/${orderRef}/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
+        },
+        body: JSON.stringify({
+          amount: amt || 1500,
+          payment_method: 'escrow_upi'
+        })
+      });
+      if (res.ok) {
+        fetchRepairs();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCustomerActionLoading(prev => ({ ...prev, [orderRef]: false }));
+    }
+  };
 
   // Protected Customer Route: If not logged in or not customer, redirect to /login
   if (!user || user.role !== 'customer') {
@@ -510,6 +583,7 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
                             key={pIdx}
                             src={imgUrl}
                             alt={`Fault ${pIdx + 1}`}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             style={{
                               width: '36px',
                               height: '36px',
@@ -526,21 +600,273 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
                     </div>
                   )}
 
+                  {/* CUSTOMER ZERO-TRUST PROTOCOL & OTP STATUS CARD */}
+                  <div className="cust-zt-command-center">
+                    <div className="cust-zt-header">
+                      <div className="cust-zt-title-badge">
+                        <ShieldCheck size={18} color="var(--primary)" />
+                        Zero-Trust Verified Repair Protocol
+                      </div>
+                      <span className="cust-zt-stage-tag">
+                        Current Stage: <strong>{r.status}</strong>
+                      </span>
+                    </div>
+
+                    {/* Synchronized 7-stage Stepper */}
+                    {(() => {
+                      const custStageIdx = (() => {
+                        if (r.status === 'Delivered') return 6;
+                        if (r.packing_otp_verified) return 5;
+                        if (r.packing_otp) return 5;
+                        if (r.unbox_otp_verified) return 4;
+                        if (r.pickup_otp_verified) return 3;
+                        if (r.timing_slot_status === 'confirmed' || r.timing_slot_status === 'slot_confirmed' || r.status === 'Pickup Scheduled') return 2;
+                        if (r.quote_approved || r.price_status === 'price_agreed') return 1;
+                        return 0;
+                      })();
+
+                      const STAGES = [
+                        { name: '1. Price Quote' },
+                        { name: '2. Timing Slot' },
+                        { name: '3. Doorstep OTP' },
+                        { name: '4. Live Unbox' },
+                        { name: '5. In Repair' },
+                        { name: '6. Live Test OTP' },
+                        { name: '7. Delivered' }
+                      ];
+
+                      return (
+                        <>
+                          <div className="cust-zt-stepper-container">
+                            {STAGES.map((st, sIdx) => {
+                              const isDone = sIdx < custStageIdx;
+                              const isCurrent = sIdx === custStageIdx;
+                              let nodeClass = 'cust-zt-step-node';
+                              if (isDone) nodeClass += ' cust-zt-step-node-completed';
+                              else if (isCurrent) nodeClass += ' cust-zt-step-node-active';
+
+                              return (
+                                <div key={sIdx} className={nodeClass}>
+                                  {isDone ? <Check size={13} /> : isCurrent ? <Radio size={12} className="pulse-dot" /> : <Lock size={12} style={{ opacity: 0.5 }} />}
+                                  <span>{st.name}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Dynamic Action Spotlight Station */}
+                          <div className="cust-zt-action-station">
+                            {custStageIdx === 0 ? (
+                              /* Stage 0: Quote Proposed */
+                              <>
+                                <div className="cust-zt-action-info">
+                                  <div className="cust-zt-action-headline" style={{ color: 'var(--primary)' }}>
+                                    <Sparkles size={16} />
+                                    Technician Diagnostic Quote Proposed: ₹{Number(r.quote_amount || 0).toLocaleString('en-IN')}
+                                  </div>
+                                  <div className="cust-zt-action-desc">
+                                    "{r.technician_notes || 'Cleanroom technician verified hardware issue and prepared comprehensive diagnosis.'}"
+                                  </div>
+                                </div>
+                                <div className="cust-zt-action-controls">
+                                  <button
+                                    type="button"
+                                    className="btn-primary"
+                                    onClick={() => handleCustomerApproveQuote(r.order_number || r.id)}
+                                    style={{ padding: '8px 20px', fontSize: '0.84rem', fontWeight: 800 }}
+                                    disabled={customerActionLoading[r.order_number || r.id]}
+                                  >
+                                    <Check size={15} /> Accept Price Quote
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    onClick={() => {
+                                      setConversationOrder(r);
+                                      navigate('/customer/chat');
+                                    }}
+                                    style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+                                  >
+                                    <MessageSquare size={14} /> Discuss in Chat
+                                  </button>
+                                </div>
+                              </>
+                            ) : custStageIdx === 1 ? (
+                              /* Stage 1: Pickup Slot Selection */
+                              <div style={{ width: '100%' }}>
+                                <div className="cust-zt-action-headline">
+                                  <Clock size={16} color="var(--primary)" />
+                                  Action Required: Select Doorstep Pickup Window
+                                </div>
+                                <div className="cust-zt-action-desc">
+                                  Select your convenient window for verified courier collection:
+                                </div>
+                                <div className="cust-zt-slot-chips">
+                                  {['10:00 AM - 12:00 PM', '02:00 PM - 04:00 PM', '05:00 PM - 07:00 PM', 'Tomorrow Morning'].map((slot) => {
+                                    const isSelected = r.pickup_slot === slot;
+                                    return (
+                                      <button
+                                        key={slot}
+                                        type="button"
+                                        onClick={() => handleCustomerBookTimingSlot(r.order_number || r.id, slot)}
+                                        className={`cust-zt-slot-btn ${isSelected ? 'cust-zt-slot-btn-selected' : ''}`}
+                                      >
+                                        {isSelected ? '✓ ' : ''}{slot}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ) : custStageIdx === 2 ? (
+                              /* Stage 2: Doorstep Handover (1st OTP) */
+                              <>
+                                <div className="cust-zt-action-info">
+                                  <div className="cust-zt-action-headline" style={{ color: 'var(--success)' }}>
+                                    <ShieldCheck size={16} />
+                                    Doorstep Pickup: Technician En Route
+                                  </div>
+                                  <div className="cust-zt-action-desc">
+                                    Hand your device to the verified LiveFix specialist. Read this private OTP aloud upon physical collection:
+                                  </div>
+                                </div>
+                                <div className="cust-zt-otp-card">
+                                  <div className="cust-zt-otp-label">Doorstep Pickup OTP</div>
+                                  <div className="cust-zt-otp-digits">{r.pickup_otp || '739201'}</div>
+                                </div>
+                              </>
+                            ) : custStageIdx === 3 ? (
+                              /* Stage 3: Google Meet Live Unboxing (2nd OTP) */
+                              <>
+                                <div className="cust-zt-action-info">
+                                  <div className="cust-zt-action-headline" style={{ color: '#ea4335' }}>
+                                    <Video size={16} />
+                                    Cleanroom Arrival: Live Unboxing in Google Meet
+                                  </div>
+                                  <div className="cust-zt-action-desc">
+                                    Your laptop is on the ESD cleanroom bench. Join Google Meet to witness the tamper seal broken live:
+                                  </div>
+                                  <div style={{ marginTop: '10px' }}>
+                                    <a
+                                      href={r.stream_session?.google_meet_link || `https://meet.google.com/live-cleanroom-EOF-${r.order_number}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="cust-zt-btn-meet"
+                                    >
+                                      <Video size={15} /> Join Google Meet Session
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="cust-zt-otp-card" style={{ borderColor: '#ea4335' }}>
+                                  <div className="cust-zt-otp-label" style={{ color: '#f87171' }}>Cleanroom Unbox OTP</div>
+                                  <div className="cust-zt-otp-digits" style={{ color: '#ea4335' }}>{r.unbox_otp || '582914'}</div>
+                                </div>
+                              </>
+                            ) : custStageIdx === 4 ? (
+                              /* Stage 4: In Cleanroom Repair */
+                              <>
+                                <div className="cust-zt-action-info">
+                                  <div className="cust-zt-action-headline" style={{ color: 'var(--primary)' }}>
+                                    <Wrench size={16} />
+                                    Active: Cleanroom Precision Diagnostics & Micro-Soldering
+                                  </div>
+                                  <div className="cust-zt-action-desc">
+                                    Technician {r.technician_name || 'SHABBER HUSSAIN'} is performing hardware diagnosis under 100x magnification. All replaced parts are recorded to the immutable ledger.
+                                  </div>
+                                </div>
+                                <div className="cust-zt-action-controls">
+                                  <a
+                                    href={r.stream_session?.google_meet_link || `https://meet.google.com/live-cleanroom-EOF-${r.order_number}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="cust-zt-btn-meet"
+                                    style={{ background: 'var(--primary)' }}
+                                  >
+                                    <Video size={15} /> Watch Workbench Feed
+                                  </a>
+                                </div>
+                              </>
+                            ) : custStageIdx === 5 ? (
+                              /* Stage 5: Live Test & Packing (3rd OTP) or Repaired Sealed */
+                              <>
+                                {r.packing_otp && !r.packing_otp_verified ? (
+                                  <>
+                                    <div className="cust-zt-action-info">
+                                      <div className="cust-zt-action-headline" style={{ color: '#9333ea' }}>
+                                        <Package size={16} />
+                                        Live Functional Demo & Return Reseal
+                                      </div>
+                                      <div className="cust-zt-action-desc">
+                                        Repair completed! Join Google Meet to witness all hardware diagnostics passing live, then provide this OTP to seal device:
+                                      </div>
+                                      <div style={{ marginTop: '10px' }}>
+                                        <a
+                                          href={r.stream_session?.google_meet_link || `https://meet.google.com/live-cleanroom-EOF-${r.order_number}`}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="cust-zt-btn-meet"
+                                          style={{ background: '#9333ea' }}
+                                        >
+                                          <Video size={15} /> Witness Functional Demo
+                                        </a>
+                                      </div>
+                                    </div>
+                                    <div className="cust-zt-otp-card" style={{ borderColor: '#a855f7' }}>
+                                      <div className="cust-zt-otp-label" style={{ color: '#c084fc' }}>Live Packing OTP</div>
+                                      <div className="cust-zt-otp-digits" style={{ color: '#a855f7' }}>{r.packing_otp || '924810'}</div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="cust-zt-action-info">
+                                      <div className="cust-zt-action-headline" style={{ color: 'var(--success)' }}>
+                                        <ShieldCheck size={16} />
+                                        Tamper Sealed (#{r.reseal_tamper_code || 'SEAL-TX-849102'}) • Ready for Delivery
+                                      </div>
+                                      <div className="cust-zt-action-desc">
+                                        Total Invoice: ₹{Number(r.quote_amount || r.customer_selected_price || 1500).toLocaleString('en-IN')}. Release escrow payment to generate your 6-month warranty certificate.
+                                      </div>
+                                    </div>
+                                    <div className="cust-zt-action-controls">
+                                      <button
+                                        type="button"
+                                        className="btn-primary"
+                                        onClick={() => handleCustomerPayment(r.order_number || r.id, r.quote_amount || r.customer_selected_price || 1500)}
+                                        style={{ padding: '9px 20px', fontSize: '0.86rem', fontWeight: 800 }}
+                                        disabled={customerActionLoading[r.order_number || r.id]}
+                                      >
+                                        <CreditCard size={15} /> Pay & Release Escrow
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              /* Stage 6: Delivered */
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', color: 'var(--success)', fontWeight: 800, fontSize: '0.92rem' }}>
+                                <CheckCircle2 size={20} />
+                                <span>Repair Completed & Delivered • 6-Month Comprehensive Warranty Active</span>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button 
-                      className="btn-cta" 
+                      className="btn-secondary" 
                       onClick={() => {
                         handleDismissNotice(r.id || r.order_number);
                         setConversationOrder(r);
-                        navigate('/customer/chat');
                       }} 
-                      style={{ fontSize: '0.85rem', background: '#008069', borderColor: '#008069', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      style={{ fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}
                     >
-                      <MessageSquare size={16} /> 💬 Chat with Technician
+                      <MessageSquare size={15} /> Open Chat & Protocol Details
                     </button>
                     {r.stream_session?.is_live && (
-                      <button className="btn-secondary" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.85rem' }}>
-                        <Video size={16} /> Join Live Repair
+                      <button className="btn-primary" onClick={() => setIsStreamOpen(true)} style={{ fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}>
+                        <Video size={15} /> Join Live Repair Stream
                       </button>
                     )}
                   </div>
@@ -559,15 +885,22 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {pastRepairs.map((r, i) => (
-                  <div key={i} className="tech-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={i} className="tech-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{r.laptop_brand} {r.laptop_model}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{r.issue_category} • {r.order_number}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.98rem' }}>{r.laptop_brand} {r.laptop_model}</span>
+                        <span className="badge badge-success" style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <ShieldCheck size={12} /> 6-Month Warranty Active
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        {r.issue_category} • {r.order_number} {r.reseal_tamper_code ? `• Seal #${r.reseal_tamper_code}` : ''}
+                      </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <span style={{ fontWeight: 700, color: 'var(--success)', fontSize: '0.9rem' }}>₹{r.quote_amount || 0}</span>
-                      <button className="btn-secondary" onClick={() => setIsReportOpen(true)} style={{ fontSize: '0.78rem', padding: '6px 12px' }}>
-                        Invoice & Report
+                      <span style={{ fontWeight: 800, color: 'var(--success)', fontSize: '0.95rem' }}>₹{r.quote_amount || r.customer_selected_price || 0}</span>
+                      <button className="btn-secondary" onClick={() => setIsReportOpen(true)} style={{ fontSize: '0.78rem', padding: '6px 14px', fontWeight: 600 }}>
+                        Invoice & Warranty
                       </button>
                     </div>
                   </div>
