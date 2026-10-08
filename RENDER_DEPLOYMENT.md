@@ -16,8 +16,8 @@ This project is configured to deploy as a **single, unified service** on Render'
    `https://github.com/Shabber10/Live-camera-monitored-hardware-and-software-service`
 5. Render will automatically detect [`render.yaml`](file:///c:/Users/SHABBER%20HUSSAIN/Desktop/camfix/render.yaml) and configure:
    - **Build Command**: `chmod +x ./build.sh && ./build.sh`
-   - **Start Command**: `gunicorn --chdir backend app:app --workers 2 --threads 4 --timeout 120`
-   - **Health Check**: `/api/health`
+   - **Start Command**: `gunicorn --chdir backend app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120`
+    - **Health Check**: `/api/health`
 6. Click **Apply**. Render will build the frontend, install backend dependencies, initialize the clean administrator account, and give you a live URL (e.g. `https://livefix-hardware.onrender.com`).
 
 ---
@@ -40,7 +40,7 @@ If you prefer to configure it manually on Render:
      ```
    - **Start Command**:
      ```bash
-     gunicorn --chdir backend app:app --workers 2 --threads 4 --timeout 120
+     gunicorn --chdir backend app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
      ```
    - **Instance Type**: `Free`
 
