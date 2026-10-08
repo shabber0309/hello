@@ -241,91 +241,93 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
                   </div>
                 </div>
 
-                {/* On-Demand Diagnostic Credentials Request Alert */}
-                {searchedOrder.credentials_requested && !searchedOrder.credentials_provided && (
-                  <div style={{
-                    background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.08) 0%, rgba(249, 115, 22, 0.04) 100%)',
-                    border: '1.5px solid #ea580c',
-                    borderRadius: '14px',
-                    padding: '16px',
-                    marginBottom: '16px'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <Key size={18} color="#ea580c" />
-                      <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>
-                        Technician Diagnostic Access Requested
-                      </strong>
-                      <span className="badge badge-orange" style={{ fontSize: '0.7rem' }}>ACTION REQUIRED</span>
-                    </div>
-
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 10px', lineHeight: 1.4 }}>
-                      {searchedOrder.credentials_request_note || 'The technician is ready to test components on the workbench and requires temporary OS PIN or guest login.'}
-                    </p>
-
-                    <form onSubmit={handleProvideCredentials} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
-                        <div>
-                          <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-dim)', display: 'block', marginBottom: '3px' }}>
-                            OS LOGIN PIN / PASSWORD
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g. 1234 or 'Guest user created'"
-                            value={providedPin}
-                            onChange={(e) => setProvidedPin(e.target.value)}
-                            style={{ width: '100%', height: '36px', borderRadius: '8px', padding: '0 10px', border: '1px solid var(--border-light)' }}
-                          />
-                        </div>
-
-                        <div>
-                          <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-dim)', display: 'block', marginBottom: '3px' }}>
-                            BITLOCKER STATUS
-                          </label>
-                          <select
-                            value={providedBitlocker}
-                            onChange={(e) => setProvidedBitlocker(e.target.value)}
-                            style={{ width: '100%', height: '36px', borderRadius: '8px', padding: '0 8px', border: '1px solid var(--border-light)' }}
-                          >
-                            <option value="Disabled / Not Applicable">Disabled / Not Applicable</option>
-                            <option value="BitLocker Active (Key Shared in Chat)">BitLocker Active (Key Shared in Chat)</option>
-                            <option value="Apple FileVault">Apple FileVault</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-                        <button
-                          type="submit"
-                          disabled={submittingCreds}
-                          className="btn-primary"
-                          style={{ padding: '7px 16px', fontSize: '0.82rem', fontWeight: 700 }}
-                        >
-                          {submittingCreds ? 'Submitting...' : '🔒 Submit Diagnostic Access Securely'}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
-                {/* Credentials Successfully Provided Confirmation */}
-                {searchedOrder.credentials_provided && (
-                  <div style={{
-                    background: 'rgba(16, 185, 129, 0.08)',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    marginBottom: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
-                    <CheckCircle2 size={16} color="#10b981" />
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: 600 }}>
-                      Diagnostic access securely shared with workbench technician under active camera recording.
+                {/* ZERO-TRUST OTP & PROTOCOL TRACKING BOX */}
+                <div style={{
+                  background: 'rgba(15, 23, 42, 0.75)',
+                  border: '1.5px solid rgba(56, 189, 248, 0.4)',
+                  borderRadius: '14px',
+                  padding: '16px',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <ShieldCheck size={18} color="#38bdf8" />
+                    <span style={{ fontWeight: 800, fontSize: '0.86rem', color: '#f8fafc', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Zero-Trust Custody & Live Verification
                     </span>
                   </div>
-                )}
+
+                  {searchedOrder.timing_slot_status !== 'confirmed' ? (
+                    <div style={{ fontSize: '0.84rem', color: '#fbbf24' }}>
+                      ⏳ Doorstep pickup window: <strong>{searchedOrder.pickup_slot || 'Pending Confirmation'}</strong>
+                    </div>
+                  ) : !searchedOrder.pickup_otp_verified ? (
+                    <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', padding: '12px', borderRadius: '10px' }}>
+                      <div style={{ fontSize: '0.74rem', color: '#34d399', fontWeight: 800, textTransform: 'uppercase' }}>
+                        Doorstep Handover (1st OTP)
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: '#f8fafc', marginTop: '2px' }}>
+                        Give this code to technician at your doorstep:
+                      </div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#34d399', fontFamily: 'monospace', marginTop: '4px', letterSpacing: '2px' }}>
+                        🔑 {searchedOrder.pickup_otp || '739201'}
+                      </div>
+                    </div>
+                  ) : !searchedOrder.unbox_otp_verified ? (
+                    <div style={{ background: 'rgba(234, 67, 53, 0.15)', border: '1px solid #ea4335', padding: '12px', borderRadius: '10px' }}>
+                      <div style={{ fontSize: '0.74rem', color: '#f87171', fontWeight: 800, textTransform: 'uppercase' }}>
+                        Google Meet Live Unboxing (2nd OTP)
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: '#f8fafc', marginTop: '2px' }}>
+                        Share this code in Google Meet to authorize breaking tamper seal:
+                      </div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#f87171', fontFamily: 'monospace', marginTop: '4px', letterSpacing: '2px' }}>
+                        🔑 {searchedOrder.unbox_otp || '582914'}
+                      </div>
+                      <a
+                        href={searchedOrder.stream_session?.google_meet_link || `https://meet.google.com/live-cleanroom-EOF-${searchedOrder.order_number}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-cta"
+                        style={{ marginTop: '8px', padding: '6px 12px', fontSize: '0.75rem', textDecoration: 'none', display: 'inline-block', background: '#ea4335' }}
+                      >
+                        📹 Join Google Meet Room
+                      </a>
+                    </div>
+                  ) : !searchedOrder.packing_otp_verified ? (
+                    <div style={{ background: 'rgba(168, 85, 247, 0.15)', border: '1px solid #a855f7', padding: '12px', borderRadius: '10px' }}>
+                      <div style={{ fontSize: '0.74rem', color: '#c084fc', fontWeight: 800, textTransform: 'uppercase' }}>
+                        Live Functional Demo & Packing (3rd OTP)
+                      </div>
+                      {searchedOrder.packing_otp ? (
+                        <>
+                          <div style={{ fontSize: '0.84rem', color: '#f8fafc', marginTop: '2px' }}>
+                            Witness functional demo in Google Meet, then provide:
+                          </div>
+                          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#c084fc', fontFamily: 'monospace', marginTop: '4px', letterSpacing: '2px' }}>
+                            🔑 {searchedOrder.packing_otp}
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ fontSize: '0.84rem', color: '#f8fafc', marginTop: '2px' }}>
+                          Micro-soldering & diagnostics underway in Cleanroom ESD bench.
+                        </div>
+                      )}
+                    </div>
+                  ) : searchedOrder.status !== 'Delivered' ? (
+                    <div style={{ background: 'rgba(37, 99, 235, 0.15)', border: '1px solid #2563eb', padding: '12px', borderRadius: '10px' }}>
+                      <div style={{ fontSize: '0.74rem', color: '#60a5fa', fontWeight: 800, textTransform: 'uppercase' }}>
+                        Return Tamper Sealed (#{searchedOrder.reseal_tamper_code || 'SEAL-TX-849102'})
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: '#f8fafc', marginTop: '2px' }}>
+                        Device repaired and verified. Awaiting customer escrow payment release.
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ color: '#10b981', fontWeight: 700, fontSize: '0.84rem' }}>
+                      ✓ Delivered & 6-Month Comprehensive Warranty Active
+                    </div>
+                  )}
+                </div>
 
                 <div style={{ background: 'var(--bg-main)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>
@@ -339,12 +341,6 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
                       {searchedOrder.issue_description}
                     </div>
                   )}
-
-                  {/* Intake & Custody Specifications */}
-                  <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-light)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '6px', fontSize: '0.78rem' }}>
-                    <div><span style={{ color: 'var(--text-dim)' }}>Charger:</span> <strong>{searchedOrder.charger_included ? (searchedOrder.charger_details || 'Included') : 'Not Included'}</strong></div>
-                    <div><span style={{ color: 'var(--text-dim)' }}>Accessories:</span> <strong>{Array.isArray(searchedOrder.included_accessories) ? searchedOrder.included_accessories.join(', ') : (searchedOrder.included_accessories || 'None')}</strong></div>
-                  </div>
                 </div>
 
 

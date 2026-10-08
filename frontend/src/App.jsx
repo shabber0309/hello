@@ -176,19 +176,9 @@ function MainApp() {
     setIsTrackRepairOpen(true);
   };
 
-  // One-time clean slate: purge all customer orders from localStorage and backend
+  // Ensure persistent clean local storage keys
   useEffect(() => {
-    const purgeKey = 'livefix_purged_old_orders_v3';
-    if (!localStorage.getItem(purgeKey)) {
-      localStorage.removeItem('livefix_all_orders');
-      localStorage.removeItem('livefix_latest_order');
-      localStorage.removeItem('livefix_customer_orders');
-      localStorage.removeItem('livefix_offline_orders');
-      localStorage.removeItem('livefix_mock_orders');
-      localStorage.setItem('livefix_all_orders', '[]');
-      localStorage.setItem(purgeKey, 'true');
-      fetch('/api/repairs/clear-all', { method: 'POST' }).catch(() => {});
-    }
+    // Normal startup lifecycle without database wipe
   }, []);
 
   const sampleDemoOrder = {

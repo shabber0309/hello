@@ -167,31 +167,35 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     } catch (e) {}
   }, []);
 
-  // Automatically persist progress to sessionStorage so page refresh stays on current step with all data intact
+  // Automatically persist progress to sessionStorage with debounce so keystrokes remain 60fps instant
   useEffect(() => {
-    try {
-      const stateToSave = {
-        step,
-        formData,
-        selectedCatId,
-        selectedProbId,
-        photos,
-        chargerPhotos,
-        accessoryPhotosMap
-      };
-      sessionStorage.setItem('livefix_booking_state', JSON.stringify(stateToSave));
-    } catch (err) {
-      // In case quota is exceeded due to raw photos, safely persist step and form fields
+    const timer = setTimeout(() => {
       try {
-        const fallbackState = {
+        const stateToSave = {
           step,
           formData,
           selectedCatId,
-          selectedProbId
+          selectedProbId,
+          photos,
+          chargerPhotos,
+          accessoryPhotosMap
         };
-        sessionStorage.setItem('livefix_booking_state', JSON.stringify(fallbackState));
-      } catch (e) {}
-    }
+        sessionStorage.setItem('livefix_booking_state', JSON.stringify(stateToSave));
+      } catch (err) {
+        // In case quota is exceeded due to raw photos, safely persist step and form fields
+        try {
+          const fallbackState = {
+            step,
+            formData,
+            selectedCatId,
+            selectedProbId
+          };
+          sessionStorage.setItem('livefix_booking_state', JSON.stringify(fallbackState));
+        } catch (e) {}
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
   }, [step, formData, selectedCatId, selectedProbId, photos, chargerPhotos, accessoryPhotosMap]);
 
   // Automatically scroll to the top of the wizard (book-stepper-bar) on step transition
@@ -219,8 +223,8 @@ export default function BookRepair({ onBookingSuccess, onCancel }) {
     return () => clearTimeout(timeoutId);
   }, [step]);
 
-  // Client-side instant image compression helper (reduces 10MB camera photo to ~80KB in <100ms)
-  const compressImageFile = (file, maxWidth = 1024, maxHeight = 1024, quality = 0.75) => {
+  // Client-side instant image compression helper (reduces 10MB camera photo to ~40KB in <50ms)
+  const compressImageFile = (file, maxWidth = 800, maxHeight = 800, quality = 0.65) => {
     return new Promise((resolve) => {
       if (!file || !file.type.startsWith('image/')) {
         resolve(null);

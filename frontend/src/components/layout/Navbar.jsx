@@ -22,7 +22,11 @@ import {
   HelpCircle,
   DollarSign,
   Settings,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2,
+  Database,
+  Video,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
@@ -84,25 +88,29 @@ export default function Navbar({
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  // Nav links: Match active internal dashboard context or user role
+  // Nav links: Match active internal dashboard context or user role strictly
   const getNavLinks = () => {
-    // If user is authenticated, prioritize their role-specific navigation
+    // Admin: Central operations, users, orders, live audits, and database inspector
     if (isAdmin || user?.role === 'admin') {
       return [
         { id: 'dashboard', name: 'Admin Console', path: '/admin/dashboard', icon: Shield },
-        { id: 'track-repair', name: 'Track Repair', path: '/track-repair', icon: Package },
-        { id: 'services', name: 'Services', path: '/services', icon: Laptop },
-        { id: 'pricing', name: 'Pricing', path: '/pricing', icon: DollarSign }
+        { id: 'users', name: 'Users & Staff', path: '/admin/dashboard?tab=users', icon: Users },
+        { id: 'orders', name: 'Repair Orders', path: '/admin/dashboard?tab=orders', icon: Package },
+        { id: 'streams', name: 'Live Streams & Meet', path: '/admin/dashboard?tab=streams', icon: Video },
+        { id: 'database', name: 'Database & Audit', path: '/admin/dashboard?tab=database', icon: Database }
       ];
     }
+    // Technician: Workbench, Active Jobs, Customer Messages, Live Cleanroom & Earnings (NO Track Repair, Services, or Pricing!)
     if (isTech || user?.role === 'technician') {
       return [
-        { id: 'dashboard', name: 'Technician Workbench', path: '/technician/dashboard', icon: Wrench },
-        { id: 'track-repair', name: 'Track Repair', path: '/track-repair', icon: Package },
-        { id: 'services', name: 'Services', path: '/services', icon: Laptop },
-        { id: 'pricing', name: 'Pricing', path: '/pricing', icon: DollarSign }
+        { id: 'workbench', name: 'Technician Workbench', path: '/technician/dashboard', icon: Wrench },
+        { id: 'active-jobs', name: 'Active Jobs', path: '/technician/dashboard?tab=active', icon: Laptop },
+        { id: 'chat', name: 'Customer Messages', path: '/technician/dashboard?tab=chat', icon: MessageSquare },
+        { id: 'live-stream', name: 'Live Cleanroom', path: '/technician/dashboard?tab=live', icon: Video },
+        { id: 'earnings', name: 'Earnings & Escrow', path: '/technician/dashboard?tab=earnings', icon: DollarSign }
       ];
     }
+    // Customer: Personal dashboard, book new repair, live chat, track active device, transparent pricing
     if (isCustomer || user?.role === 'customer') {
       return [
         { 
@@ -113,9 +121,15 @@ export default function Navbar({
         },
         { 
           id: 'new', 
-          name: 'New Repair', 
+          name: 'Book Repair', 
           path: '/customer/book', 
           icon: PlusCircle 
+        },
+        { 
+          id: 'chat', 
+          name: 'Messages & Chat', 
+          path: '/customer/chat', 
+          icon: MessageSquare 
         },
         { 
           id: 'track-pickup', 
@@ -124,14 +138,8 @@ export default function Navbar({
           icon: Package 
         },
         { 
-          id: 'services', 
-          name: 'Services', 
-          path: '/services', 
-          icon: Laptop 
-        },
-        { 
           id: 'pricing', 
-          name: 'Pricing', 
+          name: 'Pricing & Warranty', 
           path: '/pricing', 
           icon: DollarSign 
         }
@@ -141,32 +149,36 @@ export default function Navbar({
     // Public links for unauthenticated guests
     return [
       { name: 'Home', path: '/' },
-      { name: 'How It Works', path: '/how-it-works' },
       { name: 'Services', path: '/services' },
-      { name: 'For Technicians', path: '/for-technicians' },
       { name: 'Track Repair', path: '/track-repair' },
-      { name: 'Pricing', path: '/pricing' }
+      { name: 'Pricing', path: '/pricing' },
+      { name: 'For Technicians', path: '/for-technicians' },
+      { name: 'How It Works', path: '/how-it-works' }
     ];
   };
 
   const isLinkActive = (link) => {
+    const currentFull = location.pathname + location.search;
+    if (link.path.includes('?')) {
+      return currentFull === link.path;
+    }
     if (link.path === '/admin/dashboard') {
-      return location.pathname === '/admin/dashboard' || location.pathname === '/admin';
+      return (location.pathname === '/admin/dashboard' || location.pathname === '/admin') && !location.search;
     }
     if (link.path === '/technician/dashboard') {
-      return location.pathname === '/technician/dashboard' || location.pathname === '/technician';
+      return (location.pathname === '/technician/dashboard' || location.pathname === '/technician') && !location.search;
     }
     if (link.path === '/customer/chat') {
       return location.pathname === '/customer/chat' || location.pathname === '/customer/messages';
     }
     if (link.path === '/customer/dashboard') {
-      return location.pathname === '/customer/dashboard' || location.pathname === '/dashboard';
+      return (location.pathname === '/customer/dashboard' || location.pathname === '/dashboard') && !location.search;
     }
     if (link.path === '/customer/book') {
       return location.pathname === '/customer/book' || location.pathname === '/book';
     }
     if (link.path === '/') {
-      return location.pathname === '/' || location.pathname === '/home';
+      return (location.pathname === '/' || location.pathname === '/home') && !location.search;
     }
     return location.pathname === link.path;
   };
@@ -396,18 +408,20 @@ export default function Navbar({
                       className="badge" 
                       style={{
                         marginTop: '4px',
-                        fontSize: '0.62rem',
-                        background: 'rgba(56, 189, 248, 0.16)',
-                        color: '#0284c7',
-                        border: '1px solid rgba(56, 189, 248, 0.3)'
+                        fontSize: '0.64rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.3px',
+                        background: isTech ? 'rgba(217, 119, 6, 0.12)' : (isAdmin ? 'rgba(16, 185, 129, 0.12)' : 'rgba(37, 99, 235, 0.12)'),
+                        color: isTech ? '#d97706' : (isAdmin ? '#059669' : '#2563eb'),
+                        border: `1px solid ${isTech ? 'rgba(217, 119, 6, 0.3)' : (isAdmin ? 'rgba(16, 185, 129, 0.3)' : 'rgba(37, 99, 235, 0.3)')}`
                       }}
                     >
-                      {user.role?.toUpperCase()}
+                      {isAdmin ? 'SUPER ADMINISTRATOR' : (isTech ? 'CERTIFIED TECHNICIAN' : 'VERIFIED CUSTOMER')}
                     </span>
                   </div>
                 </div>
 
-                {/* User Actions strictly isolated based on role */}
+                {/* Role-Specific Actions */}
                 <div className="silicone-dropdown-footer">
                   {(isTech || user?.role === 'technician') ? (
                     <>
@@ -426,11 +440,12 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/technician/dashboard');
+                          if (onOpenMessages) onOpenMessages();
+                          else navigate('/technician/dashboard');
                         }}
                       >
-                        <Laptop size={14} color="var(--primary)" />
-                        <span>Active Repairs</span>
+                        <MessageSquare size={14} color="var(--primary)" />
+                        <span>Customer Messages</span>
                       </button>
 
                       <button
@@ -448,45 +463,12 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          if (onOpenMessages) onOpenMessages();
+                          if (onOpenEditProfile) onOpenEditProfile();
                           else navigate('/technician/dashboard');
-                        }}
-                      >
-                        <MessageSquare size={14} color="var(--primary)" />
-                        <span>Customer Chat</span>
-                      </button>
-
-                      <button
-                        className="silicone-dropdown-item"
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          navigate('/technician/dashboard');
                         }}
                       >
                         <Settings size={14} color="var(--primary)" />
                         <span>Station Settings</span>
-                      </button>
-
-                      <button
-                        className="silicone-dropdown-item"
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          if (onOpenNotifications) onOpenNotifications();
-                        }}
-                      >
-                        <Bell size={14} color="var(--cta-orange)" />
-                        <span>Bench Notifications</span>
-                      </button>
-
-                      <button
-                        className="silicone-dropdown-item"
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          if (onOpenEditProfile) onOpenEditProfile();
-                        }}
-                      >
-                        <Edit size={14} color="var(--primary)" />
-                        <span>Edit Profile</span>
                       </button>
                     </>
                   ) : (isAdmin || user?.role === 'admin') ? (
@@ -499,7 +481,7 @@ export default function Navbar({
                         }}
                       >
                         <Shield size={14} color="#10b981" />
-                        <span>Admin Console</span>
+                        <span>Master Admin Console</span>
                       </button>
 
                       <button
@@ -509,30 +491,8 @@ export default function Navbar({
                           navigate('/admin/dashboard');
                         }}
                       >
-                        <Laptop size={14} color="#10b981" />
-                        <span>Repair Orders</span>
-                      </button>
-
-                      <button
-                        className="silicone-dropdown-item"
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          navigate('/admin/dashboard');
-                        }}
-                      >
-                        <Settings size={14} color="#10b981" />
-                        <span>System Health</span>
-                      </button>
-
-                      <button
-                        className="silicone-dropdown-item"
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          if (onOpenNotifications) onOpenNotifications();
-                        }}
-                      >
-                        <Bell size={14} color="#10b981" />
-                        <span>System Alerts</span>
+                        <Database size={14} color="#10b981" />
+                        <span>Database & Audit Inspector</span>
                       </button>
 
                       <button
@@ -542,9 +502,58 @@ export default function Navbar({
                           if (onOpenEditProfile) onOpenEditProfile();
                         }}
                       >
-                        <Edit size={14} color="var(--primary)" />
-                        <span>Edit Profile</span>
+                        <Settings size={14} color="#10b981" />
+                        <span>System Settings</span>
                       </button>
+
+                      {/* Super Admin Preview Viewports for QA testing */}
+                      <div style={{ padding: '6px 12px 4px', borderTop: '1px solid var(--border-light)', marginTop: '4px' }}>
+                        <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>
+                          Admin Viewport Jump
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowProfileMenu(false);
+                              navigate('/customer/dashboard');
+                            }}
+                            style={{
+                              padding: '5px 8px',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              borderRadius: '6px',
+                              border: '1px solid var(--border-light)',
+                              background: 'var(--bg-card)',
+                              color: 'var(--text-main)',
+                              cursor: 'pointer'
+                            }}
+                            title="Preview Customer Dashboard"
+                          >
+                            👤 Customer
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowProfileMenu(false);
+                              navigate('/technician/dashboard');
+                            }}
+                            style={{
+                              padding: '5px 8px',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              borderRadius: '6px',
+                              border: '1px solid var(--border-light)',
+                              background: 'var(--bg-card)',
+                              color: 'var(--text-main)',
+                              cursor: 'pointer'
+                            }}
+                            title="Preview Technician Workbench"
+                          >
+                            🔧 Tech
+                          </button>
+                        </div>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -556,30 +565,29 @@ export default function Navbar({
                         }}
                       >
                         <Home size={14} color="var(--primary)" />
-                        <span>Customer Dashboard</span>
+                        <span>My Repairs & Dashboard</span>
                       </button>
 
                       <button
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/customer/dashboard');
-                        }}
-                      >
-                        <Laptop size={14} color="var(--primary)" />
-                        <span>My Repairs</span>
-                      </button>
-
-                      <button
-                        className="silicone-dropdown-item"
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          if (onOpenMessages) onOpenMessages();
-                          else navigate('/customer/dashboard');
+                          navigate('/customer/chat');
                         }}
                       >
                         <MessageSquare size={14} color="var(--primary)" />
-                        <span>Messages</span>
+                        <span>Live Technician Chat</span>
+                      </button>
+
+                      <button
+                        className="silicone-dropdown-item"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/customer/book');
+                        }}
+                      >
+                        <PlusCircle size={14} color="var(--primary)" />
+                        <span>Book New Repair</span>
                       </button>
 
                       <button
@@ -598,109 +606,29 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          if (onOpenNotifications) onOpenNotifications();
-                        }}
-                      >
-                        <Bell size={14} color="var(--primary)" />
-                        <span>Repair Notifications</span>
-                      </button>
-
-                      <button
-                        className="silicone-dropdown-item"
-                        onClick={() => {
-                          setShowProfileMenu(false);
                           if (onOpenEditProfile) onOpenEditProfile();
                         }}
                       >
-                        <Edit size={14} color="var(--primary)" />
-                        <span>Edit Profile</span>
+                        <Settings size={14} color="var(--primary)" />
+                        <span>Account Settings</span>
                       </button>
                     </>
                   )}
 
-                  {/* 1-Click Portal Switcher */}
-                  <div style={{ padding: '8px 12px 6px', borderTop: '1px solid var(--border-light)', marginTop: '6px' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.5px' }}>
-                      Switch Portal View
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await switchRole('customer');
-                          setShowProfileMenu(false);
-                          navigate('/customer/dashboard');
-                        }}
-                        style={{
-                          padding: '6px 4px',
-                          fontSize: '0.72rem',
-                          fontWeight: user?.role === 'customer' ? 800 : 600,
-                          borderRadius: '6px',
-                          border: user?.role === 'customer' ? '1px solid #2563eb' : '1px solid var(--border-light)',
-                          background: user?.role === 'customer' ? 'rgba(37, 99, 235, 0.15)' : 'var(--bg-card)',
-                          color: user?.role === 'customer' ? '#2563eb' : 'var(--text-main)',
-                          cursor: 'pointer'
-                        }}
-                        title="Switch to Customer Dashboard"
-                      >
-                        👤 Customer
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await switchRole('technician');
-                          setShowProfileMenu(false);
-                          navigate('/technician/dashboard');
-                        }}
-                        style={{
-                          padding: '6px 4px',
-                          fontSize: '0.72rem',
-                          fontWeight: user?.role === 'technician' ? 800 : 600,
-                          borderRadius: '6px',
-                          border: user?.role === 'technician' ? '1px solid #d97706' : '1px solid var(--border-light)',
-                          background: user?.role === 'technician' ? 'rgba(217, 119, 6, 0.15)' : 'var(--bg-card)',
-                          color: user?.role === 'technician' ? '#d97706' : 'var(--text-main)',
-                          cursor: 'pointer'
-                        }}
-                        title="Switch to Technician Workbench"
-                      >
-                        🔧 Tech
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await switchRole('admin');
-                          setShowProfileMenu(false);
-                          navigate('/admin/dashboard');
-                        }}
-                        style={{
-                          padding: '6px 4px',
-                          fontSize: '0.72rem',
-                          fontWeight: user?.role === 'admin' ? 800 : 600,
-                          borderRadius: '6px',
-                          border: user?.role === 'admin' ? '1px solid #059669' : '1px solid var(--border-light)',
-                          background: user?.role === 'admin' ? 'rgba(5, 150, 105, 0.15)' : 'var(--bg-card)',
-                          color: user?.role === 'admin' ? '#059669' : 'var(--text-main)',
-                          cursor: 'pointer'
-                        }}
-                        title="Switch to Admin Console"
-                      >
-                        🛡️ Admin
-                      </button>
-                    </div>
+                  {/* Clean Sign Out */}
+                  <div style={{ borderTop: '1px solid var(--border-light)', marginTop: '4px', paddingTop: '4px' }}>
+                    <button
+                      className="silicone-dropdown-item silicone-dropdown-logout"
+                      onClick={() => {
+                        logout();
+                        setShowProfileMenu(false);
+                        navigate('/');
+                      }}
+                    >
+                      <LogOut size={14} />
+                      <span>Sign Out</span>
+                    </button>
                   </div>
-
-                  <button
-                    className="silicone-dropdown-item silicone-dropdown-logout"
-                    onClick={() => {
-                      logout();
-                      setShowProfileMenu(false);
-                      navigate('/');
-                    }}
-                  >
-                    <LogOut size={14} />
-                    <span>Sign Out</span>
-                  </button>
                 </div>
               </div>
             )}

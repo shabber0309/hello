@@ -59,6 +59,13 @@ def init_database(app):
             ("laptop_repair_orders", "credentials_provided", "BOOLEAN DEFAULT FALSE"),
             ("laptop_repair_orders", "charger_photos", "TEXT"),
             ("laptop_repair_orders", "accessory_photos", "TEXT"),
+            ("laptop_repair_orders", "timing_slot_status", "VARCHAR(30) DEFAULT 'pending'"),
+            ("laptop_repair_orders", "pickup_otp", "VARCHAR(10)"),
+            ("laptop_repair_orders", "pickup_otp_verified", "BOOLEAN DEFAULT FALSE"),
+            ("laptop_repair_orders", "unbox_otp", "VARCHAR(10)"),
+            ("laptop_repair_orders", "unbox_otp_verified", "BOOLEAN DEFAULT FALSE"),
+            ("laptop_repair_orders", "packing_otp", "VARCHAR(10)"),
+            ("laptop_repair_orders", "packing_otp_verified", "BOOLEAN DEFAULT FALSE"),
         ]
         for tbl, col, col_def in migrations:
             try:
