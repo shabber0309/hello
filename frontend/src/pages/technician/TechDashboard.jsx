@@ -3,7 +3,7 @@ import {
   Wrench, 
   Home, 
   Video, 
-  DollarSign, 
+  IndianRupee, 
   CheckCircle2, 
   Clock, 
   Award, 
@@ -31,14 +31,16 @@ import {
   ChevronRight,
   Info,
   Key,
-  Bell
+  Bell,
+  Maximize2
 } from 'lucide-react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { StreamModal, OrderConversationModal, NotificationsModal } from '../../components/modals';
+import { getStoredUnreadCount } from '../../utils/notificationManager';
 import './TechDashboard.css';
 
-export default function TechDashboard() {
+export default function TechDashboard({ initialTab }) {
   const { user, logout, token, login, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,6 +83,11 @@ export default function TechDashboard() {
 
   const handleSidebarChange = (tabId) => {
     setActiveSidebarNav(tabId);
+    if (tabId === 'dashboard') {
+      navigate('/technician/dashboard');
+    } else {
+      navigate(`/technician/${tabId}`);
+    }
   };
 
   // Dynamic Requests & Repairs from API
@@ -116,6 +123,18 @@ export default function TechDashboard() {
 
   // Photo viewer lightbox modal state
   const [activePhotoModalUrl, setActivePhotoModalUrl] = useState(null);
+
+  // Live Cleanroom Broadcast Studio state
+  const [liveCamSource, setLiveCamSource] = useState('bench'); // 'bench', 'microscope', 'pcb'
+  const [liveMicEnabled, setLiveMicEnabled] = useState(true);
+  const [isBroadcasting, setIsBroadcasting] = useState(true);
+  const [streamResolution, setStreamResolution] = useState('4K');
+  const [selectedLiveOrder, setSelectedLiveOrder] = useState(null);
+  const [liveChatMessages, setLiveChatMessages] = useState([
+    { id: 1, sender: 'Customer (Rahul)', text: 'Hello! Watching the cleanroom unboxing on camera now.', time: '10:14 AM' },
+    { id: 2, sender: 'Technician (SHABBER)', text: 'Welcome to Station 4! Tamper seal verified intact. Inspecting motherboard traces now.', time: '10:15 AM' }
+  ]);
+  const [liveChatInput, setLiveChatInput] = useState('');
 
   // Zero-Trust OTP inputs and action loading state
   const [otpInputs, setOtpInputs] = useState({});
@@ -174,11 +193,24 @@ export default function TechDashboard() {
     }
   }, [token, user]);
 
-  // Sync tab search param to switch workbench view or open chat modal
+  // Sync tab pathname / search param to switch workbench view or open chat modal
   useEffect(() => {
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    const subRoute = pathParts[pathParts.length - 1];
     const params = new URLSearchParams(location.search);
-    const tab = params.get('tab');
-    if (tab === 'messages' || tab === 'chat') {
+    const tabParam = params.get('tab');
+    const validTabs = ['active', 'active-jobs', 'chat', 'messages', 'live', 'live-stream', 'earnings', 'requests', 'workbench', 'dashboard'];
+    
+    let targetTab = null;
+    if (validTabs.includes(subRoute)) {
+      targetTab = subRoute;
+    } else if (initialTab && validTabs.includes(initialTab)) {
+      targetTab = initialTab;
+    } else if (tabParam && validTabs.includes(tabParam)) {
+      targetTab = tabParam;
+    }
+
+    if (targetTab === 'messages' || targetTab === 'chat') {
       if (orders.length > 0) {
         setActiveConversationOrder(orders[0]);
       } else {
@@ -187,24 +219,18 @@ export default function TechDashboard() {
           if (localSaved.length > 0) setActiveConversationOrder(localSaved[0]);
         } catch {}
       }
-    } else if (tab === 'active') {
+    } else if (targetTab === 'active' || targetTab === 'active-jobs') {
       setActiveSidebarNav('active');
-    } else if (tab === 'earnings') {
+    } else if (targetTab === 'earnings') {
       setActiveSidebarNav('earnings');
-    } else if (tab === 'requests') {
+    } else if (targetTab === 'requests') {
       setActiveSidebarNav('requests');
-    } else if (tab === 'live') {
-      if (activeRepairs.length > 0) {
-        handleLaunchLiveStream(activeRepairs[0]);
-      } else if (orders.length > 0) {
-        handleLaunchLiveStream(orders[0]);
-      } else {
-        handleLaunchLiveStream();
-      }
-    } else if (!tab || tab === 'dashboard') {
+    } else if (targetTab === 'live' || targetTab === 'live-stream') {
+      setActiveSidebarNav('live');
+    } else if (targetTab === 'dashboard' || targetTab === 'workbench' || location.pathname === '/technician' || location.pathname === '/technician/dashboard') {
       setActiveSidebarNav('dashboard');
     }
-  }, [location.search, orders.length]);
+  }, [location.pathname, location.search, orders.length, initialTab]);
 
   // Filtered order groups
   const nearbyRequests = orders.filter(o => o.status === 'Order Placed');
@@ -212,6 +238,22 @@ export default function TechDashboard() {
     o.status !== 'Order Placed' && o.status !== 'Delivered'
   );
   const completedRepairs = orders.filter(o => o.status === 'Delivered');
+
+  const currentLiveOrder = selectedLiveOrder || activeRepairs[0] || orders[0] || {
+    id: 1,
+    order_number: 'EOF-2026-07350',
+    customer_name: 'Rahul (Customer)',
+    laptop_brand: 'Asus TUF Gaming A15',
+    laptop_model: '(FA506 / FA507)',
+    issue_category: 'Hinge & Chassis: Broken hinge',
+    status: 'In Repair',
+    quote_amount: 1800,
+    quote_approved: true,
+    stream_session: {
+      meet_url: 'https://meet.google.com/eof-live-bench',
+      is_live: true
+    }
+  };
 
   // Accept a repair request
   const handleAcceptRequest = async (orderId, targetQuote = 0) => {
@@ -612,9 +654,44 @@ export default function TechDashboard() {
     'Return Pickup': 'Delivered'
   };
 
-  // Protected Technician Route: If not logged in or not technician, redirect to /login
+  // Protected Technician Route: If not logged in or not technician, show clean access panel
   if (!user || user.role !== 'technician') {
-    return <Navigate to="/login" replace />;
+    return (
+      <div className="container py-5 text-center" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="card p-4 p-md-5 shadow-sm" style={{ maxWidth: '520px', width: '100%' }}>
+          <div className="mb-3">
+            <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 fs-6">
+              <ShieldCheck size={18} className="me-1" /> Technician Authorization Required
+            </span>
+          </div>
+          <h2 className="h4 mb-3">Cleanroom Workbench Access</h2>
+          <p className="text-muted small mb-4">
+            {user ? (
+              <>You are currently signed in as <strong>{user.name}</strong> ({user.role}). Switch to the Technician account to manage bench repairs and customer messages.</>
+            ) : (
+              <>Please sign in as a verified technician to access the Cleanroom Workbench and customer communications.</>
+            )}
+          </p>
+          <div className="d-flex flex-column gap-2">
+            <button
+              onClick={() => {
+                switchRole('technician');
+              }}
+              className="btn btn-primary d-flex align-items-center justify-content-center gap-2"
+            >
+              <Wrench size={16} />
+              <span>Continue as Technician (SHABBER HUSSAIN)</span>
+            </button>
+            <button
+              onClick={() => navigate('/login', { state: { role: 'technician' } })}
+              className="btn btn-outline-secondary"
+            >
+              Sign In with Other Technician Credentials
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -646,62 +723,64 @@ export default function TechDashboard() {
             </div>
           )}
 
-          {/* Master Technician Header */}
-          <div className="tech-bench-header">
-            <div className="tech-bench-title-group">
-              <div className="tech-bench-badge-row">
-                <span className="badge badge-primary">
-                  <ShieldCheck size={13} /> CLEANROOM WORKBENCH
-                </span>
-                <span className="tech-bench-station-chip">
-                  <Radio size={12} className="pulse-dot" /> Bench #4 Online
-                </span>
+          {/* Master Technician Header - Displayed only on Workbench Dashboard */}
+          {activeSidebarNav === 'dashboard' && (
+            <div className="tech-bench-header">
+              <div className="tech-bench-title-group">
+                <div className="tech-bench-badge-row">
+                  <span className="badge badge-primary">
+                    <ShieldCheck size={13} /> CLEANROOM WORKBENCH
+                  </span>
+                  <span className="tech-bench-station-chip">
+                    <Radio size={12} className="pulse-dot" /> Bench #4 Online
+                  </span>
+                </div>
+                <h1 className="tech-bench-h1">Welcome, {user?.name || "Technician"} 👋</h1>
+                <p className="tech-bench-sub">
+                  Live ESD diagnostics, customer request marketplace & transparent 4K cleanroom broadcast
+                </p>
               </div>
-              <h1 className="tech-bench-h1">Welcome, {user?.name || "Technician"} 👋</h1>
-              <p className="tech-bench-sub">
-                Live ESD diagnostics, customer request marketplace & transparent 4K cleanroom broadcast
-              </p>
-            </div>
 
-            <div className="tech-header-actions">
-              <button 
-                type="button" 
-                className="btn-secondary tech-header-btn" 
-                onClick={() => setIsNotificationsOpen(true)}
-                title="View bench notifications and alerts"
-                style={{ position: 'relative' }}
-              >
-                <Bell size={14} /> Alerts
-                {orders.some(o => o.status === 'Diagnosis / Quoting' || o.stream_session?.is_live) && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-3px',
-                    right: '-3px',
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: '#ef4444',
-                    boxShadow: '0 0 6px #ef4444'
-                  }} />
-                )}
-              </button>
-              <button 
-                type="button" 
-                className="btn-secondary tech-header-btn" 
-                onClick={() => fetchTechJobs(false)}
-                title="Sync with central repair order database"
-              >
-                <RefreshCw size={14} /> Refresh Jobs
-              </button>
-              <button 
-                type="button" 
-                className="btn-cta tech-header-btn" 
-                onClick={() => handleLaunchLiveStream(activeRepairs[0])}
-              >
-                <Video size={15} /> Launch Live 4K Stream
-              </button>
+              <div className="tech-header-actions">
+                <button 
+                  type="button" 
+                  className="btn-secondary tech-header-btn" 
+                  onClick={() => setIsNotificationsOpen(true)}
+                  title="View bench notifications and alerts"
+                  style={{ position: 'relative' }}
+                >
+                  <Bell size={14} /> Alerts
+                  {getStoredUnreadCount(user) > 0 && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '-3px',
+                      right: '-3px',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#ef4444',
+                      boxShadow: '0 0 6px #ef4444'
+                    }} />
+                  )}
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-secondary tech-header-btn" 
+                  onClick={() => fetchTechJobs(false)}
+                  title="Sync with central repair order database"
+                >
+                  <RefreshCw size={14} /> Refresh Jobs
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-cta tech-header-btn" 
+                  onClick={() => handleLaunchLiveStream(activeRepairs[0])}
+                >
+                  <Video size={15} /> Launch Live 4K Stream
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
             
           {/* ========================================================
@@ -789,7 +868,7 @@ export default function TechDashboard() {
                         }}
                         style={{ fontSize: '0.82rem', padding: '7px 14px' }}
                       >
-                        <DollarSign size={14} /> Edit Quote
+                        <IndianRupee size={14} /> Edit Quote
                       </button>
                     </div>
                   </div>
@@ -802,7 +881,7 @@ export default function TechDashboard() {
 
                     <div>
                       <div className="tech-meta-label">DEVICE STATUS</div>
-                      <div className="tech-meta-val" style={{ color: '#10b981', fontFamily: 'var(--font-mono)' }}>Cleanroom Active</div>
+                      <div className="tech-meta-val" style={{ color: 'var(--success, #059669)', fontFamily: 'var(--font-mono)' }}>Cleanroom Active</div>
                     </div>
 
                     <div>
@@ -812,22 +891,25 @@ export default function TechDashboard() {
 
                     <div>
                       <div className="tech-meta-label">APPROVED QUOTE</div>
-                      <div className="tech-meta-val" style={{ color: 'var(--success)', fontFamily: 'var(--font-mono)' }}>₹{activeRepairs[0].quote_amount || 0}</div>
+                      <div className="tech-meta-val" style={{ color: 'var(--success, #059669)', fontFamily: 'var(--font-mono)' }}>₹{activeRepairs[0].quote_amount || 0}</div>
                     </div>
                   </div>
 
                   {/* 1-Click Milestone Advancement */}
                   {nextMilestoneMap[activeRepairs[0].status] && (
                     <div className="tech-milestones-row">
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                        Next Protocol Step: <strong>{nextMilestoneMap[activeRepairs[0].status]}</strong>
+                      <div className="tech-milestone-step-info">
+                        <span className="tech-milestone-label">Next Protocol Step:</span>
+                        <span className="tech-milestone-target-badge">
+                          <CheckCircle2 size={13} />
+                          {nextMilestoneMap[activeRepairs[0].status]}
+                        </span>
                       </div>
 
                       <button
                         type="button"
-                        className="btn-primary"
+                        className="btn-primary tech-milestone-advance-btn"
                         onClick={() => handleUpdateStatus(activeRepairs[0].id, nextMilestoneMap[activeRepairs[0].status])}
-                        style={{ padding: '8px 18px', fontSize: '0.82rem', fontWeight: 800 }}
                       >
                         Advance Status to: {nextMilestoneMap[activeRepairs[0].status]} <ArrowRight size={14} />
                       </button>
@@ -1116,7 +1198,7 @@ export default function TechDashboard() {
                             }}
                             style={{ padding: '8px 16px', fontSize: '0.84rem' }}
                           >
-                            <DollarSign size={14} /> Send Custom Quote
+                            <IndianRupee size={14} /> Send Custom Quote
                           </button>
 
                           <button
@@ -1207,7 +1289,7 @@ export default function TechDashboard() {
                             }}
                             style={{ padding: '7px 14px', fontSize: '0.82rem' }}
                           >
-                            <DollarSign size={14} /> Update Quote
+                            <IndianRupee size={14} /> Update Quote
                           </button>
 
                           <button
@@ -1692,7 +1774,7 @@ export default function TechDashboard() {
                   onClick={() => setIsPayoutModalOpen(true)}
                   style={{ padding: '10px 20px', fontSize: '0.88rem' }}
                 >
-                  <DollarSign size={16} /> Request Bank Transfer
+                  <IndianRupee size={16} /> Request Bank Transfer
                 </button>
               </div>
 
@@ -1740,6 +1822,309 @@ export default function TechDashboard() {
                   <div style={{ background: 'var(--bg-main)', padding: '12px 18px', borderRadius: '10px' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>ESCROW SAFETY</div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>100% Protected</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================
+              MODULE 5.5: LIVE CLEANROOM 4K BROADCAST STUDIO & FEEDS
+             ======================================================== */}
+          {activeSidebarNav === 'live' && (
+            <div className="tech-studio-root">
+              {/* Studio Header */}
+              <div className="tech-studio-header-wrap">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                    <span className="badge badge-live">
+                      <Radio size={12} className="pulse-dot" /> LIVE BROADCAST ({streamResolution} 60FPS)
+                    </span>
+                    <span className="tech-bench-station-chip">
+                      <ShieldCheck size={13} color="#06b6d4" /> Station #4 Cleanroom Class 100
+                    </span>
+                    <span className="badge badge-verified">
+                      <CheckCircle2 size={12} /> ESD Safe Bench Active
+                    </span>
+                  </div>
+                  <h1 className="tech-studio-h1">Cleanroom 4K Broadcast Studio</h1>
+                  <p className="tech-studio-sub">
+                    Ultra-low latency cleanroom broadcasting. Stream live motherboard diagnostics, microscope solder work, and tamper seal verification directly to the customer.
+                  </p>
+                </div>
+
+                <div className="tech-studio-header-actions">
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => handleLaunchLiveStream(currentLiveOrder)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '0.85rem' }}
+                  >
+                    <Maximize2 size={16} /> Fullscreen Studio Modal
+                  </button>
+                  <a
+                    href={currentLiveOrder.stream_session?.meet_url || currentLiveOrder.meet_url || "https://meet.google.com/eof-live-bench"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-cta"
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '0.85rem', textDecoration: 'none' }}
+                  >
+                    <ExternalLink size={15} /> Join Google Meet Session
+                  </a>
+                </div>
+              </div>
+
+              {/* Main Studio Grid */}
+              <div className="tech-studio-main-grid">
+                {/* Left Column: 4K Stage Player */}
+                <div className="tech-studio-stage-card">
+                  <div className="tech-studio-viewport">
+                    {/* Live Image Feed */}
+                    <img
+                      src={
+                        liveCamSource === 'microscope' ? '/microscope_chip.jpg' :
+                        liveCamSource === 'pcb' ? '/pcb_repair_chip.jpg' :
+                        '/tech_bench_live.jpg'
+                      }
+                      alt="Cleanroom Live Video Feed"
+                      className="tech-studio-feed-img"
+                    />
+
+                    {/* HUD Top Bar */}
+                    <div className="tech-studio-hud-top">
+                      <div className="tech-studio-hud-rec">
+                        <span className="tech-studio-hud-rec-dot" />
+                        <span>{isBroadcasting ? `LIVE • ${streamResolution} ULTRA HD • 60 FPS` : 'STANDBY • READY'}</span>
+                      </div>
+                      <div className="tech-studio-hud-info">
+                        <span>ESD GROUND: 0.08Ω</span>
+                        <span>TEMP: 21.4°C</span>
+                        <span>RH: 44%</span>
+                      </div>
+                    </div>
+
+                    {/* Reticle for Microscope Mode */}
+                    {liveCamSource === 'microscope' && (
+                      <div className="tech-studio-reticle">
+                        <span className="tech-studio-reticle-label">100X MACRO OPTICAL</span>
+                      </div>
+                    )}
+
+                    {/* HUD Bottom Bar with Target Order and Camera Switcher */}
+                    <div className="tech-studio-hud-bottom">
+                      <div className="tech-studio-hud-target">
+                        <div style={{ fontWeight: 800 }}>{currentLiveOrder.laptop_brand} {currentLiveOrder.laptop_model}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                          Order #{currentLiveOrder.order_number} • Customer: {currentLiveOrder.customer_name || 'Rahul'}
+                        </div>
+                      </div>
+
+                      {/* In-Player Camera Switcher Tabs */}
+                      <div className="tech-studio-cam-tabs">
+                        <button
+                          type="button"
+                          className={`tech-studio-cam-btn ${liveCamSource === 'bench' ? 'tech-studio-cam-btn--active' : ''}`}
+                          onClick={() => setLiveCamSource('bench')}
+                        >
+                          <Camera size={13} /> Overhead Bench
+                        </button>
+                        <button
+                          type="button"
+                          className={`tech-studio-cam-btn ${liveCamSource === 'microscope' ? 'tech-studio-cam-btn--active' : ''}`}
+                          onClick={() => setLiveCamSource('microscope')}
+                        >
+                          <Radio size={13} /> 100x Microscope
+                        </button>
+                        <button
+                          type="button"
+                          className={`tech-studio-cam-btn ${liveCamSource === 'pcb' ? 'tech-studio-cam-btn--active' : ''}`}
+                          onClick={() => setLiveCamSource('pcb')}
+                        >
+                          <Layers size={13} /> PCB Diagnostics
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Studio Deck Bar Controls */}
+                  <div className="tech-studio-deck-bar">
+                    <div className="tech-studio-control-group">
+                      <button
+                        type="button"
+                        className={`tech-studio-tool-btn ${liveMicEnabled ? 'tech-studio-tool-btn--active' : ''}`}
+                        onClick={() => setLiveMicEnabled(!liveMicEnabled)}
+                      >
+                        {liveMicEnabled ? <Radio size={14} color="#10b981" /> : <X size={14} color="#ef4444" />}
+                        <span>{liveMicEnabled ? 'Cleanroom Mic: ON' : 'Cleanroom Mic: MUTED'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`tech-studio-tool-btn ${isBroadcasting ? 'tech-studio-tool-btn--active' : ''}`}
+                        onClick={() => setIsBroadcasting(!isBroadcasting)}
+                      >
+                        <Radio size={14} className={isBroadcasting ? "pulse-dot" : ""} />
+                        <span>{isBroadcasting ? 'Broadcast: LIVE' : 'Broadcast: PAUSED'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="tech-studio-tool-btn"
+                        onClick={() => setStreamResolution(streamResolution === '4K' ? '1080p' : '4K')}
+                      >
+                        <Settings size={14} />
+                        <span>Stream Quality: {streamResolution} 60fps</span>
+                      </button>
+                    </div>
+
+                    <div className="tech-studio-control-group">
+                      <button
+                        type="button"
+                        className="tech-studio-tool-btn"
+                        onClick={() => {
+                          setFeedbackMsg('Camera frame captured & saved to chain of custody audit log!');
+                        }}
+                      >
+                        <Camera size={14} />
+                        <span>Snap Proof Evidence</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Studio Control Deck */}
+                <div className="tech-studio-sidebar-col">
+                  {/* Card 1: Active Broadcast Job Selection */}
+                  <div className="tech-studio-card">
+                    <h3 className="tech-studio-card-title">
+                      <Laptop size={18} color="var(--primary)" />
+                      <span>Broadcasting Device</span>
+                    </h3>
+
+                    {/* Job Select Dropdown */}
+                    <div style={{ marginBottom: '14px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                        SELECT ACTIVE REPAIR TO BROADCAST:
+                      </label>
+                      <select
+                        className="form-select"
+                        value={currentLiveOrder.id || currentLiveOrder.order_number}
+                        onChange={(e) => {
+                          const found = orders.find(o => String(o.id || o.order_number) === String(e.target.value));
+                          if (found) setSelectedLiveOrder(found);
+                        }}
+                        style={{ width: '100%', fontSize: '0.85rem', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
+                      >
+                        {orders.length > 0 ? (
+                          orders.map((ord) => (
+                            <option key={ord.id || ord.order_number} value={ord.id || ord.order_number}>
+                              #{ord.order_number || ord.id} — {ord.laptop_brand} ({ord.customer_name || 'Customer'})
+                            </option>
+                          ))
+                        ) : (
+                          <option value={currentLiveOrder.id || currentLiveOrder.order_number}>
+                            #{currentLiveOrder.order_number} — {currentLiveOrder.laptop_brand} ({currentLiveOrder.customer_name || 'Customer'})
+                          </option>
+                        )}
+                      </select>
+                    </div>
+
+                    <div style={{ background: 'var(--bg-main)', padding: '12px 14px', borderRadius: '10px', fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div><strong>Device:</strong> {currentLiveOrder.laptop_brand} {currentLiveOrder.laptop_model}</div>
+                      <div><strong>Issue:</strong> {currentLiveOrder.issue_category}</div>
+                      <div><strong>Status:</strong> <span className="badge badge-primary">{currentLiveOrder.status}</span></div>
+                      <div><strong>Quote:</strong> ₹{currentLiveOrder.quote_amount || 1800}</div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn-cta"
+                      onClick={() => setActiveConversationOrder(currentLiveOrder)}
+                      style={{ width: '100%', marginTop: '14px', padding: '9px', fontSize: '0.82rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
+                    >
+                      <MessageSquare size={14} /> Open Customer WhatsApp Chat
+                    </button>
+                  </div>
+
+                  {/* Card 2: Live Cleanroom Testing Checklist */}
+                  <div className="tech-studio-card">
+                    <h3 className="tech-studio-card-title">
+                      <ShieldCheck size={18} color="#10b981" />
+                      <span>Cleanroom Verification Steps</span>
+                    </h3>
+                    <div className="tech-studio-checklist">
+                      <div className="tech-studio-check-item tech-studio-check-item--done">
+                        <CheckCircle2 size={16} className="check-icon" />
+                        <span>Intake Tamper Seal Verified on Camera</span>
+                      </div>
+                      <div className="tech-studio-check-item tech-studio-check-item--done">
+                        <CheckCircle2 size={16} className="check-icon" />
+                        <span>Customer Unbox OTP Verified</span>
+                      </div>
+                      <div className="tech-studio-check-item tech-studio-check-item--done">
+                        <CheckCircle2 size={16} className="check-icon" />
+                        <span>Microscope Motherboard Inspection</span>
+                      </div>
+                      <div className="tech-studio-check-item tech-studio-check-item--pending">
+                        <Clock size={16} className="check-icon" />
+                        <span>OEM Component Replacement / Soldering</span>
+                      </div>
+                      <div className="tech-studio-check-item tech-studio-check-item--pending">
+                        <Clock size={16} className="check-icon" />
+                        <span>Post-Repair Functional Testing</span>
+                      </div>
+                      <div className="tech-studio-check-item tech-studio-check-item--pending">
+                        <Clock size={16} className="check-icon" />
+                        <span>Reseal with Return Tamper Seal Tag</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Live Customer Session Chat */}
+                  <div className="tech-studio-card">
+                    <h3 className="tech-studio-card-title">
+                      <MessageSquare size={18} color="var(--primary)" />
+                      <span>Live Stream Session Chat</span>
+                    </h3>
+                    <div className="tech-studio-chat-box">
+                      <div className="tech-studio-chat-msgs">
+                        {liveChatMessages.map((msg) => (
+                          <div key={msg.id} className="tech-studio-msg-row">
+                            <span className={`tech-studio-msg-author ${msg.sender.includes('Technician') ? 'tech-studio-msg-author--tech' : 'tech-studio-msg-author--cust'}`}>
+                              {msg.sender} <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>• {msg.time}</span>
+                            </span>
+                            <span className="tech-studio-msg-body">{msg.text}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (!liveChatInput.trim()) return;
+                          const newMsg = {
+                            id: Date.now(),
+                            sender: `Technician (${user?.name || 'SHABBER'})`,
+                            text: liveChatInput.trim(),
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          };
+                          setLiveChatMessages(prev => [...prev, newMsg]);
+                          setLiveChatInput('');
+                        }}
+                        className="tech-studio-chat-form"
+                      >
+                        <input
+                          type="text"
+                          placeholder="Type update to customer watching stream..."
+                          className="tech-studio-chat-input"
+                          value={liveChatInput}
+                          onChange={(e) => setLiveChatInput(e.target.value)}
+                        />
+                        <button type="submit" className="tech-studio-chat-send">
+                          <Send size={14} />
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2056,7 +2441,7 @@ export default function TechDashboard() {
           <div className="tech-modal-box">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <DollarSign size={18} color="var(--cta-orange)" />
+                <IndianRupee size={18} color="var(--cta-orange)" />
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>Submit Diagnostic Quote</h3>
               </div>
               <button onClick={() => setIsQuoteModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
@@ -2110,7 +2495,7 @@ export default function TechDashboard() {
           <div className="tech-modal-box">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <DollarSign size={18} color="var(--success)" />
+                <IndianRupee size={18} color="var(--success)" />
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>Request Bank Payout</h3>
               </div>
               <button onClick={() => { setIsPayoutModalOpen(false); setPayoutSuccess(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
@@ -2296,7 +2681,12 @@ export default function TechDashboard() {
         <OrderConversationModal
           isOpen={Boolean(activeConversationOrder)}
           initialOrder={activeConversationOrder}
-          onClose={() => setActiveConversationOrder(null)}
+          onClose={() => {
+            setActiveConversationOrder(null);
+            if (location.pathname === '/technician/chat' || location.pathname === '/technician/messages') {
+              navigate('/technician/dashboard');
+            }
+          }}
           onOpenLiveStream={(ord) => {
             setActiveConversationOrder(null);
             setStreamOrder(ord);

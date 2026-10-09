@@ -145,16 +145,12 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
         </div>
 
         {/* Search Bar */}
-        <div className="track-search-card">
+        <div className="track-search-card card p-4 mb-4">
           <form onSubmit={handleSearch} noValidate className="track-search-form">
-            <div 
-              className="track-search-input-wrap"
-              style={{
-                border: errorMsg ? '1.5px solid #ef4444' : undefined,
-                boxShadow: errorMsg ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : undefined
-              }}
-            >
-              <Search size={18} className="track-search-icon" />
+            <div className="input-group">
+              <span className="input-group-text bg-transparent border-light text-muted">
+                <Search size={18} />
+              </span>
               <input
                 type="text"
                 placeholder="Enter Repair ID, Serial Number, Seal Code, or Email/Phone..."
@@ -163,22 +159,21 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
                   setErrorMsg('');
                   setSearchId(e.target.value);
                 }}
-                className="track-search-input"
+                className={`form-control ${errorMsg ? 'is-invalid' : ''}`}
               />
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary px-4 d-flex align-items-center gap-2"
+              >
+                {loading && <Loader2 size={16} className="spin" />}
+                <span>Track Status</span>
+              </button>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary track-search-btn"
-            >
-              {loading && <Loader2 size={16} className="spin" />}
-              <span>Track Status</span>
-            </button>
           </form>
 
           {errorMsg && (
-            <div style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+            <div className="text-danger small mt-2 d-flex align-items-center gap-2 fw-medium">
               <AlertCircle size={15} style={{ flexShrink: 0 }} />
               <span>{errorMsg}</span>
             </div>
@@ -187,7 +182,7 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
 
         {/* Empty State when no order is searched */}
         {!searchedOrder && !loading && (
-          <div className="tech-card" style={{ padding: '48px 24px', textAlign: 'center', borderRadius: '16px' }}>
+          <div className="tech-card card p-5 text-center">
             <div style={{
               width: '56px',
               height: '56px',
@@ -201,10 +196,10 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
             }}>
               <Package size={28} />
             </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '6px' }}>
+            <h3 className="h4 mb-2">
               Track Your Repair Without Logging In
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '480px', margin: '0 auto', lineHeight: 1.5 }}>
+            <p className="text-muted small mx-auto mb-0" style={{ maxWidth: '480px' }}>
               Enter your Repair ID (e.g., EOF-2026-XXXXX), laptop serial number, or registered phone/email above.
             </p>
           </div>
@@ -212,7 +207,7 @@ export default function TrackRepairPage({ onOpenLiveStream }) {
 
         {/* Results when order is found */}
         {searchedOrder && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '28px' }}>
+          <div className="row g-4">
             {/* Left: Device & Live Bench Overview */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="tech-card" style={{ padding: '24px' }}>

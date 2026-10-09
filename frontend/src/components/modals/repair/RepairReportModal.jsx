@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileCheck, CheckCircle2, Download, X, Printer, ShieldCheck, Laptop } from 'lucide-react';
-import './Modals.css';
+import '../common/Modals.css';
 
 export default function RepairReportModal({ isOpen, onClose }) {
   if (!isOpen) return null;

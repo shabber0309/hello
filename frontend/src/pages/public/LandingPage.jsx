@@ -6,7 +6,7 @@ import {
   Wrench, 
   ArrowRight, 
   Radio, 
-  DollarSign,
+  IndianRupee,
   Eye
 } from 'lucide-react';
 import './LandingPage.css';
@@ -26,7 +26,7 @@ export default function LandingPage({
       glow: '0 4px 14px rgba(16, 185, 129, 0.4)'
     },
     {
-      icon: DollarSign,
+      icon: IndianRupee,
       title: 'Transparent Pricing',
       desc: 'Compare offers before accepting',
       bgGrad: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
@@ -65,9 +65,9 @@ export default function LandingPage({
       {/* 1. Hero Section */}
       <section className="landing-hero-section">
         <div className="container">
-          <div className="landing-hero-grid">
+          <div className="landing-hero-grid row align-items-center g-4">
             {/* Left Headline Column */}
-            <div className="landing-headline-col">
+            <div className="landing-headline-col col-12 col-lg-6">
               <h1 className="landing-h1">
                 Laptop Repair, <br />
                 <span className="landing-gradient-text">
@@ -79,9 +79,9 @@ export default function LandingPage({
                 Connect with verified technicians, get transparent repair estimates, track your device at every step, and watch your repair happen live on camera.
               </p>
 
-              <div className="landing-hero-cta-group">
+              <div className="landing-hero-cta-group d-flex flex-wrap gap-3">
                 <button 
-                  className="btn-cta landing-cta-btn"
+                  className="btn btn-cta landing-cta-btn"
                   onClick={onStartBooking}
                 >
                   Get Your Laptop Repaired
@@ -89,7 +89,7 @@ export default function LandingPage({
                 </button>
 
                 <button 
-                  className="btn-secondary landing-secondary-btn"
+                  className="btn btn-secondary landing-secondary-btn"
                   onClick={onBecomeTechnician}
                 >
                   <Wrench size={15} color="var(--primary)" />
@@ -99,12 +99,12 @@ export default function LandingPage({
             </div>
 
             {/* Right Column: Exploded Laptop Graphic */}
-            <div>
-              <div className="landing-hero-preview-card">
+            <div className="col-12 col-lg-6">
+              <div className="landing-hero-preview-card card shadow-lg border-0 overflow-hidden">
                 <img 
                   src="/hero_laptop.jpg" 
                   alt="Laptop Diagnostics"
-                  className="landing-hero-img"
+                  className="landing-hero-img img-fluid w-100"
                 />
 
                 <div className="landing-stream-badge">
@@ -122,25 +122,26 @@ export default function LandingPage({
       </section>
 
       {/* 2. Trust Indicators with Rich Colors */}
-      <section className="landing-trust-section">
+      <section className="landing-trust-section py-4">
         <div className="container">
-          <div className="landing-trust-grid">
+          <div className="landing-trust-grid row g-4">
             {trustIndicators.map((t, idx) => {
               const Icon = t.icon;
               return (
-                <div 
-                  key={idx} 
-                  className="landing-trust-card" 
-                  style={{ borderTop: `4px solid ${t.topBorder}` }}
-                >
+                <div key={idx} className="col-12 col-sm-6 col-lg-3">
                   <div 
-                    className="landing-trust-icon-box"
-                    style={{ background: t.bgGrad, boxShadow: t.glow }}
+                    className="landing-trust-card card h-100 p-4" 
+                    style={{ borderTop: `4px solid ${t.topBorder}` }}
                   >
-                    <Icon size={22} />
+                    <div 
+                      className="landing-trust-icon-box mb-3"
+                      style={{ background: t.bgGrad, boxShadow: t.glow }}
+                    >
+                      <Icon size={22} />
+                    </div>
+                    <h3 className="landing-trust-title h5 mb-2">{t.title}</h3>
+                    <p className="landing-trust-desc small mb-0">{t.desc}</p>
                   </div>
-                  <h3 className="landing-trust-title">{t.title}</h3>
-                  <p className="landing-trust-desc">{t.desc}</p>
                 </div>
               );
             })}
@@ -149,26 +150,28 @@ export default function LandingPage({
       </section>
 
       {/* 3. How Live Fix Works (6 Steps with Colored Badges) */}
-      <section className="landing-steps-section">
+      <section className="landing-steps-section py-5">
         <div className="container">
-          <div className="landing-section-header">
-            <h2 className="landing-section-h2">How Live Fix Works</h2>
+          <div className="landing-section-header text-center mb-5">
+            <h2 className="landing-section-h2 mb-2">How Live Fix Works</h2>
             <p className="landing-section-sub">
               6 transparent steps from request to delivery.
             </p>
           </div>
 
-          <div className="landing-steps-grid">
+          <div className="landing-steps-grid row g-4">
             {sixSteps.map((s, idx) => (
-              <div key={idx} className="landing-step-card">
-                <div 
-                  className="landing-step-num"
-                  style={{ background: s.grad }}
-                >
-                  {s.num}
+              <div key={idx} className="col-12 col-md-6 col-lg-4">
+                <div className="landing-step-card card h-100 p-4">
+                  <div 
+                    className="landing-step-num mb-3"
+                    style={{ background: s.grad }}
+                  >
+                    {s.num}
+                  </div>
+                  <h3 className="landing-step-title h5 mb-2">{s.title}</h3>
+                  <p className="landing-step-desc small mb-0">{s.desc}</p>
                 </div>
-                <h3 className="landing-step-title">{s.title}</h3>
-                <p className="landing-step-desc">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -176,21 +179,23 @@ export default function LandingPage({
       </section>
 
       {/* 4. Bottom Trust Callout */}
-      <section className="landing-callout-section">
+      <section className="landing-callout-section py-4">
         <div className="container">
-          <div className="landing-callout-box">
-            <h2 className="landing-callout-h2">
+          <div className="landing-callout-box card text-center p-4 p-md-5">
+            <h2 className="landing-callout-h2 mb-3">
               Your Device. Your Control.
             </h2>
-            <p className="landing-callout-p">
+            <p className="landing-callout-p mb-4">
               No hidden repairs, unexpected charges, or opening your laptop without your approval.
             </p>
-            <button 
-              className="btn-primary landing-callout-btn" 
-              onClick={onSeeHowItWorks}
-            >
-              See How It Works <ArrowRight size={15} />
-            </button>
+            <div className="d-flex justify-content-center">
+              <button 
+                className="btn btn-primary landing-callout-btn" 
+                onClick={onSeeHowItWorks}
+              >
+                See How It Works <ArrowRight size={15} />
+              </button>
+            </div>
           </div>
         </div>
       </section>

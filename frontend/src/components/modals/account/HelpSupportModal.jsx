@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HelpCircle, ChevronDown, ChevronUp, X, MessageSquare, Phone } from 'lucide-react';
-import './Modals.css';
+import '../common/Modals.css';
 
 export default function HelpSupportModal({ isOpen, onClose }) {
   const [openIndex, setOpenIndex] = useState(null);

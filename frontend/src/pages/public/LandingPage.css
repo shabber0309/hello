@@ -13,9 +13,6 @@
 }
 
 .landing-hero-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: 40px;
   align-items: center;
 }
 
@@ -149,9 +146,7 @@
 }
 
 .landing-trust-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  /* Using Bootstrap .row flexbox */
 }
 
 .landing-trust-card {
@@ -217,9 +212,7 @@
 }
 
 .landing-steps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
+  /* Using Bootstrap .row flexbox */
 }
 
 .landing-step-card {

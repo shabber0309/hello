@@ -13,13 +13,13 @@
 export { AdminDashboard } from './admin';
 
 // Customer
-export { CustomerDashboard, UserDashboard, BookRepair, TrackRepairPage } from './customer';
+export { CustomerDashboard, BookRepair, TrackRepairPage } from './customer';
 
 // Technician
 export { TechDashboard, ForTechniciansPage } from './technician';
 
 // Public Marketing Pages
-export { LandingPage, HowItWorksPage, ServicesPage, PricingPage } from './public';
+export { LandingPage, HowItWorksPage, ServicesPage, PricingPage, NotFoundPage } from './public';
 
 // Auth
 export { AuthPage } from './auth';

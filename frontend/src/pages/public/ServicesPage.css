@@ -117,9 +117,7 @@
 
 /* Services Grid */
 .services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 22px;
+  /* Using Bootstrap .row flexbox */
   margin-bottom: 60px;
 }
 

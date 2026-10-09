@@ -18,7 +18,7 @@ import {
   Tag,
   Camera
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 import './OrderConversationModal.css';
 
 export default function OrderConversationModal({ isOpen, onClose, initialOrder, onOpenLiveStream }) {
@@ -1577,10 +1577,14 @@ export default function OrderConversationModal({ isOpen, onClose, initialOrder, 
 
               return true;
             }).map((m) => {
+              const isOutgoing = Boolean(
+                (user?.role && m.sender_role === user.role) ||
+                (user?.name && m.sender_name === user.name)
+              );
 
               const senderLabel = isOutgoing 
                 ? 'You' 
-                : (m.sender_role === 'technician' ? `${cleanTechName(m.sender_name)} (technician)` : `${m.sender_name || 'Live Fix Concierge'} (customer)`);
+                : (m.sender_role === 'technician' ? `${m.sender_name || 'Technician'} (Technician)` : `${m.sender_name || 'Customer'} (Customer)`);
 
               const hasImage = m.message_type === 'image' || Boolean(m.metadata?.image_url);
               const isQuoteMsg = m.message_type === 'price_quote' || Boolean(m.metadata?.amount || m.metadata?.quote_amount);

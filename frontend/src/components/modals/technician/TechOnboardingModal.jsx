@@ -3,7 +3,7 @@ import {
   Wrench, 
   ShieldCheck, 
   CheckCircle2, 
-  DollarSign, 
+  IndianRupee, 
   Clock, 
   X, 
   ArrowRight, 
@@ -13,7 +13,7 @@ import {
   MapPin,
   AlertCircle
 } from 'lucide-react';
-import { sanitizeDigits, validatePhone, validateEmail, scrollToFirstError } from '../../utils/validation';
+import { sanitizeDigits, validatePhone, validateEmail, scrollToFirstError } from '../../../utils/validation';
 import './TechOnboardingModal.css';
 
 export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess }) {
@@ -159,7 +159,7 @@ export default function TechOnboardingModal({ isOpen, onClose, onRegisterSuccess
               marginBottom: '24px'
             }}>
               <div style={{ padding: '14px', background: 'var(--bg-card-subtle)', borderRadius: '12px', textAlign: 'center' }}>
-                <DollarSign size={20} color="var(--success)" style={{ margin: '0 auto 6px' }} />
+                <IndianRupee size={20} color="var(--success)" style={{ margin: '0 auto 6px' }} />
                 <div style={{ fontWeight: 700, fontSize: '0.85rem' }}>Daily Direct Payouts</div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Zero middleman commission delays</div>
               </div>

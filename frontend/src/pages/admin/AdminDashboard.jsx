@@ -10,7 +10,7 @@ import {
   Trash2, 
   Plus, 
   RefreshCw, 
-  DollarSign, 
+  IndianRupee, 
   Search, 
   CheckCircle2, 
   Clock, 
@@ -45,7 +45,7 @@ import { useAuth } from '../../context/AuthContext';
 import { StreamModal, OrderConversationModal } from '../../components/modals';
 import './AdminDashboard.css';
 
-export default function AdminDashboard({ onOpenLiveStream }) {
+export default function AdminDashboard({ onOpenLiveStream, initialTab }) {
   const { user, token, login, logout, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,13 +57,31 @@ export default function AdminDashboard({ onOpenLiveStream }) {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showSwitchLoginForm, setShowSwitchLoginForm] = useState(false);
 
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'users', 'orders', 'streams', 'custody', 'escrow', 'database'
+  const [activeTab, setActiveTab] = useState(() => {
+    if (initialTab) return initialTab;
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const subRoute = pathParts[pathParts.length - 1];
+    if (['overview', 'users', 'orders', 'streams', 'custody', 'escrow'].includes(subRoute)) {
+      return subRoute;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['overview', 'users', 'orders', 'streams', 'custody', 'escrow'].includes(tabParam)) {
+      return tabParam;
+    }
+    return 'overview';
+  });
   const [adminConversationOrder, setAdminConversationOrder] = useState(null);
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
+    if (tabId === 'overview') {
+      navigate('/admin/dashboard');
+    } else {
+      navigate(`/admin/${tabId}`);
+    }
   };
   const [overview, setOverview] = useState(null);
   const [usersList, setUsersList] = useState([]);
@@ -172,12 +190,28 @@ export default function AdminDashboard({ onOpenLiveStream }) {
   }, [token, user]);
 
   useEffect(() => {
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    const subRoute = pathParts[pathParts.length - 1];
+    const validTabs = ['overview', 'users', 'orders', 'streams', 'custody', 'escrow', 'database'];
+    
+    if (validTabs.includes(subRoute)) {
+      setActiveTab(subRoute);
+      return;
+    }
+    if (initialTab && validTabs.includes(initialTab)) {
+      setActiveTab(initialTab);
+      return;
+    }
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
-    if (tabParam && ['overview', 'users', 'orders', 'streams', 'custody', 'escrow', 'database'].includes(tabParam)) {
+    if (tabParam && validTabs.includes(tabParam)) {
       setActiveTab(tabParam);
+      return;
     }
-  }, [location.search]);
+    if (location.pathname === '/admin' || location.pathname === '/admin/dashboard') {
+      setActiveTab('overview');
+    }
+  }, [location.pathname, location.search, initialTab]);
 
   const handleEditUserClick = (u) => {
     setEditingUser(u);
@@ -387,61 +421,98 @@ export default function AdminDashboard({ onOpenLiveStream }) {
     return matchesStatus && matchesSearch;
   });
 
-  // Protected Admin Route: If not logged in or not admin, redirect to /login
+  // Protected Admin Route: If not logged in or not admin, show clean access panel
   if (!user || user.role !== 'admin') {
-    return <Navigate to="/login" replace />;
+    return (
+      <div className="container py-5 text-center" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="card p-4 p-md-5 shadow-sm" style={{ maxWidth: '520px', width: '100%' }}>
+          <div className="mb-3">
+            <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fs-6">
+              <ShieldCheck size={18} className="me-1" /> Super Admin Authorization
+            </span>
+          </div>
+          <h2 className="h4 mb-3">Master Admin Console</h2>
+          <p className="text-muted small mb-4">
+            {user ? (
+              <>You are signed in as <strong>{user.name}</strong> ({user.role}). Administrative access requires Administrator authorization.</>
+            ) : (
+              <>Please sign in as Administrator to access master database metrics and live stream oversight.</>
+            )}
+          </p>
+          <div className="d-flex flex-column gap-2">
+            <button
+              onClick={() => {
+                switchRole('admin');
+              }}
+              className="btn btn-primary d-flex align-items-center justify-content-center gap-2"
+            >
+              <ShieldCheck size={16} />
+              <span>Continue as Administrator</span>
+            </button>
+            <button
+              onClick={() => navigate('/login', { state: { role: 'admin' } })}
+              className="btn btn-outline-secondary"
+            >
+              Admin Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="admin-dashboard-root">
       <div className="admin-dashboard-container">
         
-        {/* Admin Header */}
-        <div className="admin-header-row">
-          <div className="admin-header-title-block">
-            <div className="admin-header-badge-row">
-              <span className="badge badge-primary admin-header-badge">
-                <ShieldCheck size={14} /> SUPER ADMIN PORTAL
-              </span>
-              <span className="admin-header-subtext">
-                Master Database, Live Feeds & Marketplace Control
-              </span>
+        {/* Admin Header - Displayed only on Dashboard Overview */}
+        {activeTab === 'overview' && (
+          <div className="admin-header-row">
+            <div className="admin-header-title-block">
+              <div className="admin-header-badge-row">
+                <span className="badge badge-primary admin-header-badge">
+                  <ShieldCheck size={14} /> SUPER ADMIN PORTAL
+                </span>
+                <span className="admin-header-subtext">
+                  Master Database, Live Feeds & Marketplace Control
+                </span>
+              </div>
+              <h1 className="admin-header-heading">
+                Master Database & Admin Console
+              </h1>
+              <p className="admin-header-user-meta">
+                Logged in as <strong>{user?.name || 'Administrator'} {user?.role ? `(${user.role.toUpperCase()})` : '(ADMIN)'}</strong> • <span className="admin-header-mono-tag">{user?.email || 'admin@livefix.com'}</span>
+              </p>
             </div>
-            <h1 className="admin-header-heading">
-              Master Database & Admin Console
-            </h1>
-            <p className="admin-header-user-meta">
-              Logged in as <strong>{user?.name || 'Administrator'} {user?.role ? `(${user.role.toUpperCase()})` : '(ADMIN)'}</strong> • <span className="admin-header-mono-tag">{user?.email || 'admin@livefix.com'}</span>
-            </p>
+
+            <div className="admin-header-actions">
+              <button 
+                className="btn-secondary admin-action-btn" 
+                onClick={fetchData}
+                title="Refresh Data"
+              >
+                <RefreshCw size={15} /> Refresh
+              </button>
+
+              <button 
+                className="btn-cta admin-action-btn" 
+                onClick={() => {
+                  setUserForm({ name: '', username: '', email: '', phone: '', role: 'customer', password: 'password123' });
+                  setIsAddUserOpen(true);
+                }}
+              >
+                <Plus size={16} /> Add User
+              </button>
+
+              <button 
+                className="btn-secondary admin-action-btn" 
+                onClick={handleExportBackup}
+              >
+                <Download size={15} /> Export JSON
+              </button>
+            </div>
           </div>
-
-          <div className="admin-header-actions">
-            <button 
-              className="btn-secondary admin-action-btn" 
-              onClick={fetchData}
-              title="Refresh Data"
-            >
-              <RefreshCw size={15} /> Refresh
-            </button>
-
-            <button 
-              className="btn-cta admin-action-btn" 
-              onClick={() => {
-                setUserForm({ name: '', username: '', email: '', phone: '', role: 'customer', password: 'password123' });
-                setIsAddUserOpen(true);
-              }}
-            >
-              <Plus size={16} /> Add User
-            </button>
-
-            <button 
-              className="btn-secondary admin-action-btn" 
-              onClick={handleExportBackup}
-            >
-              <Download size={15} /> Export JSON
-            </button>
-          </div>
-        </div>
+        )}
 
 
         {/* Feedback Alert */}
@@ -456,90 +527,58 @@ export default function AdminDashboard({ onOpenLiveStream }) {
           </div>
         )}
 
-        {/* Admin Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '20px' }}>
-          {[
-            { id: 'overview', label: 'Overview', icon: BarChart3 },
-            { id: 'users', label: `Users (${usersList.length})`, icon: Users },
-            { id: 'orders', label: `Orders (${ordersList.length})`, icon: Laptop },
-            { id: 'streams', label: `Live Streams (${ordersList.filter(o => o.stream_session?.is_live || o.stream_session || ['In Repair', 'Delivered to Bench', 'Quality Check'].includes(o.status)).length})`, icon: Video },
-            { id: 'custody', label: `Custody & Logistics`, icon: ShieldCheck },
-            { id: 'escrow', label: `Escrow Vault`, icon: DollarSign },
-            { id: 'database', label: `DB Inspector`, icon: Database }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '7px',
-                  padding: '9px 16px',
-                  borderRadius: '10px',
-                  fontSize: '0.84rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  border: isActive ? '1px solid var(--primary)' : '1px solid var(--border-light)',
-                  background: isActive ? 'var(--primary)' : 'var(--bg-surface)',
-                  color: isActive ? '#ffffff' : 'var(--text-main)',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.18s ease'
-                }}
-              >
-                <Icon size={14} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
         {/* ========================================================
             TAB 0: EXECUTIVE OVERVIEW & PLATFORM METRICS
            ======================================================== */}
         {activeTab === 'overview' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="d-flex flex-column gap-4">
             {/* 4 High-Level Metrics Cards */}
-            <div className="admin-metrics-grid" style={{ marginBottom: 0 }}>
-              <div className="admin-metric-card">
-                <div className="admin-metric-label">TOTAL USERS</div>
-                <div className="admin-metric-value admin-metric-value-primary">
-                  {overview?.total_users ?? usersList.length}
-                </div>
-                <div className="admin-metric-subtext">
-                  {overview?.customers_count ?? 0} Customers • {overview?.technicians_count ?? 0} Techs
-                </div>
-              </div>
-
-              <div className="admin-metric-card">
-                <div className="admin-metric-label">TOTAL REPAIRS</div>
-                <div className="admin-metric-value admin-metric-value-orange">
-                  {overview?.total_orders ?? ordersList.length}
-                </div>
-                <div className="admin-metric-subtext">
-                  {overview?.in_repair_count ?? 0} Active / Bench Cleanrooms
+            <div className="admin-metrics-grid row g-3 mb-0">
+              <div className="col-12 col-sm-6 col-lg-3">
+                <div className="admin-metric-card card h-100 p-3">
+                  <div className="admin-metric-label">TOTAL USERS</div>
+                  <div className="admin-metric-value admin-metric-value-primary">
+                    {overview?.total_users ?? usersList.length}
+                  </div>
+                  <div className="admin-metric-subtext">
+                    {overview?.customers_count ?? 0} Customers • {overview?.technicians_count ?? 0} Techs
+                  </div>
                 </div>
               </div>
 
-              <div className="admin-metric-card">
-                <div className="admin-metric-label">TOTAL VOLUME</div>
-                <div className="admin-metric-value admin-metric-value-success">
-                  ₹{overview?.total_volume != null ? Number(overview.total_volume).toLocaleString('en-IN') : '0'}
-                </div>
-                <div className="admin-metric-subtext">
-                  Gross marketplace GMV
+              <div className="col-12 col-sm-6 col-lg-3">
+                <div className="admin-metric-card card h-100 p-3">
+                  <div className="admin-metric-label">TOTAL REPAIRS</div>
+                  <div className="admin-metric-value admin-metric-value-orange">
+                    {overview?.total_orders ?? ordersList.length}
+                  </div>
+                  <div className="admin-metric-subtext">
+                    {overview?.in_repair_count ?? 0} Active / Bench Cleanrooms
+                  </div>
                 </div>
               </div>
 
-              <div className="admin-metric-card">
-                <div className="admin-metric-label">ESCROW HELD IN VAULT</div>
-                <div className="admin-metric-value admin-metric-value-sky">
-                  ₹{overview?.escrow_held != null ? Number(overview.escrow_held).toLocaleString('en-IN') : '0'}
+              <div className="col-12 col-sm-6 col-lg-3">
+                <div className="admin-metric-card card h-100 p-3">
+                  <div className="admin-metric-label">TOTAL VOLUME</div>
+                  <div className="admin-metric-value admin-metric-value-success">
+                    ₹{overview?.total_volume != null ? Number(overview.total_volume).toLocaleString('en-IN') : '0'}
+                  </div>
+                  <div className="admin-metric-subtext">
+                    Gross marketplace GMV
+                  </div>
                 </div>
-                <div className="admin-metric-subtext">
-                  100% Protected until customer delivery
+              </div>
+
+              <div className="col-12 col-sm-6 col-lg-3">
+                <div className="admin-metric-card card h-100 p-3">
+                  <div className="admin-metric-label">ESCROW HELD IN VAULT</div>
+                  <div className="admin-metric-value admin-metric-value-sky">
+                    ₹{overview?.escrow_held != null ? Number(overview.escrow_held).toLocaleString('en-IN') : '0'}
+                  </div>
+                  <div className="admin-metric-subtext">
+                    100% Protected until customer delivery
+                  </div>
                 </div>
               </div>
             </div>
@@ -1629,91 +1668,7 @@ export default function AdminDashboard({ onOpenLiveStream }) {
           </div>
         )}
 
-        {/* ========================================================
-            TAB 6: SYSTEM HEALTH & DATABASE CONTROLS
-           ======================================================== */}
-        {activeTab === 'database' && (
-          <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '28px' }}>
-              <div className="tech-card" style={{ padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <Activity size={24} color="#10b981" />
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>API Server Status</h3>
-                    <span className="badge badge-verified" style={{ fontSize: '0.68rem', marginTop: '2px' }}>HEALTHY (HTTP 200)</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  Backend Flask instance running on port 5000 with CORS authorization and JWT cryptographic token auth.
-                </p>
-              </div>
 
-              <div className="tech-card" style={{ padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <Database size={24} color="var(--primary)" />
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>Database Storage</h3>
-                    <span className="badge badge-primary" style={{ fontSize: '0.68rem', marginTop: '2px' }}>SQLITE ATTACHED</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  ACID transactional SQLite engine. Tables: Users, Orders, Streams, Parts, Payments.
-                </p>
-              </div>
-
-              <div className="tech-card" style={{ padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <Video size={24} color="var(--cta-orange)" />
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>WebRTC / Live Streams</h3>
-                    <span className="badge badge-orange" style={{ fontSize: '0.68rem', marginTop: '2px' }}>ONLINE (3 ACTIVE)</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  Microscope streams transmitting 4K 60fps cleanroom video feeds with sub-second latency.
-                </p>
-              </div>
-            </div>
-
-            <div className="tech-card" style={{ padding: '28px' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>
-                Database Maintenance & Backup Actions
-              </h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>
-                Perform administrative backups, data exports, or complete database restorations.
-              </p>
-
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <button
-                  className="btn-primary"
-                  onClick={handleExportBackup}
-                  style={{ padding: '10px 20px', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}
-                >
-                  <Download size={16} /> Download Full Database JSON Dump
-                </button>
-
-                <button
-                  onClick={handleResetDatabase}
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.12)',
-                    border: '1.5px solid rgba(239, 68, 68, 0.4)',
-                    color: '#ef4444',
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '0.88rem',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Database size={16} /> Reset & Re-Seed Database
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
 

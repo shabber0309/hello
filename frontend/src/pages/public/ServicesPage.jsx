@@ -229,7 +229,7 @@ export default function ServicesPage({ onStartBooking }) {
           </div>
 
           {/* CATEGORY FILTER PILLS */}
-          <div className="services-category-row">
+          <div className="services-category-row d-flex flex-wrap justify-content-center gap-2 mb-4">
             {[
               { id: 'all', label: 'All Services' },
               { id: 'hardware', label: 'Hardware & Micro-Soldering' },
@@ -238,7 +238,7 @@ export default function ServicesPage({ onStartBooking }) {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`services-category-btn ${activeCategory === cat.id ? 'active' : ''}`}
+                className={`btn btn-sm ${activeCategory === cat.id ? 'btn-primary' : 'btn-outline-secondary'}`}
               >
                 {cat.label}
               </button>
@@ -247,80 +247,79 @@ export default function ServicesPage({ onStartBooking }) {
         </div>
 
         {/* SERVICES GRID */}
-        <div className="services-grid">
+        <div className="services-grid row g-4 mb-5">
           {filteredServices.map(srv => {
             const Icon = srv.icon;
             return (
-              <div 
-                key={srv.id}
-                className="tech-card services-card"
-              >
-                <div>
-                  <div className="services-card-top">
-                    <div className="services-icon-box">
-                      <Icon size={22} strokeWidth={2.4} />
-                    </div>
-
-                    <div className="services-badges-group">
-                      {srv.popular && (
-                        <span className="services-popular-badge">
-                          POPULAR
-                        </span>
-                      )}
-                      <span className="badge badge-verified">
-                        <ShieldCheck size={12} />
-                        {srv.warranty}
-                      </span>
-                    </div>
-                  </div>
-
-                  <h3 className="services-card-title">
-                    {srv.title}
-                  </h3>
-
-                  <p className="services-card-desc">
-                    {srv.desc}
-                  </p>
-
-                  {/* Symptoms Resolved */}
-                  <div className="services-symptoms-section">
-                    <div className="services-symptoms-label">
-                      SYMPTOMS RESOLVED:
-                    </div>
-                    <div className="services-symptoms-list">
-                      {srv.symptoms.map((symp, sIdx) => (
-                        <span 
-                          key={sIdx}
-                          className="services-symptom-pill"
-                        >
-                          • {symp}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom Card Footer: Price, Turnaround, CTA */}
-                <div className="services-card-bottom">
+              <div key={srv.id} className="col-12 col-md-6 col-lg-4">
+                <div className="tech-card card h-100 services-card d-flex flex-column justify-content-between p-4">
                   <div>
-                    <div className="services-price-label">
-                      ESTIMATED RANGE
+                    <div className="services-card-top d-flex justify-content-between align-items-center mb-3">
+                      <div className="services-icon-box">
+                        <Icon size={22} strokeWidth={2.4} />
+                      </div>
+
+                      <div className="services-badges-group d-flex gap-2 align-items-center">
+                        {srv.popular && (
+                          <span className="badge bg-warning text-dark fw-bold">
+                            POPULAR
+                          </span>
+                        )}
+                        <span className="badge bg-success-subtle text-success border border-success-subtle">
+                          <ShieldCheck size={12} className="me-1" />
+                          {srv.warranty}
+                        </span>
+                      </div>
                     </div>
-                    <div className="services-price-val">
-                      {srv.priceRange}
-                    </div>
-                    <div className="services-warranty-info">
-                      <Clock size={11} /> {srv.turnaround}
+
+                    <h3 className="services-card-title h5 mb-2">
+                      {srv.title}
+                    </h3>
+
+                    <p className="services-card-desc small text-muted mb-3">
+                      {srv.desc}
+                    </p>
+
+                    {/* Symptoms Resolved */}
+                    <div className="services-symptoms-section mb-4">
+                      <div className="services-symptoms-label small text-dim fw-bold mb-2">
+                        SYMPTOMS RESOLVED:
+                      </div>
+                      <div className="services-symptoms-list d-flex flex-wrap gap-1">
+                        {srv.symptoms.map((symp, sIdx) => (
+                          <span 
+                            key={sIdx}
+                            className="badge bg-secondary-subtle text-secondary small"
+                          >
+                            • {symp}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleBookService(srv.title)}
-                    className="btn-primary services-book-btn"
-                  >
-                    Book Now
-                    <ArrowRight size={14} />
-                  </button>
+                  {/* Bottom Card Footer: Price, Turnaround, CTA */}
+                  <div className="services-card-bottom d-flex justify-content-between align-items-end pt-3 border-top border-light">
+                    <div>
+                      <div className="services-price-label text-dim small">
+                        ESTIMATED RANGE
+                      </div>
+                      <div className="services-price-val fw-bold text-primary fs-5">
+                        {srv.priceRange}
+                      </div>
+                      <div className="services-warranty-info small text-muted d-flex align-items-center gap-1">
+                        <Clock size={11} /> {srv.turnaround}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleBookService(srv.title)}
+                      className="btn btn-primary btn-sm services-book-btn d-flex align-items-center gap-1"
+                    >
+                      Book Now
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -328,22 +327,22 @@ export default function ServicesPage({ onStartBooking }) {
         </div>
 
         {/* BOTTOM GUARANTEE CALLOUT */}
-        <div className="services-custom-callout">
+        <div className="services-custom-callout card p-4 p-md-5 d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
           <div>
-            <h3 className="services-callout-h3">
+            <h3 className="services-callout-h3 h4 mb-2">
               Don't see your exact issue listed?
             </h3>
-            <p className="services-callout-p">
+            <p className="services-callout-p text-muted mb-0">
               Our cleanroom technicians diagnose complex multi-layer PCB motherboard failures, custom bios corruptions, and liquid ingress every day.
             </p>
           </div>
 
           <button
             onClick={() => onStartBooking ? onStartBooking() : navigate('/customer/book')}
-            className="btn-primary services-callout-btn"
+            className="btn btn-primary services-callout-btn text-nowrap"
           >
             Custom Diagnostic Request
-            <ArrowRight size={16} />
+            <ArrowRight size={16} className="ms-2" />
           </button>
         </div>
 

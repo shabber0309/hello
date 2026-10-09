@@ -247,9 +247,7 @@
 }
 
 .for-tech-benefits-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
+  /* Using Bootstrap .row flexbox */
 }
 
 .for-tech-benefit-card {
@@ -301,9 +299,7 @@
 }
 
 .for-tech-roadmap-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  /* Using Bootstrap .row flexbox */
 }
 
 .for-tech-roadmap-step {
