@@ -4,6 +4,7 @@ import {
   CheckCircle2, AlertTriangle, ShieldCheck, MessageSquare, Send, Check,
   PhoneOff, Maximize2, Share2, Layers, Volume2, ShieldAlert
 } from 'lucide-react';
+import { getCloudImageUrl } from '../../../utils/cloudImages';
 import './StreamModal.css';
 
 export default function StreamModal({ order, isOpen = true, onClose, onApproveQuote }) {
@@ -115,7 +116,7 @@ export default function StreamModal({ order, isOpen = true, onClose, onApproveQu
             {/* Video Viewport */}
             <div className="stream-viewport">
               <img 
-                src={activeCam === 'microscope' ? '/microscope_chip.jpg' : '/tech_bench_live.jpg'} 
+                src={activeCam === 'microscope' ? getCloudImageUrl('/microscope_chip.jpg') : getCloudImageUrl('/tech_bench_live.jpg')} 
                 alt="Live Stream Camera"
                 className="stream-video-feed"
               />

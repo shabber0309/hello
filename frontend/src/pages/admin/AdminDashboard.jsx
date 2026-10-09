@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { StreamModal, OrderConversationModal } from '../../components/modals';
+import { getCloudImageUrl } from '../../utils/cloudImages';
 import './AdminDashboard.css';
 
 export default function AdminDashboard({ onOpenLiveStream, initialTab }) {
@@ -1343,7 +1344,7 @@ export default function AdminDashboard({ onOpenLiveStream, initialTab }) {
                     <div key={ord.id} className="tech-card" style={{ padding: '20px', borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.35)' }}>
                       <div style={{ position: 'relative', height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '14px', background: '#0f172a' }}>
                         <img 
-                          src="/hero_laptop.jpg" 
+                          src={getCloudImageUrl('/hero_laptop.jpg')} 
                           alt="Customer Repair Stream" 
                           style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} 
                         />
@@ -1412,7 +1413,7 @@ export default function AdminDashboard({ onOpenLiveStream, initialTab }) {
                 <div key={idx} className="tech-card" style={{ padding: '20px', borderRadius: '16px' }}>
                   <div style={{ position: 'relative', height: '200px', borderRadius: '12px', overflow: 'hidden', marginBottom: '14px', background: '#0f172a' }}>
                     <img 
-                      src="/hero_laptop.jpg" 
+                      src={getCloudImageUrl('/hero_laptop.jpg')} 
                       alt="Cleanroom Stream" 
                       style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} 
                     />

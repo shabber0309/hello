@@ -15,6 +15,7 @@ import {
   Clock,
   Cpu
 } from 'lucide-react';
+import { getCloudImageUrl } from '../../../utils/cloudImages';
 import './ChainOfCustodyModal.css';
 
 export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS-8891' }) {
@@ -31,7 +32,7 @@ export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS
       time: '08:45 AM - Oct 24',
       badge: 'Intake Verified',
       icon: Truck,
-      image: '/hero_laptop.jpg',
+      image: getCloudImageUrl('/hero_laptop.jpg'),
       details: {
         agent: 'Rajesh K. (Authorized Secure Courier #412)',
         location: 'Doorstep Pickup, Flat 402, Green Heights, Hyderabad',
@@ -49,7 +50,7 @@ export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS
       time: '09:02 AM - Oct 24',
       badge: 'Intake Condition Verified',
       icon: Package,
-      image: '/tech_bench_live.jpg',
+      image: getCloudImageUrl('/tech_bench_live.jpg'),
       details: {
         facility: 'Live Fix ISO-7 Certified Cleanroom Station #4',
         inspector: 'Vikram Verma (Intake Lead)',
@@ -67,7 +68,7 @@ export default function ChainOfCustodyModal({ isOpen, onClose, orderNumber = 'TS
       time: '09:15 AM - Now',
       badge: 'Live on Google Meet',
       icon: Video,
-      image: '/microscope_chip.jpg',
+      image: getCloudImageUrl('/microscope_chip.jpg'),
       details: {
         technician: 'David P. / Raj K. (IPC-7711 Certified Hardware Master)',
         streamUrl: 'https://meet.google.com/ts-live-bench',

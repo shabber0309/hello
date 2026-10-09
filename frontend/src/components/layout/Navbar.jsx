@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getStoredUnreadCount } from '../../utils/notificationManager';
+import { getCloudImageUrl } from '../../utils/cloudImages';
 import './Navbar.css';
 
 export default function Navbar({ 
@@ -271,7 +272,7 @@ export default function Navbar({
             title="Live Fix - Home"
           >
             <img 
-              src="/livefix-logo.png" 
+              src={getCloudImageUrl('/livefix-logo.png')} 
               alt="Live Fix" 
               className="livefix-navbar-logo" 
             />

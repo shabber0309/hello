@@ -38,6 +38,7 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { StreamModal, OrderConversationModal, NotificationsModal } from '../../components/modals';
 import { getStoredUnreadCount } from '../../utils/notificationManager';
+import { getCloudImageUrl } from '../../utils/cloudImages';
 import './TechDashboard.css';
 
 export default function TechDashboard({ initialTab }) {
@@ -1882,9 +1883,9 @@ export default function TechDashboard({ initialTab }) {
                     {/* Live Image Feed */}
                     <img
                       src={
-                        liveCamSource === 'microscope' ? '/microscope_chip.jpg' :
-                        liveCamSource === 'pcb' ? '/pcb_repair_chip.jpg' :
-                        '/tech_bench_live.jpg'
+                        liveCamSource === 'microscope' ? getCloudImageUrl('/microscope_chip.jpg') :
+                        liveCamSource === 'pcb' ? getCloudImageUrl('/pcb_repair_chip.jpg') :
+                        getCloudImageUrl('/tech_bench_live.jpg')
                       }
                       alt="Cleanroom Live Video Feed"
                       className="tech-studio-feed-img"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronDown, Check, X, Laptop, AlertCircle } from 'lucide-react';
 import { getModelsForBrand } from './laptopModelsData';
+import { getCloudImageUrl } from '../../../utils/cloudImages';
 
 export default function ModelSearchDropdown({
   brand,
@@ -186,7 +187,7 @@ export default function ModelSearchDropdown({
                       src={item.imageUrl}
                       alt={item.display_name}
                       className="model-dropdown-thumb"
-                      onError={(e) => { e.currentTarget.src = '/hero_laptop.jpg'; }}
+                      onError={(e) => { e.currentTarget.src = getCloudImageUrl('/hero_laptop.jpg'); }}
                     />
                     <div className="model-dropdown-info">
                       <span className="model-dropdown-title">

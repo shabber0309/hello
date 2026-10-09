@@ -1,5 +1,7 @@
 // Offline catalog of genuine laptop models for searchable dropdown
 // Enriched from Kaggle dataset + Extensive modern OEM catalog (2020-2026)
+import { getCloudImageUrl } from '../utils/cloudImages';
+
 export const BRAND_MODELS_MAP = {
   "HP": [
     {
@@ -4410,7 +4412,10 @@ export function getModelsForBrand(brand) {
   const bLower = brand.toLowerCase().trim();
   for (const [key, models] of Object.entries(BRAND_MODELS_MAP)) {
     if (key.toLowerCase() === bLower || bLower.includes(key.toLowerCase()) || key.toLowerCase().includes(bLower)) {
-      return models;
+      return models.map(item => ({
+        ...item,
+        imageUrl: getCloudImageUrl(item.imageUrl)
+      }));
     }
   }
   return [];
@@ -4421,7 +4426,7 @@ export function getModelsForBrand(brand) {
  * Resolves ANY model (even unlisted or custom typed) to an authentic brand-accurate visual and specs.
  * Under no circumstances does it show an Asus laptop for an HP, Lenovo, or Dell.
  */
-export function resolveLaptopModel(brand, model) {
+function _resolveLaptopModelBase(brand, model) {
   const b = (brand || '').toLowerCase().trim();
   const m = (model || '').toLowerCase().trim();
 
@@ -4619,3 +4624,15 @@ export function resolveLaptopModel(brand, model) {
     imageUrl: '/laptops/models/generic_ultrabook.jpg'
   };
 }
+
+export function resolveLaptopModel(brand, model) {
+  const resolved = _resolveLaptopModelBase(brand, model);
+  if (resolved && resolved.imageUrl) {
+    return {
+      ...resolved,
+      imageUrl: getCloudImageUrl(resolved.imageUrl)
+    };
+  }
+  return resolved;
+}
+

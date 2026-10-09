@@ -9,6 +9,7 @@ import {
   IndianRupee,
   Eye
 } from 'lucide-react';
+import { getCloudImageUrl } from '../../utils/cloudImages';
 import './LandingPage.css';
 
 export default function LandingPage({ 
@@ -102,7 +103,7 @@ export default function LandingPage({
             <div className="col-12 col-lg-6">
               <div className="landing-hero-preview-card card shadow-lg border-0 overflow-hidden">
                 <img 
-                  src="/hero_laptop.jpg" 
+                  src={getCloudImageUrl('/hero_laptop.jpg')} 
                   alt="Laptop Diagnostics"
                   className="landing-hero-img img-fluid w-100"
                 />

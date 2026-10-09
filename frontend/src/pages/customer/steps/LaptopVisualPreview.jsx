@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Maximize2, X } from 'lucide-react';
 import { resolveLaptopModel } from './laptopModelsData';
+import { getCloudImageUrl } from '../../../utils/cloudImages';
 
 export default function LaptopVisualPreview({ brand, model }) {
   const [isZoomed, setIsZoomed] = useState(false);
@@ -22,7 +23,7 @@ export default function LaptopVisualPreview({ brand, model }) {
           alt={`${brand || ''} ${model || ''}`.trim() || 'Laptop Preview'}
           className="laptop-preview-image loaded"
           onError={(e) => {
-            e.currentTarget.src = '/hero_laptop.jpg';
+            e.currentTarget.src = getCloudImageUrl('/hero_laptop.jpg');
           }}
         />
 
