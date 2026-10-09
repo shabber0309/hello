@@ -10,7 +10,7 @@ import {
   Lock, 
   Star, 
   Clock, 
-  DollarSign,
+  IndianRupee,
   Radio,
   Eye,
   FileCheck,
@@ -56,7 +56,7 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
       summary: 'Accept your preferred quote with escrow-secured payment protection.',
       detail: 'Accept the quote you like best. Your payment is held securely in an encrypted escrow account. The technician does not receive a single rupee until you inspect and approve the repair.',
       highlight: '100% money-back guarantee if the issue cannot be resolved.',
-      icon: DollarSign,
+      icon: IndianRupee,
       color: '#8b5cf6',
       badge: 'ESCROW'
     },
@@ -164,9 +164,9 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
             Discover how Live Fix protects your device through live microscope camera streaming, verified technicians, and escrow-secured payments.
           </p>
 
-          <div className="how-cta-row">
+          <div className="how-cta-row d-flex flex-wrap justify-content-center gap-3">
             <button 
-              className="btn-cta how-btn-primary"
+              className="btn btn-cta how-btn-primary"
               onClick={onStartBooking}
             >
               Start Repair Request
@@ -174,7 +174,7 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
             </button>
 
             <button 
-              className="btn-secondary how-btn-secondary"
+              className="btn btn-secondary how-btn-secondary"
               onClick={onWatchLiveDemo}
             >
               <Radio size={16} color="#ef4444" />
@@ -184,69 +184,68 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
         </div>
 
         {/* 6-STEP INTERACTIVE PROTOCOL */}
-        <div className="how-section-block">
-          <div className="how-section-header">
-            <span className="how-section-tag">
+        <div className="how-section-block mb-5">
+          <div className="how-section-header text-center mb-4">
+            <span className="how-section-tag badge bg-primary-subtle text-primary mb-2">
               STEP-BY-STEP PROCESS
             </span>
-            <h2 className="how-section-h2">
+            <h2 className="how-section-h2 h3">
               The 6 Stages of Verified Care
             </h2>
           </div>
 
-          <div className="how-steps-grid">
+          <div className="how-steps-grid row g-4">
             {steps.map((st, idx) => {
               const Icon = st.icon;
               return (
-                <div 
-                  key={idx}
-                  className="how-step-card"
-                >
-                  <div 
-                    className="how-step-top-stripe"
-                    style={{ background: st.color }}
-                  />
+                <div key={idx} className="col-12 col-md-6 col-lg-4">
+                  <div className="how-step-card card h-100 p-4 position-relative overflow-hidden">
+                    <div 
+                      className="how-step-top-stripe position-absolute top-0 start-0 end-0"
+                      style={{ background: st.color, height: '4px' }}
+                    />
 
-                  <div>
-                    <div className="how-step-card-header">
-                      <div 
-                        className="how-step-icon-wrap"
-                        style={{
-                          background: `${st.color}15`,
-                          border: `1.5px solid ${st.color}40`,
-                          color: st.color
-                        }}
-                      >
-                        <Icon size={22} strokeWidth={2.4} />
+                    <div>
+                      <div className="how-step-card-header d-flex justify-content-between align-items-center mb-3">
+                        <div 
+                          className="how-step-icon-wrap rounded-3 p-2 d-flex align-items-center justify-content-center"
+                          style={{
+                            background: `${st.color}15`,
+                            border: `1.5px solid ${st.color}40`,
+                            color: st.color
+                          }}
+                        >
+                          <Icon size={22} strokeWidth={2.4} />
+                        </div>
+
+                        <div 
+                          className="how-step-num fw-bold fs-4"
+                          style={{ color: st.color }}
+                        >
+                          {st.num}
+                        </div>
                       </div>
 
                       <div 
-                        className="how-step-num"
+                        className="how-step-tag small fw-bold mb-1"
                         style={{ color: st.color }}
                       >
-                        {st.num}
+                        {st.tag}
                       </div>
+
+                      <h3 className="how-step-title h5 mb-2">
+                        {st.title}
+                      </h3>
+
+                      <p className="how-step-detail small text-muted mb-3">
+                        {st.detail}
+                      </p>
                     </div>
 
-                    <div 
-                      className="how-step-tag"
-                      style={{ color: st.color }}
-                    >
-                      {st.tag}
+                    <div className="how-step-highlight small d-flex align-items-center gap-2 mt-auto pt-2 border-top border-light">
+                      <CheckCircle2 size={16} color="#10b981" />
+                      <span>{st.highlight}</span>
                     </div>
-
-                    <h3 className="how-step-title">
-                      {st.title}
-                    </h3>
-
-                    <p className="how-step-detail">
-                      {st.detail}
-                    </p>
-                  </div>
-
-                  <div className="how-step-highlight">
-                    <CheckCircle2 size={16} color="#10b981" />
-                    <span>{st.highlight}</span>
                   </div>
                 </div>
               );
@@ -255,39 +254,39 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
         </div>
 
         {/* COMPARISON MATRIX: TRADITIONAL VS LIVE FIX */}
-        <div className="how-comparison-card">
-          <div className="how-section-header">
-            <span className="how-section-tag">
+        <div className="how-comparison-card card p-4 mb-5">
+          <div className="how-section-header text-center mb-4">
+            <span className="how-section-tag badge bg-primary-subtle text-primary mb-2">
               TRANSPARENCY AUDIT
             </span>
-            <h2 className="how-section-h2">
+            <h2 className="how-section-h2 h3">
               Traditional Repair vs. Live Fix
             </h2>
           </div>
 
-          <div className="how-table-wrap">
-            <table className="how-table">
+          <div className="how-table-wrap table-responsive">
+            <table className="how-table table table-hover align-middle mb-0">
               <thead>
                 <tr className="how-th-row">
-                  <th className="how-th how-th-feature">FEATURE</th>
-                  <th className="how-th how-th-trad">TRADITIONAL REPAIR SHOPS</th>
-                  <th className="how-th how-th-fix">LIVE FIX VERIFIED BENCH</th>
+                  <th scope="col" className="how-th how-th-feature">FEATURE</th>
+                  <th scope="col" className="how-th how-th-trad text-danger">TRADITIONAL REPAIR SHOPS</th>
+                  <th scope="col" className="how-th how-th-fix text-success">LIVE FIX VERIFIED BENCH</th>
                 </tr>
               </thead>
               <tbody>
                 {comparisons.map((c, i) => (
                   <tr key={i} className="how-tr">
-                    <td className="how-td-feature">
+                    <td className="how-td-feature fw-semibold">
                       {c.aspect}
                     </td>
-                    <td className="how-td-trad">
-                      <div className="how-row-content">
+                    <td className="how-td-trad text-muted">
+                      <div className="how-row-content d-flex align-items-center gap-2">
                         <span style={{ color: '#ef4444', fontWeight: 800 }}>✕</span>
                         {c.traditional}
                       </div>
                     </td>
                     <td className="how-td-fix">
-                      <div className="how-row-content">
+                      <div className="how-row-content d-flex align-items-center gap-2 fw-medium text-success">
                         <CheckCircle2 size={16} color="#10b981" />
                         {c.livefix}
                       </div>
@@ -300,34 +299,34 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
         </div>
 
         {/* FREQUENTLY ASKED QUESTIONS */}
-        <div className="how-section-block">
-          <div className="how-section-header">
-            <span className="how-section-tag">
+        <div className="how-section-block mb-5">
+          <div className="how-section-header text-center mb-4">
+            <span className="how-section-tag badge bg-primary-subtle text-primary mb-2">
               COMMON QUESTIONS
             </span>
-            <h2 className="how-section-h2">
+            <h2 className="how-section-h2 h3">
               Frequently Asked Questions
             </h2>
           </div>
 
-          <div className="how-faq-list">
+          <div className="how-faq-list d-flex flex-column gap-3">
             {faqs.map((f, i) => {
               const isOpen = openFaq === i;
               return (
                 <div 
                   key={i}
-                  className="how-faq-item"
+                  className="how-faq-item card p-3"
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : i)}
-                    className="how-faq-toggle"
+                    className="how-faq-toggle btn w-100 d-flex justify-content-between align-items-center text-start p-0"
                   >
-                    <span>{f.q}</span>
+                    <span className="fw-semibold text-main">{f.q}</span>
                     {isOpen ? <ChevronUp size={18} color="var(--primary)" /> : <ChevronDown size={18} color="#64748b" />}
                   </button>
 
                   {isOpen && (
-                    <div className="how-faq-answer">
+                    <div className="how-faq-answer pt-3 text-muted small border-top border-light mt-2">
                       {f.a}
                     </div>
                   )}
@@ -338,18 +337,18 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
         </div>
 
         {/* BOTTOM CTA BANNER */}
-        <div className="how-cta-banner">
-          <h2 className="how-cta-banner-h2">
+        <div className="how-cta-banner card text-center p-4 p-md-5">
+          <h2 className="how-cta-banner-h2 h3 mb-2">
             Ready for Honest, Live-Monitored Laptop Repair?
           </h2>
-          <p className="how-cta-banner-p">
+          <p className="how-cta-banner-p text-muted mb-4">
             Submit your laptop brand, symptoms, and target budget. Get verified quotes in minutes.
           </p>
 
-          <div className="how-cta-row">
+          <div className="how-cta-row d-flex flex-wrap justify-content-center gap-3">
             <button
               onClick={onStartBooking}
-              className="how-banner-primary-btn"
+              className="btn btn-cta how-banner-primary-btn"
             >
               Get Your Laptop Repaired
               <ArrowRight size={17} />
@@ -357,7 +356,7 @@ export default function HowItWorksPage({ onStartBooking, onWatchLiveDemo }) {
 
             <button
               onClick={onWatchLiveDemo}
-              className="how-banner-secondary-btn"
+              className="btn btn-secondary how-banner-secondary-btn"
             >
               <Radio size={16} color="#ef4444" />
               Watch Live Cleanroom Feed

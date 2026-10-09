@@ -134,9 +134,7 @@
 
 /* Tab 1: Symptoms Grid */
 .pricing-symptoms-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 16px;
+  /* Using Bootstrap .row flexbox */
   margin-bottom: 36px;
 }
 

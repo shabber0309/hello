@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Wrench, 
-  DollarSign, 
+  IndianRupee, 
   ShieldCheck, 
   ArrowRight, 
   Award, 
@@ -56,7 +56,7 @@ export default function ForTechniciansPage({ onRegisterClick, onLoginClick }) {
 
   const benefits = [
     {
-      icon: DollarSign,
+      icon: IndianRupee,
       title: '85% Net Payouts',
       desc: 'Keep the highest commission in the industry. Funds are held in escrow and released directly via UPI/Bank transfer.',
       color: '#10b981'
@@ -115,9 +115,9 @@ export default function ForTechniciansPage({ onRegisterClick, onLoginClick }) {
             Join India's premier live-monitored laptop repair network. Eliminate customer mistrust with live microscope streaming and receive direct escrow-backed payouts.
           </p>
 
-          <div className="for-tech-cta-group">
+          <div className="for-tech-cta-group d-flex flex-wrap justify-content-center gap-3">
             <button 
-              className="btn-cta for-tech-btn-primary"
+              className="btn btn-cta for-tech-btn-primary"
               onClick={onRegisterClick}
             >
               Apply as a Technician
@@ -125,7 +125,7 @@ export default function ForTechniciansPage({ onRegisterClick, onLoginClick }) {
             </button>
 
             <button 
-              className="btn-secondary for-tech-btn-secondary"
+              className="btn btn-secondary for-tech-btn-secondary"
               onClick={onLoginClick}
             >
               Technician Portal Login
@@ -134,90 +134,93 @@ export default function ForTechniciansPage({ onRegisterClick, onLoginClick }) {
         </div>
 
         {/* EARNINGS CALCULATOR */}
-        <div className="for-tech-calc-wrapper">
-          <div>
-            <div className="for-tech-calc-tag">
-              EARNINGS POTENTIAL
-            </div>
-
-            <h3 className="for-tech-calc-title">
-              How Much Can You Earn?
-            </h3>
-
-            <p className="for-tech-calc-desc">
-              Adjust the slider based on the number of chip-level and hardware repairs your bench handles each week.
-            </p>
-
-            <div className="for-tech-slider-group">
-              <div className="for-tech-slider-label-row">
-                <span className="for-tech-slider-label">Repairs Completed Per Week:</span>
-                <span className="for-tech-slider-val">{repairsPerWeek} jobs/wk</span>
+        <div className="for-tech-calc-wrapper card p-4 p-md-5 mb-5">
+          <div className="row g-4 align-items-center">
+            <div className="col-12 col-lg-7">
+              <div className="for-tech-calc-tag badge bg-primary-subtle text-primary mb-2">
+                EARNINGS POTENTIAL
               </div>
-              <input 
-                type="range"
-                min="2"
-                max="25"
-                value={repairsPerWeek}
-                onChange={(e) => setRepairsPerWeek(Number(e.target.value))}
-                className="for-tech-slider-input"
-              />
-            </div>
-          </div>
 
-          <div className="for-tech-calc-result-box">
-            <div className="for-tech-calc-result-tag">
-              ESTIMATED MONTHLY NET PAYOUT
+              <h3 className="for-tech-calc-title h4 mb-2">
+                How Much Can You Earn?
+              </h3>
+
+              <p className="for-tech-calc-desc text-muted mb-4">
+                Adjust the slider based on the number of chip-level and hardware repairs your bench handles each week.
+              </p>
+
+              <div className="for-tech-slider-group">
+                <div className="for-tech-slider-label-row d-flex justify-content-between mb-2">
+                  <span className="for-tech-slider-label fw-semibold">Repairs Completed Per Week:</span>
+                  <span className="for-tech-slider-val fw-bold text-primary">{repairsPerWeek} jobs/wk</span>
+                </div>
+                <input 
+                  type="range"
+                  min="2"
+                  max="25"
+                  value={repairsPerWeek}
+                  onChange={(e) => setRepairsPerWeek(Number(e.target.value))}
+                  className="for-tech-slider-input form-range"
+                />
+              </div>
             </div>
-            <div className="for-tech-calc-amount">
-              ₹{estimatedMonthlyEarnings.toLocaleString('en-IN')}
+
+            <div className="col-12 col-lg-5">
+              <div className="for-tech-calc-result-box card p-4 text-center bg-primary-subtle border-primary-subtle">
+                <div className="for-tech-calc-result-tag small fw-bold text-dim mb-1">
+                  ESTIMATED MONTHLY NET PAYOUT
+                </div>
+                <div className="for-tech-calc-amount display-6 fw-bold text-primary mb-2">
+                  ₹{estimatedMonthlyEarnings.toLocaleString('en-IN')}
+                </div>
+                <p className="for-tech-calc-note small text-muted mb-3">
+                  Based on average ₹{avgRepairProfit} net technician profit per completed hardware repair.
+                </p>
+                <button
+                  onClick={onRegisterClick}
+                  className="btn btn-primary w-100 for-tech-calc-apply-btn d-flex align-items-center justify-content-center gap-2"
+                >
+                  Join Our Network
+                  <ArrowRight size={15} />
+                </button>
+              </div>
             </div>
-            <p className="for-tech-calc-note">
-              Based on average ₹{avgRepairProfit} net technician profit per completed hardware repair.
-            </p>
-            <button
-              onClick={onRegisterClick}
-              className="for-tech-calc-apply-btn"
-            >
-              Join Our Network
-              <ArrowRight size={15} />
-            </button>
           </div>
         </div>
 
         {/* 6 PLATFORM ADVANTAGES */}
-        <div className="for-tech-section-block">
-          <div className="for-tech-section-header">
-            <span className="for-tech-section-tag">
+        <div className="for-tech-section-block mb-5">
+          <div className="for-tech-section-header text-center mb-4">
+            <span className="for-tech-section-tag badge bg-primary-subtle text-primary mb-2">
               WHY TOP TECHNICIANS CHOOSE US
             </span>
-            <h2 className="for-tech-section-h2">
+            <h2 className="for-tech-section-h2 h3">
               Built to Protect Honest Craftsmanship
             </h2>
           </div>
 
-          <div className="for-tech-benefits-grid">
+          <div className="for-tech-benefits-grid row g-4">
             {benefits.map((b, i) => {
               const Icon = b.icon;
               return (
-                <div 
-                  key={i}
-                  className="tech-card for-tech-benefit-card"
-                >
-                  <div 
-                    className="for-tech-benefit-icon-box"
-                    style={{
-                      background: `${b.color}15`,
-                      color: b.color
-                    }}
-                  >
-                    <Icon size={22} strokeWidth={2.4} />
+                <div key={i} className="col-12 col-md-6 col-lg-4">
+                  <div className="tech-card card h-100 for-tech-benefit-card p-4">
+                    <div 
+                      className="for-tech-benefit-icon-box rounded-3 p-2 d-inline-flex align-items-center justify-content-center mb-3"
+                      style={{
+                        background: `${b.color}15`,
+                        color: b.color
+                      }}
+                    >
+                      <Icon size={22} strokeWidth={2.4} />
+                    </div>
+                    <h3 className="for-tech-benefit-title h5 mb-2">
+                      {b.title}
+                    </h3>
+                    <p className="for-tech-benefit-desc small text-muted mb-0">
+                      {b.desc}
+                    </p>
                   </div>
-                  <h3 className="for-tech-benefit-title">
-                    {b.title}
-                  </h3>
-                  <p className="for-tech-benefit-desc">
-                    {b.desc}
-                  </p>
                 </div>
               );
             })}
@@ -225,33 +228,30 @@ export default function ForTechniciansPage({ onRegisterClick, onLoginClick }) {
         </div>
 
         {/* 4 STAGE ONBOARDING ROADMAP */}
-        <div className="for-tech-roadmap-card">
-          <div className="for-tech-section-header">
-            <span className="for-tech-section-tag">
+        <div className="for-tech-roadmap-card card p-4 mb-5">
+          <div className="for-tech-section-header text-center mb-4">
+            <span className="for-tech-section-tag badge bg-primary-subtle text-primary mb-2">
               FAST-TRACK ONBOARDING
             </span>
-            <h2 className="for-tech-section-h2">
+            <h2 className="for-tech-section-h2 h3">
               How to Get Verified in 48 Hours
             </h2>
           </div>
 
-          <div className="for-tech-roadmap-grid">
+          <div className="for-tech-roadmap-grid row g-4">
             {steps.map((st, i) => (
-              <div 
-                key={i}
-                className="for-tech-roadmap-step"
-              >
-                <div>
-                  <div className="for-tech-roadmap-num">
+              <div key={i} className="col-12 col-sm-6 col-lg-3">
+                <div className="for-tech-roadmap-step card h-100 p-3 bg-card-subtle">
+                  <div className="for-tech-roadmap-num fw-bold fs-3 text-primary mb-1">
                     {st.num}
                   </div>
-                  <div className="for-tech-roadmap-tag">
+                  <div className="for-tech-roadmap-tag small fw-bold text-muted mb-2">
                     {st.tag}
                   </div>
-                  <h4 className="for-tech-roadmap-title">
+                  <h4 className="for-tech-roadmap-title h6 mb-2">
                     {st.title}
                   </h4>
-                  <p className="for-tech-roadmap-desc">
+                  <p className="for-tech-roadmap-desc small text-muted mb-0">
                     {st.desc}
                   </p>
                 </div>
@@ -261,25 +261,25 @@ export default function ForTechniciansPage({ onRegisterClick, onLoginClick }) {
         </div>
 
         {/* BOTTOM CALLOUT */}
-        <div className="for-tech-bottom-callout">
-          <h2 className="for-tech-callout-h2">
+        <div className="for-tech-bottom-callout card text-center p-4 p-md-5">
+          <h2 className="for-tech-callout-h2 h3 mb-2">
             Ready to Build a High-Reputation Repair Business?
           </h2>
-          <p className="for-tech-callout-p">
+          <p className="for-tech-callout-p text-muted mb-4">
             Join our certified network today. Verified workshops gain access to high-margin motherboard orders immediately.
           </p>
 
-          <div className="for-tech-cta-group">
+          <div className="for-tech-cta-group d-flex flex-wrap justify-content-center gap-3">
             <button
               onClick={onRegisterClick}
-              className="for-tech-callout-btn-primary"
+              className="btn btn-cta for-tech-callout-btn-primary"
             >
               Start Technician Application
               <ArrowRight size={17} />
             </button>
             <button
               onClick={onLoginClick}
-              className="for-tech-callout-btn-secondary"
+              className="btn btn-secondary for-tech-callout-btn-secondary"
             >
               Existing Technician Login
             </button>

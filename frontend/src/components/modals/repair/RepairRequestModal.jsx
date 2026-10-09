@@ -18,9 +18,9 @@ import {
   Layers,
   Wrench
 } from 'lucide-react';
-import { SearchableDropdown } from '../common';
-import { LAPTOP_PROBLEM_CATEGORIES, ALL_PROBLEMS_FLAT } from '../../data/laptopProblems';
-import { getMandalsForPincode, getSavedAddress, saveCustomerAddress } from '../../data/pincodeLocations';
+import { SearchableDropdown } from '../../common';
+import { LAPTOP_PROBLEM_CATEGORIES, ALL_PROBLEMS_FLAT } from '../../../data/laptopProblems';
+import { getMandalsForPincode, getSavedAddress, saveCustomerAddress } from '../../../data/pincodeLocations';
 import './RepairRequestModal.css';
 
 export default function RepairRequestModal({ isOpen, onClose, onSubmitSuccess }) {

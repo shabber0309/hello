@@ -113,31 +113,31 @@ export default function PricingPage({ onStartBooking }) {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="pricing-tabs-row">
+        <div className="pricing-tabs-row nav nav-pills justify-content-center gap-2 mb-4">
           <button
             onClick={() => setActiveTab('symptoms')}
-            className={`pricing-tab-btn ${activeTab === 'symptoms' ? 'active-primary' : ''}`}
+            className={`btn pricing-tab-btn ${activeTab === 'symptoms' ? 'btn-primary active-primary' : 'btn-outline-secondary'}`}
           >
             🚨 Common Problems
           </button>
 
           <button
             onClick={() => setActiveTab('hardware')}
-            className={`pricing-tab-btn ${activeTab === 'hardware' ? 'active-primary' : ''}`}
+            className={`btn pricing-tab-btn ${activeTab === 'hardware' ? 'btn-primary active-primary' : 'btn-outline-secondary'}`}
           >
             <Cpu size={15} /> Hardware Catalog
           </button>
 
           <button
             onClick={() => setActiveTab('software')}
-            className={`pricing-tab-btn ${activeTab === 'software' ? 'active-primary' : ''}`}
+            className={`btn pricing-tab-btn ${activeTab === 'software' ? 'btn-primary active-primary' : 'btn-outline-secondary'}`}
           >
             <Layers size={15} /> Software Catalog
           </button>
 
           <button
             onClick={() => setActiveTab('workflow')}
-            className={`pricing-tab-btn ${activeTab === 'workflow' ? 'active-workflow' : ''}`}
+            className={`btn pricing-tab-btn ${activeTab === 'workflow' ? 'btn-primary active-workflow' : 'btn-outline-secondary'}`}
           >
             <ShieldCheck size={15} /> How Approval Works
           </button>
@@ -145,39 +145,38 @@ export default function PricingPage({ onStartBooking }) {
 
         {/* TAB 1: COMMON PROBLEMS */}
         {activeTab === 'symptoms' && (
-          <div className="pricing-symptoms-grid">
+          <div className="pricing-symptoms-grid row g-4">
             {filteredSymptoms.map((symptom) => (
-              <div
-                key={symptom.id}
-                className="tech-card pricing-symptom-card"
-              >
-                <div>
-                  <div className="pricing-symptom-top">
-                    <span className="pricing-symptom-icon">{symptom.icon}</span>
-                    <span className="pricing-symptom-badge">
-                      {symptom.category}
-                    </span>
+              <div key={symptom.id} className="col-12 col-md-6 col-lg-4">
+                <div className="tech-card card h-100 pricing-symptom-card d-flex flex-column justify-content-between p-4">
+                  <div>
+                    <div className="pricing-symptom-top d-flex justify-content-between align-items-center mb-3">
+                      <span className="pricing-symptom-icon fs-3">{symptom.icon}</span>
+                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
+                        {symptom.category}
+                      </span>
+                    </div>
+
+                    <h3 className="pricing-symptom-title h5 mb-2">
+                      {symptom.title}
+                    </h3>
+
+                    <div className="pricing-symptom-range fw-bold text-primary mb-2">
+                      {symptom.estimateRange}
+                    </div>
+
+                    <p className="pricing-symptom-desc small text-muted mb-4">
+                      {symptom.explanation}
+                    </p>
                   </div>
 
-                  <h3 className="pricing-symptom-title">
-                    {symptom.title}
-                  </h3>
-
-                  <div className="pricing-symptom-range">
-                    {symptom.estimateRange}
-                  </div>
-
-                  <p className="pricing-symptom-desc">
-                    {symptom.explanation}
-                  </p>
+                  <button
+                    className="btn btn-primary w-100 pricing-symptom-btn"
+                    onClick={() => onStartBooking && onStartBooking(symptom.title)}
+                  >
+                    Book for this Issue <ArrowRight size={14} />
+                  </button>
                 </div>
-
-                <button
-                  className="btn-primary pricing-symptom-btn"
-                  onClick={() => onStartBooking && onStartBooking(symptom.title)}
-                >
-                  Book for this Issue <ArrowRight size={14} />
-                </button>
               </div>
             ))}
           </div>
@@ -186,10 +185,10 @@ export default function PricingPage({ onStartBooking }) {
         {/* TAB 2: HARDWARE CATALOG */}
         {activeTab === 'hardware' && (
           <div>
-            <div className="pricing-filter-pills">
+            <div className="pricing-filter-pills d-flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setSelectedHwCategory('all')}
-                className={`pricing-filter-pill ${selectedHwCategory === 'all' ? 'active' : ''}`}
+                className={`btn btn-sm ${selectedHwCategory === 'all' ? 'btn-primary' : 'btn-outline-secondary'}`}
               >
                 All
               </button>
@@ -197,41 +196,41 @@ export default function PricingPage({ onStartBooking }) {
                 <button
                   key={cat.categoryKey}
                   onClick={() => setSelectedHwCategory(cat.categoryKey)}
-                  className={`pricing-filter-pill ${selectedHwCategory === cat.categoryKey ? 'active' : ''}`}
+                  className={`btn btn-sm ${selectedHwCategory === cat.categoryKey ? 'btn-primary' : 'btn-outline-secondary'}`}
                 >
                   {cat.category}
                 </button>
               ))}
             </div>
 
-            <div className="pricing-catalog-list">
+            <div className="pricing-catalog-list d-flex flex-column gap-4">
               {filteredHardware.map((catGroup) => (
-                <div key={catGroup.categoryKey} className="tech-card pricing-catalog-card">
-                  <h3 className="pricing-catalog-h3">
+                <div key={catGroup.categoryKey} className="tech-card card pricing-catalog-card p-4">
+                  <h3 className="pricing-catalog-h3 h5 mb-3">
                     {catGroup.category}
                   </h3>
 
-                  <div className="pricing-table-container">
-                    <table className="pricing-data-table">
+                  <div className="pricing-table-container table-responsive">
+                    <table className="table table-hover align-middle pricing-data-table mb-0">
                       <thead>
                         <tr className="pricing-table-header">
-                          <th>Repair</th>
-                          <th>Estimated Range</th>
-                          <th>Note</th>
-                          <th style={{ textAlign: 'right' }}>Action</th>
+                          <th scope="col">Repair</th>
+                          <th scope="col">Estimated Range</th>
+                          <th scope="col">Note</th>
+                          <th scope="col" style={{ textAlign: 'right' }}>Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {catGroup.repairs.map((r, idx) => (
                           <tr key={idx} className="pricing-table-row">
-                            <td className="pricing-problem-cell">{r.problem}</td>
-                            <td className="pricing-range-hw">
+                            <td className="pricing-problem-cell fw-medium">{r.problem}</td>
+                            <td className="pricing-range-hw text-primary fw-bold">
                               {r.range}
                             </td>
-                            <td className="pricing-note-cell">{r.note}</td>
-                            <td className="pricing-action-cell">
+                            <td className="pricing-note-cell text-muted small">{r.note}</td>
+                            <td className="pricing-action-cell" style={{ textAlign: 'right' }}>
                               <button
-                                className="btn-primary pricing-book-small-btn"
+                                className="btn btn-sm btn-primary pricing-book-small-btn"
                                 onClick={() => onStartBooking && onStartBooking(r.problem)}
                               >
                                 Book
@@ -251,14 +250,14 @@ export default function PricingPage({ onStartBooking }) {
         {/* TAB 3: SOFTWARE CATALOG */}
         {activeTab === 'software' && (
           <div>
-            <div className="pricing-software-note">
+            <div className="pricing-software-note alert alert-info py-2 px-3 mb-3">
               *Note: Software licenses (Windows/Office keys) are separate from technician service fees.
             </div>
 
-            <div className="pricing-filter-pills">
+            <div className="pricing-filter-pills d-flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setSelectedSwCategory('all')}
-                className={`pricing-filter-pill ${selectedSwCategory === 'all' ? 'active' : ''}`}
+                className={`btn btn-sm ${selectedSwCategory === 'all' ? 'btn-primary' : 'btn-outline-secondary'}`}
               >
                 All
               </button>
@@ -266,41 +265,41 @@ export default function PricingPage({ onStartBooking }) {
                 <button
                   key={cat.categoryKey}
                   onClick={() => setSelectedSwCategory(cat.categoryKey)}
-                  className={`pricing-filter-pill ${selectedSwCategory === cat.categoryKey ? 'active' : ''}`}
+                  className={`btn btn-sm ${selectedSwCategory === cat.categoryKey ? 'btn-primary' : 'btn-outline-secondary'}`}
                 >
                   {cat.category}
                 </button>
               ))}
             </div>
 
-            <div className="pricing-catalog-list">
+            <div className="pricing-catalog-list d-flex flex-column gap-4">
               {filteredSoftware.map((catGroup) => (
-                <div key={catGroup.categoryKey} className="tech-card pricing-catalog-card">
-                  <h3 className="pricing-catalog-h3">
+                <div key={catGroup.categoryKey} className="tech-card card pricing-catalog-card p-4">
+                  <h3 className="pricing-catalog-h3 h5 mb-3">
                     {catGroup.category}
                   </h3>
 
-                  <div className="pricing-table-container">
-                    <table className="pricing-data-table">
+                  <div className="pricing-table-container table-responsive">
+                    <table className="table table-hover align-middle pricing-data-table mb-0">
                       <thead>
                         <tr className="pricing-table-header">
-                          <th>Service</th>
-                          <th>Estimated Range</th>
-                          <th>Details</th>
-                          <th style={{ textAlign: 'right' }}>Action</th>
+                          <th scope="col">Service</th>
+                          <th scope="col">Estimated Range</th>
+                          <th scope="col">Details</th>
+                          <th scope="col" style={{ textAlign: 'right' }}>Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {catGroup.repairs.map((r, idx) => (
                           <tr key={idx} className="pricing-table-row">
-                            <td className="pricing-problem-cell">{r.service}</td>
-                            <td className="pricing-range-sw">
+                            <td className="pricing-problem-cell fw-medium">{r.service}</td>
+                            <td className="pricing-range-sw text-primary fw-bold">
                               {r.range}
                             </td>
-                            <td className="pricing-note-cell">{r.note}</td>
-                            <td className="pricing-action-cell">
+                            <td className="pricing-note-cell text-muted small">{r.note}</td>
+                            <td className="pricing-action-cell" style={{ textAlign: 'right' }}>
                               <button
-                                className="btn-primary pricing-book-small-btn"
+                                className="btn btn-sm btn-primary pricing-book-small-btn"
                                 onClick={() => onStartBooking && onStartBooking(r.service)}
                               >
                                 Book

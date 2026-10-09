@@ -39,6 +39,7 @@ import {
   HelpSupportModal,
   OrderConversationModal
 } from '../../components/modals';
+import { getStoredUnreadCount } from '../../utils/notificationManager';
 import './CustomerDashboard.css';
 
 export default function CustomerDashboard({ onNewBooking, isChatRoute = false }) {
@@ -305,7 +306,7 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
 
             return (
               <div style={{
-                background: 'linear-gradient(135deg, #075e54 0%, #128c7e 100%)',
+                background: 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)',
                 color: '#ffffff',
                 borderRadius: '14px',
                 padding: '14px 20px',
@@ -315,7 +316,7 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: '12px',
-                boxShadow: '0 8px 24px -4px rgba(7, 94, 84, 0.4)',
+                boxShadow: '0 8px 24px -4px rgba(29, 78, 216, 0.35)',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -323,18 +324,17 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
                     width: '40px',
                     height: '40px',
                     borderRadius: '50%',
-                    background: 'rgba(255, 255, 255, 0.2)',
+                    background: 'rgba(255, 255, 255, 0.18)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.25rem',
                     flexShrink: 0
                   }}>
-                    🔔
+                    <Bell size={20} color="#ffffff" />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.98rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span>Technician {techDisplayName} wants to talk to you</span>
+                    <div style={{ fontWeight: 800, fontSize: '0.96rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>Diagnostic Repair Estimate Ready</span>
                       <span style={{
                         background: 'rgba(255, 255, 255, 0.25)',
                         padding: '2px 8px',
@@ -342,30 +342,30 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
                         fontSize: '0.74rem',
                         fontWeight: 700
                       }}>
-                        Quote: ₹{pendingTechNotice.quote_amount}
+                        ₹{pendingTechNotice.quote_amount}
                       </span>
                     </div>
                     <div style={{ fontSize: '0.82rem', opacity: 0.9, marginTop: '2px' }}>
-                      "{pendingTechNotice.technician_notes || 'Technician submitted diagnostic repair estimate'}"
+                      {pendingTechNotice.laptop_brand} {pendingTechNotice.laptop_model}: "{pendingTechNotice.technician_notes || 'Technician submitted hardware diagnostic estimate'}"
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
                     type="button"
                     onClick={() => {
                       handleDismissNotice(pendingTechNotice.id, pendingTechNotice.order_number);
-                      setConversationOrder(pendingTechNotice);
-                      navigate('/customer/chat');
+                      const targetCard = document.getElementById(`repair-card-${pendingTechNotice.id}`);
+                      if (targetCard) targetCard.scrollIntoView({ behavior: 'smooth' });
                     }}
                     style={{
                       background: '#ffffff',
-                      color: '#075e54',
+                      color: 'var(--primary, #1d4ed8)',
                       border: 'none',
                       borderRadius: '8px',
-                      padding: '8px 18px',
-                      fontSize: '0.86rem',
+                      padding: '8px 16px',
+                      fontSize: '0.84rem',
                       fontWeight: 800,
                       cursor: 'pointer',
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
@@ -374,9 +374,35 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
                       gap: '6px'
                     }}
                   >
-                    <MessageSquare size={16} />
-                    <span>Open Messages</span>
+                    <CheckCircle2 size={15} />
+                    <span>Review Quote</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDismissNotice(pendingTechNotice.id, pendingTechNotice.order_number);
+                      setConversationOrder(pendingTechNotice);
+                      navigate('/customer/chat');
+                    }}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      color: '#ffffff',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '8px',
+                      padding: '8px 14px',
+                      fontSize: '0.84rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <MessageSquare size={15} />
+                    <span>Chat</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={(e) => {
@@ -437,7 +463,7 @@ export default function CustomerDashboard({ onNewBooking, isChatRoute = false })
             >
               <Bell size={16} />
               <span>Notifications</span>
-              {activeRepairs.some(r => r.stream_session?.is_live || r.status === 'Quote Pending') && (
+              {getStoredUnreadCount(user) > 0 && (
                 <span style={{
                   position: 'absolute',
                   top: '-3px',

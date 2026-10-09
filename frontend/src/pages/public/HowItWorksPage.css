@@ -122,9 +122,7 @@
 
 /* 6-Step Cards Grid */
 .how-steps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
+  /* Using Bootstrap .row flexbox */
 }
 
 .how-step-card {

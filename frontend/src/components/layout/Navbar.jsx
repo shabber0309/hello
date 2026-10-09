@@ -20,15 +20,15 @@ import {
   CreditCard,
   Bell,
   HelpCircle,
-  DollarSign,
+  IndianRupee,
   Settings,
-  ArrowRight,
   CheckCircle2,
   Database,
   Video,
   Users
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getStoredUnreadCount } from '../../utils/notificationManager';
 import './Navbar.css';
 
 export default function Navbar({ 
@@ -38,7 +38,8 @@ export default function Navbar({
   onOpenHelp,
   onOpenMessages,
   onOpenRequestModal,
-  onOpenTrackRepair
+  onOpenTrackRepair,
+  onOpenDatabaseMaintenance
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,16 +72,12 @@ export default function Navbar({
   const isTech = user?.role === 'technician';
   const isCustomer = user?.role === 'customer';
 
-  // Check if we are currently inside an authenticated internal workspace
-  const isInternalApp = !isHome && (
-    (location.pathname.startsWith('/admin') && isAdmin) ||
-    (location.pathname.startsWith('/technician') && isTech) ||
-    (location.pathname.startsWith('/customer') && isCustomer)
-  );
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.body.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-bs-theme', theme);
+    document.body.setAttribute('data-bs-theme', theme);
     localStorage.setItem('livefix_theme', theme);
   }, [theme]);
 
@@ -88,26 +85,53 @@ export default function Navbar({
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
+  // Determine if there are active unread system notifications (strictly synchronized)
+  const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setHasUnreadAlerts(false);
+      return;
+    }
+    const updateUnreadStatus = () => {
+      const count = getStoredUnreadCount(user);
+      setHasUnreadAlerts(count > 0);
+    };
+
+    updateUnreadStatus();
+
+    window.addEventListener('livefix_notifications_changed', updateUnreadStatus);
+    window.addEventListener('storage', updateUnreadStatus);
+    const interval = setInterval(updateUnreadStatus, 3000);
+
+    return () => {
+      window.removeEventListener('livefix_notifications_changed', updateUnreadStatus);
+      window.removeEventListener('storage', updateUnreadStatus);
+      clearInterval(interval);
+    };
+  }, [user]);
+
   // Nav links: Match active internal dashboard context or user role strictly
   const getNavLinks = () => {
-    // Admin: Central operations, users, orders, live audits, and database inspector
+    // Admin: Central operations, users, orders, live audits, custody, escrow, and database inspector
     if (isAdmin || user?.role === 'admin') {
       return [
         { id: 'dashboard', name: 'Admin Console', path: '/admin/dashboard', icon: Shield },
-        { id: 'users', name: 'Users & Staff', path: '/admin/dashboard?tab=users', icon: Users },
-        { id: 'orders', name: 'Repair Orders', path: '/admin/dashboard?tab=orders', icon: Package },
-        { id: 'streams', name: 'Live Streams & Meet', path: '/admin/dashboard?tab=streams', icon: Video },
-        { id: 'database', name: 'Database & Audit', path: '/admin/dashboard?tab=database', icon: Database }
+        { id: 'users', name: 'Users & Staff', path: '/admin/users', icon: Users },
+        { id: 'orders', name: 'Repair Orders', path: '/admin/orders', icon: Package },
+        { id: 'streams', name: 'Live Streams & Meet', path: '/admin/streams', icon: Video },
+        { id: 'custody', name: 'Custody & Logistics', path: '/admin/custody', icon: ShieldCheck },
+        { id: 'escrow', name: 'Escrow Vault', path: '/admin/escrow', icon: IndianRupee }
       ];
     }
     // Technician: Workbench, Active Jobs, Customer Messages, Live Cleanroom & Earnings (NO Track Repair, Services, or Pricing!)
     if (isTech || user?.role === 'technician') {
       return [
         { id: 'workbench', name: 'Technician Workbench', path: '/technician/dashboard', icon: Wrench },
-        { id: 'active-jobs', name: 'Active Jobs', path: '/technician/dashboard?tab=active', icon: Laptop },
-        { id: 'chat', name: 'Customer Messages', path: '/technician/dashboard?tab=chat', icon: MessageSquare },
-        { id: 'live-stream', name: 'Live Cleanroom', path: '/technician/dashboard?tab=live', icon: Video },
-        { id: 'earnings', name: 'Earnings & Escrow', path: '/technician/dashboard?tab=earnings', icon: DollarSign }
+        { id: 'active-jobs', name: 'Active Jobs', path: '/technician/active', icon: Laptop },
+        { id: 'chat', name: 'Customer Messages', path: '/technician/chat', icon: MessageSquare },
+        { id: 'live-stream', name: 'Live Cleanroom', path: '/technician/live', icon: Video },
+        { id: 'earnings', name: 'Earnings & Escrow', path: '/technician/earnings', icon: IndianRupee }
       ];
     }
     // Customer: Personal dashboard, book new repair, live chat, track active device, transparent pricing
@@ -141,7 +165,7 @@ export default function Navbar({
           id: 'pricing', 
           name: 'Pricing & Warranty', 
           path: '/pricing', 
-          icon: DollarSign 
+          icon: IndianRupee 
         }
       ];
     }
@@ -158,29 +182,59 @@ export default function Navbar({
   };
 
   const isLinkActive = (link) => {
+    const currentPath = location.pathname;
     const currentFull = location.pathname + location.search;
     if (link.path.includes('?')) {
       return currentFull === link.path;
     }
     if (link.path === '/admin/dashboard') {
-      return (location.pathname === '/admin/dashboard' || location.pathname === '/admin') && !location.search;
+      return (currentPath === '/admin/dashboard' || currentPath === '/admin') && !location.search;
     }
+    if (link.path === '/admin/users') {
+      return currentPath === '/admin/users' || location.search.includes('tab=users');
+    }
+    if (link.path === '/admin/orders') {
+      return currentPath === '/admin/orders' || location.search.includes('tab=orders');
+    }
+    if (link.path === '/admin/streams') {
+      return currentPath === '/admin/streams' || location.search.includes('tab=streams');
+    }
+    if (link.path === '/admin/custody') {
+      return currentPath === '/admin/custody' || location.search.includes('tab=custody');
+    }
+    if (link.path === '/admin/escrow') {
+      return currentPath === '/admin/escrow' || location.search.includes('tab=escrow');
+    }
+
     if (link.path === '/technician/dashboard') {
-      return (location.pathname === '/technician/dashboard' || location.pathname === '/technician') && !location.search;
+      return (currentPath === '/technician/dashboard' || currentPath === '/technician' || currentPath === '/technician/workbench') && !location.search;
     }
+    if (link.path === '/technician/active') {
+      return currentPath === '/technician/active' || currentPath === '/technician/active-jobs' || location.search.includes('tab=active');
+    }
+    if (link.path === '/technician/chat') {
+      return currentPath === '/technician/chat' || currentPath === '/technician/messages' || location.search.includes('tab=chat') || location.search.includes('tab=messages');
+    }
+    if (link.path === '/technician/live') {
+      return currentPath === '/technician/live' || currentPath === '/technician/live-stream' || location.search.includes('tab=live');
+    }
+    if (link.path === '/technician/earnings') {
+      return currentPath === '/technician/earnings' || location.search.includes('tab=earnings');
+    }
+
     if (link.path === '/customer/chat') {
-      return location.pathname === '/customer/chat' || location.pathname === '/customer/messages';
+      return currentPath === '/customer/chat' || currentPath === '/customer/messages' || location.search.includes('tab=chat');
     }
     if (link.path === '/customer/dashboard') {
-      return (location.pathname === '/customer/dashboard' || location.pathname === '/dashboard') && !location.search;
+      return (currentPath === '/customer/dashboard' || currentPath === '/dashboard') && !location.search;
     }
     if (link.path === '/customer/book') {
-      return location.pathname === '/customer/book' || location.pathname === '/book';
+      return currentPath === '/customer/book' || currentPath === '/book';
     }
     if (link.path === '/') {
-      return (location.pathname === '/' || location.pathname === '/home') && !location.search;
+      return (currentPath === '/' || currentPath === '/home') && !location.search;
     }
-    return location.pathname === link.path;
+    return currentPath === link.path;
   };
 
   const handleNavLinkClick = (link) => {
@@ -272,18 +326,20 @@ export default function Navbar({
                 style={{ position: 'relative' }}
               >
                 <Bell size={17} strokeWidth={2.2} />
-                <span 
-                  style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '8px',
-                    width: '7px',
-                    height: '7px',
-                    borderRadius: '50%',
-                    background: '#ef4444',
-                    boxShadow: '0 0 6px #ef4444'
-                  }} 
-                />
+                {hasUnreadAlerts && (
+                  <span 
+                    style={{
+                      position: 'absolute',
+                      top: '8px',
+                      right: '8px',
+                      width: '7px',
+                      height: '7px',
+                      borderRadius: '50%',
+                      background: '#ef4444',
+                      boxShadow: '0 0 6px #ef4444'
+                    }} 
+                  />
+                )}
               </button>
             </div>
           )}
@@ -311,36 +367,6 @@ export default function Navbar({
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {!isInternalApp && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isAdmin) navigate('/admin/dashboard');
-                      else if (isTech) navigate('/technician/dashboard');
-                      else navigate('/customer/dashboard');
-                    }}
-                    style={{
-                      background: 'linear-gradient(135deg, var(--cta-orange, #f97316) 0%, #ea580c 100%)',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '7px 13px',
-                      fontSize: '0.82rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      boxShadow: '0 2px 8px rgba(249, 115, 22, 0.35)',
-                      transition: 'all 0.2s ease',
-                      whiteSpace: 'nowrap'
-                    }}
-                    title="Return to your dashboard"
-                  >
-                    <span>Dashboard</span>
-                    <ArrowRight size={13} />
-                  </button>
-                )}
 
                 <button
                   className="silicone-profile-trigger"
@@ -455,7 +481,7 @@ export default function Navbar({
                           navigate('/technician/dashboard');
                         }}
                       >
-                        <DollarSign size={14} color="var(--cta-orange)" />
+                        <IndianRupee size={14} color="var(--cta-orange)" />
                         <span>Earnings & Escrow</span>
                       </button>
 
@@ -488,11 +514,11 @@ export default function Navbar({
                         className="silicone-dropdown-item"
                         onClick={() => {
                           setShowProfileMenu(false);
-                          navigate('/admin/dashboard');
+                          if (onOpenDatabaseMaintenance) onOpenDatabaseMaintenance();
                         }}
                       >
                         <Database size={14} color="#10b981" />
-                        <span>Database & Audit Inspector</span>
+                        <span>Database Maintenance & Backup</span>
                       </button>
 
                       <button
@@ -505,55 +531,6 @@ export default function Navbar({
                         <Settings size={14} color="#10b981" />
                         <span>System Settings</span>
                       </button>
-
-                      {/* Super Admin Preview Viewports for QA testing */}
-                      <div style={{ padding: '6px 12px 4px', borderTop: '1px solid var(--border-light)', marginTop: '4px' }}>
-                        <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>
-                          Admin Viewport Jump
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowProfileMenu(false);
-                              navigate('/customer/dashboard');
-                            }}
-                            style={{
-                              padding: '5px 8px',
-                              fontSize: '0.72rem',
-                              fontWeight: 600,
-                              borderRadius: '6px',
-                              border: '1px solid var(--border-light)',
-                              background: 'var(--bg-card)',
-                              color: 'var(--text-main)',
-                              cursor: 'pointer'
-                            }}
-                            title="Preview Customer Dashboard"
-                          >
-                            👤 Customer
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowProfileMenu(false);
-                              navigate('/technician/dashboard');
-                            }}
-                            style={{
-                              padding: '5px 8px',
-                              fontSize: '0.72rem',
-                              fontWeight: 600,
-                              borderRadius: '6px',
-                              border: '1px solid var(--border-light)',
-                              background: 'var(--bg-card)',
-                              color: 'var(--text-main)',
-                              cursor: 'pointer'
-                            }}
-                            title="Preview Technician Workbench"
-                          >
-                            🔧 Tech
-                          </button>
-                        </div>
-                      </div>
                     </>
                   ) : (
                     <>
@@ -739,7 +716,7 @@ export default function Navbar({
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <DollarSign size={16} color="var(--primary)" />
+                        <IndianRupee size={16} color="var(--primary)" />
                         <span>Earnings & Escrow</span>
                       </div>
                     </button>
@@ -766,6 +743,33 @@ export default function Navbar({
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Bell size={16} color="var(--primary)" />
                         <span>Notifications</span>
+                      </div>
+                    </button>
+                  </>
+                ) : (isAdmin || user?.role === 'admin') ? (
+                  <>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onOpenDatabaseMaintenance) onOpenDatabaseMaintenance();
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Database size={16} color="#10b981" />
+                        <span>Database Maintenance</span>
+                      </div>
+                    </button>
+                    <button
+                      className="silicone-mobile-nav-btn"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onOpenEditProfile) onOpenEditProfile();
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Settings size={16} color="#10b981" />
+                        <span>System Settings</span>
                       </div>
                     </button>
                   </>

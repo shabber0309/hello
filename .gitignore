@@ -40,7 +40,6 @@ yarn-error.log*
 
 # Test artifacts & debug screenshots
 test_screenshots/
-inspect_*.png
-navbar_*.png
-verify_*.png
+*.png
+verify_screenshots.py
 scratch/

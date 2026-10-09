@@ -8,7 +8,7 @@ This project is configured to deploy as a **single, unified service** on Render'
 
 1. Push this repository to your GitHub:
    ```bash
-   git push -u origin main
+   git push -u origin main 
    ```
 2. Log in to [Render Dashboard](https://dashboard.render.com/).
 3. Click **New +** ➔ **Blueprint**.

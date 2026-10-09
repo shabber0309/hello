@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Phone, Lock, X, CheckCircle2, AlertCircle, Camera, Upload, Trash2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { sanitizeDigits, validatePhone, getPasswordValidationState, scrollToFirstError } from '../../utils/validation';
-import './Modals.css';
+import { useAuth } from '../../../context/AuthContext';
+import { sanitizeDigits, validatePhone, getPasswordValidationState, scrollToFirstError } from '../../../utils/validation';
+import '../common/Modals.css';
 
 export default function EditProfileModal({ isOpen, onClose, onProfileUpdated }) {
   const { user, token, updateCurrentUser } = useAuth();

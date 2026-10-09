@@ -144,22 +144,8 @@
 
 /* Metrics Overview Grid */
 .admin-metrics-grid {
-  display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
-  gap: 16px;
+  /* Uses Bootstrap .row flexbox */
   margin-bottom: 28px;
-}
-
-@media (max-width: 1100px) {
-  .admin-metrics-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-@media (max-width: 600px) {
-  .admin-metrics-grid {
-    grid-template-columns: 1fr !important;
-  }
 }
 
 .admin-metric-card {

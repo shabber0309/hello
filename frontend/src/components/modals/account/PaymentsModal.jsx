@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CreditCard, Wallet, ShieldCheck, CheckCircle2, Clock, RotateCcw, X, ArrowUpRight, Plus, Check } from 'lucide-react';
-import './Modals.css';
+import '../common/Modals.css';
 
 export default function PaymentsModal({ isOpen, onClose }) {
   const [balance, setBalance] = useState(2340);

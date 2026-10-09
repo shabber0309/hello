@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Star, CheckCircle2, X, Send } from 'lucide-react';
-import './Modals.css';
+import '../common/Modals.css';
 
 export default function FeedbackModal({ isOpen, onClose }) {
   const [overallRating, setOverallRating] = useState(5);

@@ -1,40 +1,39 @@
-  import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { Navbar, SiliconeWorkbenchFrame } from './components/layout';
+import { AuthProvider, useAuth } from './context';
+import { Navbar, Footer } from './components/layout';
 import './App.css';
-// Role-based Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import CustomerDashboard from './pages/customer/CustomerDashboard';
-import BookRepair from './pages/customer/BookRepair';
-import TrackRepairPage from './pages/customer/TrackRepairPage';
-import TechDashboard from './pages/technician/TechDashboard';
-import ForTechniciansPage from './pages/technician/ForTechniciansPage';
-import LandingPage from './pages/public/LandingPage';
-import NotFoundPage from './pages/public/NotFoundPage';
-import HowItWorksPage from './pages/public/HowItWorksPage';
-import ServicesPage from './pages/public/ServicesPage';
-import PricingPage from './pages/public/PricingPage';
-import AuthPage from './pages/auth/AuthPage';
 
-// Modals
+// Role-based & Public Pages from Central Pages Module
+import {
+  AdminDashboard,
+  CustomerDashboard,
+  BookRepair,
+  TrackRepairPage,
+  TechDashboard,
+  ForTechniciansPage,
+  LandingPage,
+  NotFoundPage,
+  HowItWorksPage,
+  ServicesPage,
+  PricingPage,
+  AuthPage
+} from './pages';
+
+// Production Modals
 import {
   StreamModal,
-  AuthModal,
   ChainOfCustodyModal,
   RepairRequestModal,
   TrackRepairModal,
   TechOnboardingModal,
-  RepairReportModal,
-  FeedbackModal,
   PaymentsModal,
   NotificationsModal,
   HelpSupportModal,
   EditProfileModal,
-  QualityCheckDeliveryModal,
-  OrderConversationModal
+  OrderConversationModal,
+  DatabaseMaintenanceModal
 } from './components/modals';
-import { ShieldCheck, Video, Lock, Heart } from 'lucide-react';
 
 function UnifiedDashboard() {
   const { user, loading } = useAuth();
@@ -101,14 +100,27 @@ function CustomerDashboardRoute({ onNewBooking }) {
   return <CustomerDashboard onNewBooking={onNewBooking} />;
 }
 
+function UnifiedChatRoute() {
+  const { user } = useAuth();
+  if (user?.role === 'technician') {
+    return <Navigate to="/technician/chat" replace />;
+  }
+  return <Navigate to="/customer/chat" replace />;
+}
+
+function UnifiedOrdersRoute() {
+  const { user } = useAuth();
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin/orders" replace />;
+  }
+  return <Navigate to="/customer/dashboard" replace />;
+}
+
 function MainApp() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [demoStreamOrder, setDemoStreamOrder] = useState(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalRole, setAuthModalRole] = useState('admin');
   const [isChainOfCustodyOpen, setIsChainOfCustodyOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [isTrackRepairOpen, setIsTrackRepairOpen] = useState(false);
@@ -118,6 +130,7 @@ function MainApp() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isDatabaseMaintenanceOpen, setIsDatabaseMaintenanceOpen] = useState(false);
   const [activeWhatsAppChatOrder, setActiveWhatsAppChatOrder] = useState(null);
 
   const openAuth = (role = 'customer') => {
@@ -176,11 +189,6 @@ function MainApp() {
     setIsTrackRepairOpen(true);
   };
 
-  // Ensure persistent clean local storage keys
-  useEffect(() => {
-    // Normal startup lifecycle without database wipe
-  }, []);
-
   const sampleDemoOrder = {
     id: 1,
     order_number: 'LIVE-PREVIEW',
@@ -214,11 +222,12 @@ function MainApp() {
         onOpenHelp={() => setIsHelpOpen(true)}
         onOpenMessages={() => handleOpenChat()}
         onOpenEditProfile={() => setIsEditProfileOpen(true)}
+        onOpenDatabaseMaintenance={() => setIsDatabaseMaintenanceOpen(true)}
       />
 
       <main className="app-main-content">
         <Routes>
-          {/* Public Routes */}
+          {/* Public Marketing Routes */}
           <Route path="/" element={
             <HomePageRoute
               onStartBooking={() => navigate('/customer/book')}
@@ -280,18 +289,16 @@ function MainApp() {
           } />
           <Route path="/track" element={<Navigate to="/track-repair" replace />} />
 
-          {/* Authentication Dedicated Pages */}
+          {/* Authentication Routes */}
           <Route path="/login" element={<AuthPage initialMode="login" />} />
           <Route path="/register" element={<AuthPage initialMode="register" />} />
           <Route path="/signin" element={<Navigate to="/login" replace />} />
           <Route path="/signup" element={<Navigate to="/register" replace />} />
 
-          {/* Customer Booking Slot Route: /customer/book (with /book backwards compatibility) */}
+          {/* Customer Booking Slot Route: /customer/book */}
           <Route path="/customer/book" element={
             <BookRepair
-              onBookingSuccess={(newOrder) => {
-                navigate('/customer/dashboard');
-              }}
+              onBookingSuccess={() => navigate('/customer/dashboard')}
               onCancel={() => navigate('/customer/dashboard')}
             />
           } />
@@ -309,26 +316,65 @@ function MainApp() {
           } />
           <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
 
-          {/* Admin Dashboard */}
+          {/* Admin Routes */}
           <Route path="/admin/dashboard" element={
             <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} />
+          } />
+          <Route path="/admin/users" element={
+            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} initialTab="users" />
+          } />
+          <Route path="/admin/orders" element={
+            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} initialTab="orders" />
+          } />
+          <Route path="/admin/streams" element={
+            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} initialTab="streams" />
+          } />
+          <Route path="/admin/database" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/custody" element={
+            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} initialTab="custody" />
+          } />
+          <Route path="/admin/escrow" element={
+            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} initialTab="escrow" />
+          } />
+          <Route path="/admin/overview" element={
+            <AdminDashboard onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)} initialTab="overview" />
           } />
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/administrator" element={<Navigate to="/admin/dashboard" replace />} />
 
-          {/* Technician Dashboard */}
-          <Route path="/technician/dashboard" element={
-            <TechDashboard />
-          } />
+          {/* Technician Routes */}
+          <Route path="/technician/dashboard" element={<TechDashboard />} />
+          <Route path="/technician/workbench" element={<TechDashboard initialTab="dashboard" />} />
+          <Route path="/technician/active" element={<TechDashboard initialTab="active" />} />
+          <Route path="/technician/active-jobs" element={<TechDashboard initialTab="active" />} />
+          <Route path="/technician/chat" element={<TechDashboard initialTab="chat" />} />
+          <Route path="/technician/messages" element={<TechDashboard initialTab="chat" />} />
+          <Route path="/technician/live" element={<TechDashboard initialTab="live" />} />
+          <Route path="/technician/live-stream" element={<TechDashboard initialTab="live" />} />
+          <Route path="/technician/earnings" element={<TechDashboard initialTab="earnings" />} />
+          <Route path="/technician/requests" element={<TechDashboard initialTab="requests" />} />
           <Route path="/technician" element={<Navigate to="/technician/dashboard" replace />} />
           <Route path="/tech" element={<Navigate to="/technician/dashboard" replace />} />
           <Route path="/tech/dashboard" element={<Navigate to="/technician/dashboard" replace />} />
 
-          {/* Universal /dashboard Route -> redirects to active role dashboard */}
+          {/* Universal Clean Route Shortcuts */}
+          <Route path="/users" element={<Navigate to="/admin/users" replace />} />
+          <Route path="/orders" element={<UnifiedOrdersRoute />} />
+          <Route path="/database" element={<Navigate to="/admin/database" replace />} />
+          <Route path="/streams" element={<Navigate to="/admin/streams" replace />} />
+          <Route path="/custody" element={<Navigate to="/admin/custody" replace />} />
+          <Route path="/escrow" element={<Navigate to="/admin/escrow" replace />} />
+          <Route path="/chat" element={<UnifiedChatRoute />} />
+          <Route path="/messages" element={<UnifiedChatRoute />} />
+          <Route path="/active-jobs" element={<Navigate to="/technician/active" replace />} />
+          <Route path="/earnings" element={<Navigate to="/technician/earnings" replace />} />
+          <Route path="/workbench" element={<Navigate to="/technician/dashboard" replace />} />
+
+          {/* Universal Role Redirect Route */}
           <Route path="/dashboard" element={<UnifiedDashboard />} />
 
-          {/* Catch-all: Stays on the invalid URL without bouncing to '/', displaying 404 */}
+          {/* 404 Catch-All Page */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
@@ -342,7 +388,7 @@ function MainApp() {
         />
       )}
 
-      {/* Pre-Login & Post-Login Track Repair Modal with 9 Milestones */}
+      {/* Track Repair Modal */}
       <TrackRepairModal 
         isOpen={isTrackRepairOpen}
         onClose={() => setIsTrackRepairOpen(false)}
@@ -350,7 +396,7 @@ function MainApp() {
         onOpenLiveStream={() => setDemoStreamOrder(sampleDemoOrder)}
       />
 
-      {/* For Technicians Registration & Benefits Modal */}
+      {/* For Technicians Registration Modal */}
       <TechOnboardingModal 
         isOpen={isTechOnboardingOpen}
         onClose={() => setIsTechOnboardingOpen(false)}
@@ -360,20 +406,18 @@ function MainApp() {
         }}
       />
 
-
-
-      {/* Chain of Custody 5-Stage Logistics Hub Modal */}
+      {/* Chain of Custody Logistics Hub Modal */}
       <ChainOfCustodyModal 
         isOpen={isChainOfCustodyOpen}
         onClose={() => setIsChainOfCustodyOpen(false)}
         orderNumber=""
       />
 
-      {/* Repair Request Modal (5-Step Guided Form) */}
+      {/* Repair Request Modal */}
       <RepairRequestModal 
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
-        onSubmitSuccess={(order) => {
+        onSubmitSuccess={() => {
           navigate('/customer/dashboard');
         }}
       />
@@ -389,8 +433,16 @@ function MainApp() {
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
         onActionClick={(action) => {
-          if (action.includes('Live')) setDemoStreamOrder(sampleDemoOrder);
-          else if (action.includes('Pickup') || action.includes('Track')) navigate('/track-repair');
+          if (action.includes('Live')) {
+            if (user?.role === 'technician') navigate('/technician/live');
+            else setDemoStreamOrder(sampleDemoOrder);
+          } else if (action.includes('Pickup') || action.includes('Track')) {
+            navigate('/track-repair');
+          } else if (action.includes('Quote') || action.includes('Warranty')) {
+            navigate('/customer/dashboard');
+          } else if (action.includes('Job') || action.includes('Repair') || action.includes('Bench')) {
+            navigate('/technician/dashboard');
+          }
         }}
       />
 
@@ -400,10 +452,16 @@ function MainApp() {
         onClose={() => setIsHelpOpen(false)}
       />
 
-      {/* Edit Profile Modal for All User Types */}
+      {/* Edit Profile Modal */}
       <EditProfileModal 
         isOpen={isEditProfileOpen}
         onClose={() => setIsEditProfileOpen(false)}
+      />
+
+      {/* Super Admin Database Maintenance & System Control Modal */}
+      <DatabaseMaintenanceModal
+        isOpen={isDatabaseMaintenanceOpen}
+        onClose={() => setIsDatabaseMaintenanceOpen(false)}
       />
 
       {/* WhatsApp Direct Customer-Technician Chat Modal */}
@@ -419,62 +477,8 @@ function MainApp() {
         />
       )}
 
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        initialRole={authModalRole}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={() => {
-          setIsAuthModalOpen(false);
-          if (user?.role === 'admin') navigate('/admin/dashboard');
-          else if (user?.role === 'technician') navigate('/technician/dashboard');
-          else navigate('/customer/dashboard');
-        }}
-      />
-
-      {/* Modern Responsive Footer for Live Fix */}
-      <footer className="app-footer">
-        <div className="container app-footer-inner">
-          <div className="app-footer-top">
-            <div className="app-footer-brand-wrap">
-              <span 
-                onClick={() => navigate('/')} 
-                className="app-footer-brand-title"
-              >
-                Live<span className="app-footer-brand-accent">Fix</span>
-              </span>
-              <span className="app-footer-tagline">Laptop Repair, Without the Guesswork.</span>
-            </div>
-
-            <nav className="app-footer-nav" aria-label="Footer Navigation">
-              <span className="app-footer-nav-link" onClick={() => navigate('/how-it-works')}>How It Works</span>
-              <span className="app-footer-nav-link" onClick={() => navigate('/services')}>Services</span>
-              <span className="app-footer-nav-link" onClick={() => navigate('/for-technicians')}>For Technicians</span>
-              <span className="app-footer-nav-link" onClick={() => navigate('/pricing')}>Pricing</span>
-              <span className="app-footer-nav-link" onClick={() => navigate('/track-repair')}>Track Repair</span>
-              {user?.role === 'admin' && (
-                <span className="app-footer-nav-link admin-link" onClick={() => navigate('/admin')}>
-                  Admin Console
-                </span>
-              )}
-              <span className="app-footer-nav-link" onClick={() => setIsHelpOpen(true)}>Help & Support</span>
-            </nav>
-          </div>
-
-          <div className="app-footer-bottom">
-            <span className="app-footer-copy">© 2026 Live Fix. All rights reserved.</span>
-            <div className="app-footer-badges">
-              <span>Verified Technician</span>
-              <span className="app-footer-arrow">➔</span>
-              <span>Secure Pickup</span>
-              <span className="app-footer-arrow">➔</span>
-              <span>Live Transparent Repair</span>
-              <span className="app-footer-arrow">➔</span>
-              <span>Quality-Certified Return</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Application Footer */}
+      <Footer onOpenHelp={() => setIsHelpOpen(true)} />
     </div>
   );
 }
